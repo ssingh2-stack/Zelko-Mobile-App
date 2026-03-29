@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl,
 } from "react-native";
@@ -9,6 +9,30 @@ export const OPEN_HOUR   = 9;
 export const CLOSE_HOUR  = 21;
 export const TOTAL_H     = CLOSE_HOUR - OPEN_HOUR;
 const TIME_COL_W = 56;
+
+// Distinct but on-brand — each pulls from a different hue family, kept muted/mature
+export const SERVICE_COLORS = [
+  "#C4683E", // terra (the Clipd accent)
+  "#2C6E63", // deep teal
+  "#7B4B94", // muted plum
+  "#8C6B2C", // burnished gold
+  "#3D5A80", // steel blue
+  "#994D3A", // burnt brick
+  "#4A7C59", // forest sage
+  "#6B4C6E", // dusty mauve
+];
+
+export function buildServiceColorMap(bookings) {
+  const names = [...new Set(bookings.map(b => b.service_name).filter(Boolean))];
+  const map = {};
+  names.forEach((n) => {
+    // Deterministic hash from service name so color never changes
+    let hash = 0;
+    for (let i = 0; i < n.length; i++) hash = ((hash << 5) - hash + n.charCodeAt(i)) | 0;
+    map[n] = SERVICE_COLORS[Math.abs(hash) % SERVICE_COLORS.length];
+  });
+  return map;
+}
 
 export const DCAL_COLORS = [
   { bg: "rgba(59,130,246,0.10)",  bd: "#3B82F6", tx: "#1D4ED8" },
@@ -61,7 +85,14 @@ export default function DayCalendarView({
   blockedSlots = [],
   shopHours,
   clientNotes = {},
+  serviceColors = {},
+  showBarberName = false,
+  onSwipeLeft,
+  onSwipeRight,
+  barberAvailability = {},
 }) {
+  const touchStart = useRef({ x: 0, y: 0, t: 0 });
+
   const totalPx = TOTAL_H * PX_PER_HOUR;
   const todayStr = new Date().toISOString().split("T")[0];
   const showNow = (date === todayStr || !date) && isNowVisible();
@@ -82,6 +113,18 @@ export default function DayCalendarView({
         style={styles.scroll}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.espresso} />}
         contentContainerStyle={styles.closedContainer}
+        onTouchStart={(e) => {
+          touchStart.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY, t: Date.now(), swiped: false };
+        }}
+        onTouchEnd={(e) => {
+          const dx = e.nativeEvent.pageX - touchStart.current.x;
+          const dy = e.nativeEvent.pageY - touchStart.current.y;
+          const dt = Date.now() - touchStart.current.t;
+          if (dt < 400 && Math.abs(dx) > 80 && Math.abs(dx) > Math.abs(dy) * 2) {
+            if (dx > 0) onSwipeRight?.();
+            else onSwipeLeft?.();
+          }
+        }}
       >
         <View style={styles.closedCard}>
           <Text style={styles.closedIcon}>🔒</Text>
@@ -98,20 +141,28 @@ export default function DayCalendarView({
       ref={scrollRef}
       style={styles.scroll}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.espresso} />}
+      onTouchStart={(e) => {
+        touchStart.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY, t: Date.now(), swiped: false };
+      }}
+      onTouchEnd={(e) => {
+        const dx = e.nativeEvent.pageX - touchStart.current.x;
+        const dy = e.nativeEvent.pageY - touchStart.current.y;
+        const dt = Date.now() - touchStart.current.t;
+        if (dt < 400 && Math.abs(dx) > 80 && Math.abs(dx) > Math.abs(dy) * 2) {
+          touchStart.current.swiped = true;
+          if (dx > 0) onSwipeRight?.();
+          else onSwipeLeft?.();
+        }
+      }}
     >
       {/* Column headers */}
       <View style={styles.head}>
         <View style={styles.timeColHead} />
-        {barbers.map((b) => {
-          const bIdx = allBarbers.findIndex(ab => ab.id === b.id);
-          const c = DCAL_COLORS[bIdx % DCAL_COLORS.length];
-          return (
-            <View key={b.id} style={[styles.th, { borderLeftColor: c.bd }]}>
-              <View style={[styles.thDot, { backgroundColor: c.bd }]} />
-              <Text style={styles.thText} numberOfLines={1}>{b.name}</Text>
-            </View>
-          );
-        })}
+        {barbers.map((b) => (
+          <View key={b.id} style={styles.th}>
+            <Text style={styles.thText} numberOfLines={1}>{b.name}</Text>
+          </View>
+        ))}
         {barbers.length === 0 && <View style={styles.thEmpty} />}
       </View>
 
@@ -177,17 +228,30 @@ export default function DayCalendarView({
             const c = DCAL_COLORS[bIdx % DCAL_COLORS.length];
             const bks = bookings.filter(b => b.barber_id === barber.id);
 
+            // Check barber availability for this day
+            const dayNum = date ? new Date(date + "T12:00:00").getDay() : new Date().getDay();
+            const avail = barberAvailability[barber.id];
+            const todayAvail = avail?.find(a => a.day_of_week === dayNum);
+            const barberOff = avail && avail.length > 0 && !todayAvail;
+
             return (
               <TouchableOpacity
                 key={barber.id}
                 style={[styles.col, { height: totalPx }]}
                 onPress={(e) => {
-                  if (!onSlotPress) return;
+                  if (!onSlotPress || touchStart.current.swiped) return;
                   const y = e.nativeEvent.locationY;
                   onSlotPress({ barberId: barber.id, barberName: barber.name, time: pxToTimeStr(y) });
                 }}
                 activeOpacity={1}
               >
+                {/* Barber off day */}
+                {barberOff && (
+                  <View style={styles.barberOffOverlay}>
+                    <Text style={styles.barberOffText}>Off</Text>
+                  </View>
+                )}
+
                 {/* Blocked time slots */}
                 {blockedSlots
                   .filter(bl => bl.barber_id === barber.id)
@@ -222,26 +286,35 @@ export default function DayCalendarView({
                   const endMin = bk.end_time ? tMin(bk.end_time) : startMin + (bk.duration_min || 30);
                   const isPast = showNow && endMin < nowMin;
 
+                  const svcColor = serviceColors[bk.service_name];
+                  // Service = color, barber = column position
+                  const blockBg = svcColor ? svcColor + "1A" : "#E8E0D8";
+                  const blockBorder = svcColor || "#9B8677";
+
                   return (
                     <TouchableOpacity
                       key={bk.confirmation_code}
                       style={[
                         styles.appt,
-                        { top, height: bkH, backgroundColor: c.bg, borderLeftColor: c.bd },
+                        { top, height: bkH, backgroundColor: blockBg, borderLeftColor: blockBorder,
+                          justifyContent: bkH > 60 ? "center" : "flex-start" },
                         cancelled && styles.apptCancelled,
                         isPast && !cancelled && styles.apptPast,
                       ]}
-                      onPress={(e) => { e.stopPropagation?.(); onBookingPress?.(bk); }}
+                      onPress={(e) => { if (touchStart.current.swiped) return; e.stopPropagation?.(); onBookingPress?.(bk); }}
                       activeOpacity={0.8}
                     >
-                      <Text style={[styles.apptTime, { color: c.tx }]}>{fmtTime(bk.start_time)}</Text>
+                      <Text style={[styles.apptTime, { color: blockBorder }]}>{fmtTime(bk.start_time)}</Text>
                       <Text style={[styles.apptName, (cancelled || isPast) && styles.apptNameMuted]} numberOfLines={1}>
                         {bk.customer_name}
                       </Text>
-                      {bkH > 52 && (
+                      {bkH > 32 && bk.barber_name && showBarberName && (
+                        <Text style={styles.apptBarber} numberOfLines={1}>{bk.barber_name}</Text>
+                      )}
+                      {bkH > 56 && !svcColor && (
                         <Text style={styles.apptSvc} numberOfLines={1}>{bk.service_name}</Text>
                       )}
-                      {bkH > 68 && clientNotes[bk.customer_email] ? (
+                      {bkH > 72 && clientNotes[bk.customer_email] ? (
                         <Text style={styles.apptNote} numberOfLines={1}>{clientNotes[bk.customer_email]}</Text>
                       ) : null}
                     </TouchableOpacity>
@@ -276,11 +349,11 @@ const styles = StyleSheet.create({
   timeColHead: { width: TIME_COL_W, borderRightWidth: 1, borderRightColor: C.border },
   th: {
     flex: 1, paddingVertical: 10, paddingHorizontal: 10,
-    borderLeftWidth: 3, flexDirection: "row", alignItems: "center", gap: 6,
+    borderLeftWidth: 1, borderLeftColor: C.border,
+    justifyContent: "center",
   },
   thEmpty: { flex: 1 },
-  thDot: { width: 8, height: 8, borderRadius: 4, flexShrink: 0 },
-  thText: { fontSize: 12, fontWeight: "800", color: C.espresso, flex: 1 },
+  thText: { fontSize: 12, fontWeight: "800", color: C.espresso },
 
   // Body
   body: { flexDirection: "row" },
@@ -397,6 +470,17 @@ const styles = StyleSheet.create({
   closedHint: {
     fontSize: 11, color: C.muted, fontStyle: "italic", textAlign: "center",
   },
+  // Barber off day
+  barberOffOverlay: {
+    position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: "rgba(155,134,119,0.08)",
+    alignItems: "center", paddingTop: 40, zIndex: 6,
+  },
+  barberOffText: {
+    fontSize: 11, fontWeight: "700", color: C.muted,
+    textTransform: "uppercase", letterSpacing: 1,
+  },
+
   // Before/after hours band
   closedBand: {
     position: "absolute", left: 0, right: 0,
@@ -407,14 +491,17 @@ const styles = StyleSheet.create({
   // Booking blocks
   appt: {
     position: "absolute", left: 4, right: 4,
-    borderRadius: 7, padding: 5, paddingLeft: 6,
-    borderLeftWidth: 3, overflow: "hidden", zIndex: 5,
+    borderRadius: 7, padding: 4, paddingLeft: 7,
+    borderLeftWidth: 4, overflow: "hidden", zIndex: 5,
   },
   apptCancelled: { opacity: 0.25 },
   apptPast:      { opacity: 0.45 },
-  apptTime: { fontSize: 9, fontWeight: "700", lineHeight: 13 },
-  apptName: { fontSize: 11, fontWeight: "700", color: C.espresso, lineHeight: 14 },
+  apptTime: { fontSize: 9, fontWeight: "700", lineHeight: 11 },
+  apptName: { fontSize: 11, fontWeight: "700", color: C.espresso, lineHeight: 13 },
+  apptBarber: { fontSize: 8, fontWeight: "600", color: C.muted, lineHeight: 10 },
   apptNameMuted: { color: C.muted },
-  apptSvc:  { fontSize: 10, color: C.muted, marginTop: 1 },
+  apptSvcRow: { flexDirection: "row", alignItems: "center", gap: 3, marginTop: 1 },
+  svcDot: { width: 6, height: 6, borderRadius: 3 },
+  apptSvc:  { fontSize: 10, color: C.muted },
   apptNote: { fontSize: 9, color: "#92400E", fontStyle: "italic", marginTop: 1 },
 });

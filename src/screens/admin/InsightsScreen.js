@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, RefreshControl, Alert, ActivityIndi
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../../lib/api";
 import { C, serif, fmtMoney } from "../../lib/theme";
+import { DCAL_COLORS } from "../../components/DayCalendarView";
 import { SkeletonKPI, SkeletonCard } from "../../components/Skeleton";
 import ErrorState from "../../components/ErrorState";
 import { getCached, setCache } from "../../lib/cache";
@@ -251,21 +252,41 @@ export default function InsightsScreen() {
             <RevenueChart data={chartData} />
           </View>
 
-          {/* Barber breakdown */}
-          {data.barber_breakdown?.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>By Barber</Text>
-              {data.barber_breakdown.map((b) => (
-                <View key={b.barber_name} style={styles.breakdownRow}>
-                  <View style={styles.breakdownLeft}>
-                    <Text style={styles.breakdownName}>{b.barber_name}</Text>
-                    <Text style={styles.breakdownSub}>{b.booking_count} bookings</Text>
-                  </View>
-                  <Text style={styles.breakdownVal}>{fmtMoney(b.revenue)}</Text>
-                </View>
-              ))}
-            </View>
-          )}
+          {/* Barber performance */}
+          {data.barber_breakdown?.length > 0 && (() => {
+            const maxRev = Math.max(...data.barber_breakdown.map(b => b.revenue || 0), 1);
+            const maxBks = Math.max(...data.barber_breakdown.map(b => b.booking_count || 0), 1);
+            return (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Barber Performance</Text>
+                {data.barber_breakdown.map((b, i) => {
+                  const avgVal = b.booking_count > 0 ? Math.round(b.revenue / b.booking_count) : 0;
+                  const revPct = (b.revenue || 0) / maxRev;
+                  return (
+                    <View key={b.barber_name} style={styles.perfCard}>
+                      <View style={styles.perfHeader}>
+                        <View style={[styles.perfAvatar, { backgroundColor: DCAL_COLORS[i % DCAL_COLORS.length].bg, borderColor: DCAL_COLORS[i % DCAL_COLORS.length].bd }]}>
+                          <Text style={[styles.perfInitials, { color: DCAL_COLORS[i % DCAL_COLORS.length].tx }]}>
+                            {b.barber_name?.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase()}
+                          </Text>
+                        </View>
+                        <Text style={styles.perfName}>{b.barber_name}</Text>
+                        <Text style={styles.perfRevenue}>{fmtMoney(b.revenue)}</Text>
+                      </View>
+                      <View style={styles.perfBar}>
+                        <View style={[styles.perfBarFill, { width: `${Math.max(revPct * 100, 4)}%` }]} />
+                      </View>
+                      <View style={styles.perfStats}>
+                        <Text style={styles.perfStat}>{b.booking_count} bookings</Text>
+                        <Text style={styles.perfStat}>Avg {fmtMoney(avgVal)}</Text>
+                        <Text style={styles.perfStat}>{Math.round((b.booking_count / maxBks) * 100)}% of top</Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            );
+          })()}
 
           {/* Service breakdown */}
           {data.service_breakdown?.length > 0 && (
@@ -393,6 +414,24 @@ const styles = StyleSheet.create({
   clientSub: { fontSize: 11, color: C.muted, marginTop: 1 },
   clientDate: { fontSize: 10, color: C.muted, fontWeight: "600" },
   moreClients: { fontSize: 12, color: C.muted, textAlign: "center", paddingVertical: 8, fontWeight: "600" },
+
+  // Barber performance
+  perfCard: {
+    backgroundColor: C.white, borderRadius: 12, padding: 14, marginBottom: 8,
+    borderWidth: 1, borderColor: C.border,
+  },
+  perfHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 },
+  perfAvatar: {
+    width: 34, height: 34, borderRadius: 17, borderWidth: 2,
+    alignItems: "center", justifyContent: "center",
+  },
+  perfInitials: { fontSize: 12, fontWeight: "800" },
+  perfName: { flex: 1, fontSize: 14, fontWeight: "700", color: C.espresso },
+  perfRevenue: { fontFamily: serif, fontSize: 16, fontWeight: "700", color: C.espresso },
+  perfBar: { height: 5, backgroundColor: C.border, borderRadius: 3, overflow: "hidden", marginBottom: 8 },
+  perfBarFill: { height: 5, backgroundColor: C.terra, borderRadius: 3 },
+  perfStats: { flexDirection: "row", justifyContent: "space-between" },
+  perfStat: { fontSize: 11, color: C.muted, fontWeight: "600" },
 
   // Breakdowns
   breakdownRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: C.white, borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: C.border },

@@ -1,22 +1,23 @@
 import React, { useState, useRef } from "react";
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView,
-  Switch, Alert, ActivityIndicator, Dimensions,
+  Switch, Alert, Dimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../../lib/api";
 import { C, serif } from "../../lib/theme";
+import AddressAutocomplete from "../../components/AddressAutocomplete";
 
 const { width: SCREEN_W } = Dimensions.get("window");
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 const STEPS = [
-  { key: "welcome", title: "Welcome to Clipd", sub: "Let's get your shop set up in under 2 minutes." },
-  { key: "shop", title: "Your Shop", sub: "What's your barbershop called?" },
-  { key: "hours", title: "Business Hours", sub: "When are you open?" },
-  { key: "barber", title: "Your First Barber", sub: "Add yourself or a team member." },
-  { key: "service", title: "Your First Service", sub: "What's your most popular cut?" },
-  { key: "done", title: "You're All Set!", sub: "Your shop is ready to go." },
+  { key: "welcome" },
+  { key: "shop" },
+  { key: "hours" },
+  { key: "barber" },
+  { key: "service" },
+  { key: "done" },
 ];
 
 export default function OnboardingScreen({ navigation }) {
@@ -39,14 +40,13 @@ export default function OnboardingScreen({ navigation }) {
     return h;
   });
 
-  // Barber
-  const [barberName, setBarberName] = useState("");
-  const [barberEmail, setBarberEmail] = useState("");
+  // Barbers (multiple)
+  const [barbers, setBarbers] = useState([{ name: "", email: "" }]);
+  const [savedBarbers, setSavedBarbers] = useState(0);
 
-  // Service
-  const [serviceName, setServiceName] = useState("");
-  const [servicePrice, setServicePrice] = useState("");
-  const [serviceDuration, setServiceDuration] = useState("30");
+  // Services (multiple)
+  const [services, setServices] = useState([{ name: "", price: "", duration: "30" }]);
+  const [savedServices, setSavedServices] = useState(0);
 
   function goNext() {
     const next = step + 1;
@@ -79,30 +79,44 @@ export default function OnboardingScreen({ navigation }) {
     setSaving(false);
   }
 
-  async function saveBarber() {
-    if (!barberName.trim()) { Alert.alert("Required", "Enter the barber's name"); return; }
-    if (!barberEmail.trim()) { Alert.alert("Required", "Enter an email"); return; }
+  async function saveBarbers() {
+    const valid = barbers.filter(b => b.name.trim() && b.email.trim());
+    if (valid.length === 0) { Alert.alert("Required", "Add at least one barber"); return; }
     setSaving(true);
-    try {
-      await api.adminBarberAdd({ name: barberName.trim(), email: barberEmail.trim().toLowerCase() });
-      goNext();
-    } catch (err) { Alert.alert("Error", err.message); }
+    let count = 0;
+    for (const b of valid) {
+      try {
+        await api.adminBarberAdd({ name: b.name.trim(), email: b.email.trim().toLowerCase() });
+        count++;
+      } catch (err) {
+        if (valid.length === 1) { Alert.alert("Error", err.message); setSaving(false); return; }
+      }
+    }
+    setSavedBarbers(count);
     setSaving(false);
+    goNext();
   }
 
-  async function saveService() {
-    if (!serviceName.trim()) { Alert.alert("Required", "Enter a service name"); return; }
-    if (!servicePrice.trim()) { Alert.alert("Required", "Enter a price"); return; }
+  async function saveServices() {
+    const valid = services.filter(s => s.name.trim() && s.price.trim());
+    if (valid.length === 0) { Alert.alert("Required", "Add at least one service"); return; }
     setSaving(true);
-    try {
-      await api.adminAddService({
-        name: serviceName.trim(),
-        price: parseFloat(servicePrice),
-        duration: parseInt(serviceDuration) || 30,
-      });
-      goNext();
-    } catch (err) { Alert.alert("Error", err.message); }
+    let count = 0;
+    for (const s of valid) {
+      try {
+        await api.adminAddService({
+          name: s.name.trim(),
+          price: parseFloat(s.price),
+          duration_min: parseInt(s.duration) || 30,
+        });
+        count++;
+      } catch (err) {
+        if (valid.length === 1) { Alert.alert("Error", err.message); setSaving(false); return; }
+      }
+    }
+    setSavedServices(count);
     setSaving(false);
+    goNext();
   }
 
   function finish() {
@@ -112,6 +126,36 @@ export default function OnboardingScreen({ navigation }) {
   function toggleDay(day) {
     const current = hours[day];
     setHours({ ...hours, [day]: { ...current, open: !current.open } });
+  }
+
+  function updateBarber(idx, field, val) {
+    const updated = [...barbers];
+    updated[idx] = { ...updated[idx], [field]: val };
+    setBarbers(updated);
+  }
+
+  function addBarber() {
+    setBarbers([...barbers, { name: "", email: "" }]);
+  }
+
+  function removeBarber(idx) {
+    if (barbers.length <= 1) return;
+    setBarbers(barbers.filter((_, i) => i !== idx));
+  }
+
+  function updateService(idx, field, val) {
+    const updated = [...services];
+    updated[idx] = { ...updated[idx], [field]: val };
+    setServices(updated);
+  }
+
+  function addService() {
+    setServices([...services, { name: "", price: "", duration: "30" }]);
+  }
+
+  function removeService(idx) {
+    if (services.length <= 1) return;
+    setServices(services.filter((_, i) => i !== idx));
   }
 
   return (
@@ -133,22 +177,22 @@ export default function OnboardingScreen({ navigation }) {
         {/* Step 0: Welcome */}
         <View style={[styles.stepWrap, { width: SCREEN_W }]}>
           <Text style={styles.welcomeIcon}>✂️</Text>
-          <Text style={styles.stepTitle}>{STEPS[0].title}</Text>
-          <Text style={styles.stepSub}>{STEPS[0].sub}</Text>
-          <TouchableOpacity style={styles.primaryBtn} onPress={goNext}>
-            <Text style={styles.primaryBtnText}>Get Started →</Text>
+          <Text style={styles.stepTitle}>Welcome to Clipd</Text>
+          <Text style={styles.stepSub}>Let's get your shop set up in under 2 minutes.</Text>
+          <TouchableOpacity style={styles.welcomeBtn} onPress={goNext}>
+            <Text style={styles.welcomeBtnText}>Get Started →</Text>
           </TouchableOpacity>
         </View>
 
         {/* Step 1: Shop Info */}
         <View style={[styles.stepWrap, { width: SCREEN_W }]}>
           <ScrollView style={styles.formScroll} keyboardShouldPersistTaps="handled">
-            <Text style={styles.stepTitle}>{STEPS[1].title}</Text>
-            <Text style={styles.stepSub}>{STEPS[1].sub}</Text>
+            <Text style={styles.stepTitle}>Your Shop</Text>
+            <Text style={styles.stepSub}>What's your barbershop called?</Text>
             <Text style={styles.label}>Shop Name *</Text>
             <TextInput style={styles.input} value={shopName} onChangeText={setShopName} placeholder="e.g. Crown Cutz" placeholderTextColor={C.muted} autoCapitalize="words" />
             <Text style={styles.label}>Address</Text>
-            <TextInput style={styles.input} value={address} onChangeText={setAddress} placeholder="123 Main St, Toronto" placeholderTextColor={C.muted} />
+            <AddressAutocomplete value={address} onChange={setAddress} />
             <Text style={styles.label}>Phone</Text>
             <TextInput style={styles.input} value={phone} onChangeText={setPhone} placeholder="416-555-0100" placeholderTextColor={C.muted} keyboardType="phone-pad" />
             <View style={styles.btnRow}>
@@ -163,8 +207,8 @@ export default function OnboardingScreen({ navigation }) {
         {/* Step 2: Hours */}
         <View style={[styles.stepWrap, { width: SCREEN_W }]}>
           <ScrollView style={styles.formScroll} keyboardShouldPersistTaps="handled">
-            <Text style={styles.stepTitle}>{STEPS[2].title}</Text>
-            <Text style={styles.stepSub}>{STEPS[2].sub}</Text>
+            <Text style={styles.stepTitle}>Business Hours</Text>
+            <Text style={styles.stepSub}>When are you open?</Text>
             {DAYS.map(day => {
               const h = hours[day];
               return (
@@ -204,46 +248,68 @@ export default function OnboardingScreen({ navigation }) {
           </ScrollView>
         </View>
 
-        {/* Step 3: Barber */}
+        {/* Step 3: Barbers */}
         <View style={[styles.stepWrap, { width: SCREEN_W }]}>
           <ScrollView style={styles.formScroll} keyboardShouldPersistTaps="handled">
-            <Text style={styles.stepTitle}>{STEPS[3].title}</Text>
-            <Text style={styles.stepSub}>{STEPS[3].sub}</Text>
-            <Text style={styles.label}>Name *</Text>
-            <TextInput style={styles.input} value={barberName} onChangeText={setBarberName} placeholder="e.g. Marcus Johnson" placeholderTextColor={C.muted} autoCapitalize="words" />
-            <Text style={styles.label}>Email *</Text>
-            <TextInput style={styles.input} value={barberEmail} onChangeText={setBarberEmail} placeholder="marcus@yourshop.com" placeholderTextColor={C.muted} keyboardType="email-address" autoCapitalize="none" />
-            <Text style={styles.hint}>They'll receive an invite to create their staff account.</Text>
+            <Text style={styles.stepTitle}>Your Team</Text>
+            <Text style={styles.stepSub}>Add yourself and your barbers.</Text>
+            {barbers.map((b, i) => (
+              <View key={i} style={styles.multiCard}>
+                {barbers.length > 1 && (
+                  <TouchableOpacity style={styles.removeItem} onPress={() => removeBarber(i)}>
+                    <Text style={styles.removeItemText}>✕</Text>
+                  </TouchableOpacity>
+                )}
+                <Text style={styles.label}>Name *</Text>
+                <TextInput style={styles.input} value={b.name} onChangeText={v => updateBarber(i, "name", v)} placeholder="e.g. Marcus Johnson" placeholderTextColor={C.muted} autoCapitalize="words" />
+                <Text style={styles.label}>Email *</Text>
+                <TextInput style={styles.input} value={b.email} onChangeText={v => updateBarber(i, "email", v)} placeholder="marcus@yourshop.com" placeholderTextColor={C.muted} keyboardType="email-address" autoCapitalize="none" />
+              </View>
+            ))}
+            <TouchableOpacity style={styles.addMoreBtn} onPress={addBarber}>
+              <Text style={styles.addMoreText}>+ Add another barber</Text>
+            </TouchableOpacity>
             <View style={styles.btnRow}>
               <TouchableOpacity style={styles.backBtn} onPress={goBack}><Text style={styles.backBtnText}>← Back</Text></TouchableOpacity>
-              <TouchableOpacity style={[styles.primaryBtn, saving && { opacity: 0.6 }]} onPress={saveBarber} disabled={saving}>
+              <TouchableOpacity style={[styles.primaryBtn, saving && { opacity: 0.6 }]} onPress={saveBarbers} disabled={saving}>
                 <Text style={styles.primaryBtnText}>{saving ? "Saving…" : "Next →"}</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
         </View>
 
-        {/* Step 4: Service */}
+        {/* Step 4: Services */}
         <View style={[styles.stepWrap, { width: SCREEN_W }]}>
           <ScrollView style={styles.formScroll} keyboardShouldPersistTaps="handled">
-            <Text style={styles.stepTitle}>{STEPS[4].title}</Text>
-            <Text style={styles.stepSub}>{STEPS[4].sub}</Text>
-            <Text style={styles.label}>Service Name *</Text>
-            <TextInput style={styles.input} value={serviceName} onChangeText={setServiceName} placeholder="e.g. Classic Haircut" placeholderTextColor={C.muted} autoCapitalize="words" />
-            <View style={{ flexDirection: "row", gap: 12 }}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.label}>Price ($) *</Text>
-                <TextInput style={styles.input} value={servicePrice} onChangeText={setServicePrice} placeholder="35" placeholderTextColor={C.muted} keyboardType="numeric" />
+            <Text style={styles.stepTitle}>Your Services</Text>
+            <Text style={styles.stepSub}>What do you offer?</Text>
+            {services.map((s, i) => (
+              <View key={i} style={styles.multiCard}>
+                {services.length > 1 && (
+                  <TouchableOpacity style={styles.removeItem} onPress={() => removeService(i)}>
+                    <Text style={styles.removeItemText}>✕</Text>
+                  </TouchableOpacity>
+                )}
+                <Text style={styles.label}>Service Name *</Text>
+                <TextInput style={styles.input} value={s.name} onChangeText={v => updateService(i, "name", v)} placeholder="e.g. Classic Haircut" placeholderTextColor={C.muted} autoCapitalize="words" />
+                <View style={{ flexDirection: "row", gap: 12 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.label}>Price ($) *</Text>
+                    <TextInput style={styles.input} value={s.price} onChangeText={v => updateService(i, "price", v)} placeholder="35" placeholderTextColor={C.muted} keyboardType="numeric" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.label}>Duration (min)</Text>
+                    <TextInput style={styles.input} value={s.duration} onChangeText={v => updateService(i, "duration", v)} placeholder="30" placeholderTextColor={C.muted} keyboardType="numeric" />
+                  </View>
+                </View>
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.label}>Duration (min)</Text>
-                <TextInput style={styles.input} value={serviceDuration} onChangeText={setServiceDuration} placeholder="30" placeholderTextColor={C.muted} keyboardType="numeric" />
-              </View>
-            </View>
-            <Text style={styles.hint}>You can add more services later in Settings.</Text>
+            ))}
+            <TouchableOpacity style={styles.addMoreBtn} onPress={addService}>
+              <Text style={styles.addMoreText}>+ Add another service</Text>
+            </TouchableOpacity>
             <View style={styles.btnRow}>
               <TouchableOpacity style={styles.backBtn} onPress={goBack}><Text style={styles.backBtnText}>← Back</Text></TouchableOpacity>
-              <TouchableOpacity style={[styles.primaryBtn, saving && { opacity: 0.6 }]} onPress={saveService} disabled={saving}>
+              <TouchableOpacity style={[styles.primaryBtn, saving && { opacity: 0.6 }]} onPress={saveServices} disabled={saving}>
                 <Text style={styles.primaryBtnText}>{saving ? "Saving…" : "Next →"}</Text>
               </TouchableOpacity>
             </View>
@@ -253,16 +319,16 @@ export default function OnboardingScreen({ navigation }) {
         {/* Step 5: Done */}
         <View style={[styles.stepWrap, { width: SCREEN_W }]}>
           <Text style={styles.doneIcon}>🎉</Text>
-          <Text style={styles.stepTitle}>{STEPS[5].title}</Text>
+          <Text style={styles.stepTitle}>You're All Set!</Text>
           <Text style={styles.stepSub}>Your shop is configured and ready for bookings.</Text>
           <View style={styles.doneChecks}>
             <Text style={styles.doneCheck}>✓ Shop info saved</Text>
             <Text style={styles.doneCheck}>✓ Business hours set</Text>
-            <Text style={styles.doneCheck}>✓ First barber added</Text>
-            <Text style={styles.doneCheck}>✓ First service created</Text>
+            <Text style={styles.doneCheck}>✓ {savedBarbers || barbers.filter(b => b.name.trim()).length} barber{savedBarbers !== 1 ? "s" : ""} added</Text>
+            <Text style={styles.doneCheck}>✓ {savedServices || services.filter(s => s.name.trim()).length} service{savedServices !== 1 ? "s" : ""} created</Text>
           </View>
-          <TouchableOpacity style={styles.primaryBtn} onPress={finish}>
-            <Text style={styles.primaryBtnText}>Open Your Dashboard →</Text>
+          <TouchableOpacity style={styles.welcomeBtn} onPress={finish}>
+            <Text style={styles.welcomeBtnText}>Open Your Dashboard →</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -283,6 +349,12 @@ const styles = StyleSheet.create({
   stepTitle: { fontFamily: serif, fontSize: 28, fontWeight: "900", color: C.espresso, textAlign: "center", marginBottom: 8 },
   stepSub: { fontSize: 14, color: C.muted, textAlign: "center", marginBottom: 28, lineHeight: 20 },
 
+  welcomeBtn: {
+    width: 260, paddingVertical: 16, borderRadius: 12,
+    backgroundColor: C.espresso, alignItems: "center",
+  },
+  welcomeBtnText: { fontSize: 16, fontWeight: "800", color: C.cream },
+
   label: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 6, marginTop: 14 },
   input: { backgroundColor: C.white, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: C.espresso, borderWidth: 1, borderColor: C.border },
   hint: { fontSize: 11, color: C.muted, marginTop: 8, fontStyle: "italic" },
@@ -293,6 +365,25 @@ const styles = StyleSheet.create({
   timeInput: { flex: 1, backgroundColor: C.white, borderRadius: 7, paddingHorizontal: 10, paddingVertical: 6, fontSize: 13, color: C.espresso, borderWidth: 1, borderColor: C.border, textAlign: "center" },
   timeDash: { fontSize: 13, color: C.muted },
   closedText: { fontSize: 12, color: C.muted, fontStyle: "italic" },
+
+  // Multi-item cards
+  multiCard: {
+    backgroundColor: C.white, borderRadius: 12, padding: 14, marginBottom: 10,
+    borderWidth: 1, borderColor: C.border, position: "relative",
+  },
+  removeItem: {
+    position: "absolute", top: 8, right: 8, zIndex: 1,
+    width: 26, height: 26, borderRadius: 13,
+    backgroundColor: "#FEF2F2", borderWidth: 1, borderColor: "#FECACA",
+    alignItems: "center", justifyContent: "center",
+  },
+  removeItemText: { fontSize: 12, color: "#DC2626", fontWeight: "700" },
+  addMoreBtn: {
+    paddingVertical: 12, alignItems: "center",
+    borderWidth: 1.5, borderColor: C.border, borderRadius: 10, borderStyle: "dashed",
+    marginBottom: 8,
+  },
+  addMoreText: { fontSize: 13, fontWeight: "700", color: C.terra },
 
   btnRow: { flexDirection: "row", gap: 10, marginTop: 24, marginBottom: 40 },
   primaryBtn: { flex: 2, paddingVertical: 14, borderRadius: 12, backgroundColor: C.espresso, alignItems: "center" },

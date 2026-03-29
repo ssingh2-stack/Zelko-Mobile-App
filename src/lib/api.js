@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const BASE_URL = "https://app.getclipd.ca";
+import Constants from "expo-constants";
+const BASE_URL = Constants.expoConfig?.extra?.apiUrl || "https://app.getclipd.ca";
 
 async function getToken() {
   return await AsyncStorage.getItem("mobile_token");
@@ -72,8 +73,36 @@ export const api = {
   adminPaymentSettings: () => request("/api/admin/payment-settings"),
   adminSavePaymentSettings: (data) => request("/api/admin/payment-settings", { method: "POST", body: JSON.stringify(data) }),
 
+  adminUpload: async (uri, type, barberId) => {
+    const token = await getToken();
+    const form = new FormData();
+    form.append("file", { uri, type: "image/jpeg", name: "photo.jpg" });
+    form.append("type", type);
+    if (barberId) form.append("barber_id", String(barberId));
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    try {
+      const res = await fetch(`${BASE_URL}/api/admin/upload`, {
+        method: "POST",
+        headers: { "X-Mobile-Token": token },
+        body: form,
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+      return data;
+    } catch (err) {
+      clearTimeout(timeout);
+      if (err.name === "AbortError") throw new Error("Upload timed out");
+      throw err;
+    }
+  },
   adminBarberAdd: (data) => request("/api/admin/barbers", { method: "POST", body: JSON.stringify(data) }),
   adminBarberDelete: (id) => request(`/api/admin/barbers/${id}`, { method: "DELETE" }),
+  adminBarberBio: (id, data) => request(`/api/admin/barbers/${id}/bio`, { method: "POST", body: JSON.stringify(data) }),
+  adminBarberAvailability: (id) => request(`/api/admin/barbers/${id}/availability`),
+  adminSetBarberAvailability: (id, days) => request(`/api/admin/barbers/${id}/availability`, { method: "POST", body: JSON.stringify({ days }) }),
 
   staffSchedule: () => request("/api/staff/schedule"),
   staffBookings: (data) => request("/api/staff/bookings", { method: "POST", body: JSON.stringify(data) }),

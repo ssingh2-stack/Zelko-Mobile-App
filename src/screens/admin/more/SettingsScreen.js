@@ -7,6 +7,7 @@ import { useNavigation } from "@react-navigation/native";
 import { api } from "../../../lib/api";
 import { C, serif } from "../../../lib/theme";
 import { clearSession } from "../../../lib/auth";
+import AddressAutocomplete from "../../../components/AddressAutocomplete";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -126,7 +127,10 @@ export default function SettingsScreen() {
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Shop Info</Text>
         <Field label="Shop Name" value={shopName} onChange={setShopName} placeholder="Your shop name" />
-        <Field label="Address" value={address} onChange={setAddress} placeholder="123 Main St, City, Province" />
+        <View style={styles.fieldWrap}>
+          <Text style={styles.label}>Address</Text>
+          <AddressAutocomplete value={address} onChange={setAddress} />
+        </View>
         <Field label="Phone" value={phone} onChange={setPhone} placeholder="416-555-0100" keyboardType="phone-pad" />
         <Field label="Email" value={email} onChange={setEmail} placeholder="hello@yourshop.com" keyboardType="email-address" />
         <Field label="Google Review Link" value={googleUrl} onChange={setGoogleUrl} placeholder="https://g.page/r/XXXXXXXX/review" keyboardType="url" />

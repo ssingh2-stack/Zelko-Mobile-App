@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  Alert, ActivityIndicator, Share, Image,
+  Alert, ActivityIndicator, Share,
 } from "react-native";
+import QRCode from "react-native-qrcode-svg";
 import { api } from "../../../lib/api";
 import { C, serif } from "../../../lib/theme";
 
@@ -30,7 +31,6 @@ export default function ShareScreen() {
   const slug = settings.slug;
   const shopName = settings.name;
   const bookingUrl = `https://app.getclipd.ca/book/${slug}`;
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(bookingUrl)}&bgcolor=F7F3EE&color=2C1810&margin=10`;
   const shareMsg = `Hey! You can now book your next appointment at ${shopName} online — it only takes 30 seconds. Here's the link: ${bookingUrl}`;
 
   return (
@@ -48,8 +48,17 @@ export default function ShareScreen() {
 
         {/* QR Code */}
         <View style={styles.qrSection}>
-          <Text style={styles.qrLabel}>QR Code</Text>
-          <Image source={{ uri: qrUrl }} style={styles.qrImage} resizeMode="contain" />
+          <Text style={styles.qrLabel}>QR Code — print for mirrors, cards, windows</Text>
+          <View style={styles.qrWrap}>
+            <QRCode
+              value={bookingUrl}
+              size={180}
+              color="#2C1810"
+              backgroundColor="#F7F3EE"
+              quietZone={12}
+            />
+          </View>
+          <Text style={styles.qrHint}>Screenshot to save and print</Text>
         </View>
 
         {/* Share message */}
@@ -102,7 +111,8 @@ const styles = StyleSheet.create({
   btnText: { fontSize: 13, fontWeight: "700", color: C.cream },
   qrSection: { borderTopWidth: 1, borderTopColor: C.border, paddingTop: 14, marginBottom: 14 },
   qrLabel: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10 },
-  qrImage: { width: 140, height: 140, borderRadius: 10, borderWidth: 1, borderColor: C.border },
+  qrWrap: { backgroundColor: "#F7F3EE", padding: 16, borderRadius: 14, borderWidth: 1, borderColor: C.border, alignSelf: "center" },
+  qrHint: { fontSize: 11, color: C.muted, fontStyle: "italic", marginTop: 8, textAlign: "center" },
   msgSection: { borderTopWidth: 1, borderTopColor: C.border, paddingTop: 14 },
   msgBox: { backgroundColor: C.surface, borderRadius: 10, borderWidth: 1, borderColor: C.border, padding: 14, marginBottom: 10 },
   msgText: { fontSize: 13, color: C.espresso, lineHeight: 20 },

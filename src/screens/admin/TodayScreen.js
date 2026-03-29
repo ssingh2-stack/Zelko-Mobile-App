@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, Alert, ActivityIndicator,
+  RefreshControl, Alert, ActivityIndicator, Modal, TextInput,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
@@ -14,7 +14,7 @@ import BookingDetailModal from "../../components/BookingDetailModal";
 import NewBookingModal from "../../components/NewBookingModal";
 import DayCalendarView, {
   DCAL_COLORS, PX_PER_HOUR, OPEN_HOUR, CLOSE_HOUR, TOTAL_H,
-  tMin, fmtTime, pxToTimeStr, getNowTop, isNowVisible,
+  tMin, fmtTime, pxToTimeStr, getNowTop, isNowVisible, buildServiceColorMap,
 } from "../../components/DayCalendarView";
 import NextUpCard from "../../components/NextUpCard";
 import SwipeableCard from "../../components/SwipeableCard";
@@ -22,6 +22,14 @@ import { SkeletonCalendar, SkeletonList } from "../../components/Skeleton";
 import ErrorState from "../../components/ErrorState";
 import SetupNudge from "../../components/SetupNudge";
 import { getCached, setCache } from "../../lib/cache";
+
+const CLIENT_TAG_STYLES = {
+  vip:     { backgroundColor: "#FEF3C7", borderColor: "#FDE68A", color: "#92400E" },
+  new:     { backgroundColor: "#D1FAE5", borderColor: "#6EE7B7", color: "#065F46" },
+  regular: { backgroundColor: "#EDE9FE", borderColor: "#C4B5FD", color: "#5B21B6" },
+  lapsed:  { backgroundColor: "#F3F4F6", borderColor: "#D1D5DB", color: "#6B7280" },
+};
+function clientTagStyle(tag) { return CLIENT_TAG_STYLES[tag] || CLIENT_TAG_STYLES.regular; }
 
 export default function TodayScreen() {
   const navigation = useNavigation();
@@ -39,7 +47,14 @@ export default function TodayScreen() {
   const [blockedSlots, setBlockedSlots] = useState([]);
   const [shopHours, setShopHours] = useState(null);
   const [clientNotes, setClientNotes] = useState({});
+  const [clientTags, setClientTags] = useState({});
+  const [barberAvail, setBarberAvail] = useState({});
   const [error, setError] = useState(null);
+  const [blockModal, setBlockModal] = useState(false);
+  const [blockInfo, setBlockInfo] = useState({});
+  const [blockDuration, setBlockDuration] = useState(30);
+  const [blockReason, setBlockReason] = useState("");
+  const [blockSaving, setBlockSaving] = useState(false);
   const calScrollRef = useRef(null);
   const { showToast, toastProps } = useToast();
 
@@ -82,6 +97,19 @@ export default function TodayScreen() {
       setError(null);
       // Cache for offline use
       setCache("today", { res, barbers, blocked: todayBlocked, shopHours: settings?.hours });
+      // Load barber availability (non-blocking)
+      Promise.all(barbers.map(b => api.adminBarberAvailability(b.id).then(a => [b.id, a]).catch(() => [b.id, []]))).then(pairs => {
+        const map = {};
+        pairs.forEach(([id, a]) => { map[id] = a || []; });
+        setBarberAvail(map);
+      }).catch(() => {});
+      // Load client tags (non-blocking)
+      api.adminClients().then(cl => {
+        const list = Array.isArray(cl) ? cl : (cl?.clients || []);
+        const tagMap = {};
+        list.forEach(c => { if (c.email && c.tags?.[0]) tagMap[c.email] = c.tags[0]; });
+        setClientTags(tagMap);
+      }).catch(() => {});
       // Load client notes (non-blocking)
       const emails = [...new Set((res?.bookings || []).map(b => b.customer_email).filter(Boolean))];
       if (emails.length > 0 && emails.length <= 30) {
@@ -112,6 +140,7 @@ export default function TodayScreen() {
   }, [data, view]);
 
   const bookings = data?.bookings || [];
+  const serviceColorMap = buildServiceColorMap(bookings);
   const confirmed = bookings.filter(b => b.status === "confirmed");
   const revenue = confirmed.reduce((sum, b) => sum + (b.service_price ?? b.price ?? 0), 0);
   const noShows = bookings.filter(b => b.status === "no_show").length;
@@ -178,21 +207,31 @@ export default function TodayScreen() {
         setShowNewBooking(true);
       }},
       { text: "🚫 Block Time", onPress: () => {
-        Alert.alert("Block Time", "Block this 30-min slot?", [
-          { text: "Cancel", style: "cancel" },
-          { text: "Block", style: "destructive", onPress: async () => {
-            const endMin = tMin(time) + 30;
-            const eh = Math.floor(endMin / 60), em = endMin % 60;
-            const endTime = `${String(eh).padStart(2,"0")}:${String(em).padStart(2,"0")}`;
-            try {
-              await api.adminBlockTime({ barber_id: barberId, date: todayStr, all_day: false, start_time: time, end_time: endTime, reason: "Blocked" });
-              load(true);
-            } catch (err) { Alert.alert("Error", err.message); }
-          }},
-        ]);
+        setBlockInfo({ barberId, barberName, time });
+        setBlockDuration(30);
+        setBlockReason("");
+        setBlockModal(true);
       }},
       { text: "Cancel", style: "cancel" },
     ]);
+  }
+
+  async function submitBlock() {
+    setBlockSaving(true);
+    try {
+      const startMin = tMin(blockInfo.time);
+      const endMin = startMin + blockDuration;
+      const endTime = `${String(Math.floor(endMin / 60)).padStart(2, "0")}:${String(endMin % 60).padStart(2, "0")}`;
+      await api.adminBlockTime({
+        barber_id: blockInfo.barberId, date: todayStr, all_day: false,
+        start_time: blockInfo.time, end_time: endTime,
+        reason: blockReason.trim() || "Blocked",
+      });
+      hapticSuccess(); showToast("Time blocked");
+      setBlockModal(false);
+      load(true);
+    } catch (err) { Alert.alert("Error", err.message); }
+    setBlockSaving(false);
   }
 
   // Sorted bookings for list view: upcoming first, then past
@@ -307,16 +346,14 @@ export default function TodayScreen() {
               >
                 <Text style={[styles.pillText, barberFilter === "all" && styles.pillTextActive]}>All</Text>
               </TouchableOpacity>
-              {allBarbers.map((b, i) => {
-                const c = DCAL_COLORS[i % DCAL_COLORS.length];
+              {allBarbers.map((b) => {
                 const active = barberFilter === String(b.id);
                 return (
                   <TouchableOpacity
                     key={b.id}
-                    style={[styles.pill, active && { backgroundColor: c.bd, borderColor: c.bd }]}
+                    style={[styles.pill, active && styles.pillActive]}
                     onPress={() => setBarberFilter(active ? "all" : String(b.id))}
                   >
-                    <View style={[styles.pillDot, { backgroundColor: c.bd }]} />
                     <Text style={[styles.pillText, active && styles.pillTextActive]}>{b.name}</Text>
                   </TouchableOpacity>
                 );
@@ -325,6 +362,18 @@ export default function TodayScreen() {
           </ScrollView>
         )}
       </View>
+
+      {/* Service color legend */}
+      {!loading && Object.keys(serviceColorMap).length > 1 && (
+        <View style={styles.svcLegend}>
+          {Object.entries(serviceColorMap).map(([name, color]) => (
+            <View key={name} style={styles.svcLegendItem}>
+              <View style={[styles.svcLegendDot, { backgroundColor: color }]} />
+              <Text style={styles.svcLegendText} numberOfLines={1}>{name}</Text>
+            </View>
+          ))}
+        </View>
+      )}
 
       {error && !data ? (
         <ErrorState message={error} onRetry={() => load()} />
@@ -345,6 +394,9 @@ export default function TodayScreen() {
           blockedSlots={blockedSlots}
           shopHours={shopHours}
           clientNotes={clientNotes}
+          serviceColors={serviceColorMap}
+          showBarberName={barberFilter === "all" && allBarbers.length > 1}
+          barberAvailability={barberAvail}
         />
       ) : (
         <ScrollView
@@ -390,7 +442,16 @@ export default function TodayScreen() {
                       {b.status === "cancelled" && <StatusBadge label="Cancelled" color={C.muted} />}
                       {b.status === "confirmed" && isPast && <StatusBadge label="Past" color={C.muted} />}
                     </View>
-                    <Text style={[styles.listName, isCancelled && styles.listNameMuted]}>{b.customer_name}</Text>
+                    <View style={styles.listNameRow}>
+                      <Text style={[styles.listName, isCancelled && styles.listNameMuted]}>{b.customer_name}</Text>
+                      {clientTags[b.customer_email] && (
+                        <View style={[styles.clientTag, clientTagStyle(clientTags[b.customer_email])]}>
+                          <Text style={[styles.clientTagText, { color: clientTagStyle(clientTags[b.customer_email]).color }]}>
+                            {clientTags[b.customer_email]}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
                     <Text style={styles.listSvc} numberOfLines={1}>{b.service_name}</Text>
                     {clientNotes[b.customer_email] ? (
                       <Text style={styles.listNote} numberOfLines={1}>📝 {clientNotes[b.customer_email]}</Text>
@@ -428,6 +489,51 @@ export default function TodayScreen() {
         prefillPhone={newBookingPrefill.prefillPhone}
         prefillEmail={newBookingPrefill.prefillEmail}
       />
+      {/* Block Time Modal */}
+      <Modal visible={blockModal} transparent animationType="slide">
+        <View style={styles.blockOverlay}>
+          <View style={styles.blockContent}>
+            <Text style={styles.blockTitle}>Block Time</Text>
+            <Text style={styles.blockSub}>{blockInfo.barberName} · {fmtTime(blockInfo.time || "00:00")}</Text>
+
+            <Text style={styles.blockLabel}>Duration</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
+              <View style={{ flexDirection: "row", gap: 6 }}>
+                {[15,30,45,60,90,120,150,180,210,240].map(d => (
+                  <TouchableOpacity
+                    key={d}
+                    style={[styles.blockPill, blockDuration === d && styles.blockPillActive]}
+                    onPress={() => setBlockDuration(d)}
+                  >
+                    <Text style={[styles.blockPillText, blockDuration === d && styles.blockPillTextActive]}>
+                      {d < 60 ? `${d}m` : d % 60 === 0 ? `${d / 60}h` : `${(d / 60).toFixed(1)}h`}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+
+            <Text style={styles.blockLabel}>Reason (optional)</Text>
+            <TextInput
+              style={styles.blockInput}
+              value={blockReason}
+              onChangeText={setBlockReason}
+              placeholder="e.g. Lunch, Personal, Break"
+              placeholderTextColor={C.muted}
+            />
+
+            <View style={styles.blockBtns}>
+              <TouchableOpacity style={styles.blockCancelBtn} onPress={() => setBlockModal(false)}>
+                <Text style={styles.blockCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.blockSaveBtn, blockSaving && { opacity: 0.6 }]} onPress={submitBlock} disabled={blockSaving}>
+                <Text style={styles.blockSaveText}>{blockSaving ? "Blocking…" : "Block"}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <Toast {...toastProps} />
     </View>
   );
@@ -469,6 +575,16 @@ const styles = StyleSheet.create({
   occTrack: { flex: 1, height: 4, backgroundColor: "rgba(255,255,255,0.12)", borderRadius: 2, overflow: "hidden" },
   occFill: { height: 4, backgroundColor: C.terra, borderRadius: 2, minWidth: 4 },
   occLabel: { fontSize: 10, fontWeight: "700", color: "rgba(247,243,238,0.4)", width: 68, textAlign: "right" },
+
+  // Service legend
+  svcLegend: {
+    flexDirection: "row", flexWrap: "wrap", gap: 8,
+    paddingHorizontal: 12, paddingVertical: 6,
+    backgroundColor: C.surface, borderBottomWidth: 1, borderBottomColor: C.border,
+  },
+  svcLegendItem: { flexDirection: "row", alignItems: "center", gap: 4 },
+  svcLegendDot: { width: 8, height: 8, borderRadius: 2 },
+  svcLegendText: { fontSize: 10, fontWeight: "600", color: C.muted },
 
   // End-of-day summary
   eodCard: {
@@ -520,13 +636,33 @@ const styles = StyleSheet.create({
   listCardPast: { opacity: 0.55 },
   listCardHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 3 },
   listTime: { fontSize: 10, fontWeight: "800", letterSpacing: 0.3 },
-  listName: { fontSize: 13, fontWeight: "700", color: C.espresso, marginBottom: 1 },
+  listNameRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 1 },
+  listName: { fontSize: 13, fontWeight: "700", color: C.espresso },
+  clientTag: { paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4, borderWidth: 1 },
+  clientTagText: { fontSize: 8, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 },
   listNameMuted: { color: C.muted, textDecorationLine: "line-through" },
   listSvc: { fontSize: 11, color: C.muted, marginBottom: 3 },
   listNote: { fontSize: 10, color: "#92400E", fontStyle: "italic", marginBottom: 4 },
   listFooter: { flexDirection: "row", alignItems: "center" },
   listPrice: { fontSize: 12, fontWeight: "700", color: C.espresso },
   listMeta: { fontSize: 10, color: C.muted },
+
+  // Block modal
+  blockOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
+  blockContent: { backgroundColor: C.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 40 },
+  blockTitle: { fontFamily: serif, fontSize: 20, fontWeight: "800", color: C.espresso, marginBottom: 2 },
+  blockSub: { fontSize: 13, color: C.muted, marginBottom: 18 },
+  blockLabel: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 8 },
+  blockPill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.white },
+  blockPillActive: { backgroundColor: C.espresso, borderColor: C.espresso },
+  blockPillText: { fontSize: 13, fontWeight: "700", color: C.muted },
+  blockPillTextActive: { color: C.cream },
+  blockInput: { backgroundColor: C.surface, borderRadius: 9, paddingHorizontal: 12, paddingVertical: 11, fontSize: 14, color: C.espresso, borderWidth: 1, borderColor: C.border, marginBottom: 20 },
+  blockBtns: { flexDirection: "row", gap: 10 },
+  blockCancelBtn: { flex: 1, paddingVertical: 12, borderRadius: 9, borderWidth: 1.5, borderColor: C.border, alignItems: "center" },
+  blockCancelText: { fontSize: 14, fontWeight: "700", color: C.muted },
+  blockSaveBtn: { flex: 1, paddingVertical: 12, borderRadius: 9, backgroundColor: C.espresso, alignItems: "center" },
+  blockSaveText: { fontSize: 14, fontWeight: "800", color: C.cream },
 
   // Empty
   empty: { paddingTop: 60, alignItems: "center", gap: 10 },

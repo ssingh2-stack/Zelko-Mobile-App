@@ -111,10 +111,24 @@ export default function BookingDetailModal({ booking, visible, onClose, onAction
     onReschedule?.(booking);
   }
 
+  async function handleReconfirm() {
+    Alert.alert("Reconfirm Booking", "Restore this booking to confirmed?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Confirm", onPress: async () => {
+        try {
+          await api.adminUpdateBooking(booking.confirmation_code, { status: "confirmed" });
+          hapticSuccess();
+          onAction();
+          onClose();
+        } catch (err) { Alert.alert("Error", err.message); }
+      }},
+    ]);
+  }
+
   async function startEdit() {
     setEditing(true);
     setEditLoading(true);
-    setEditServiceId(String(booking.service_id));
+    setEditServiceId(String(booking.service_id || ""));
     setEditSlot(booking.start_time);
     try {
       const [services, slots] = await Promise.all([
@@ -196,22 +210,27 @@ export default function BookingDetailModal({ booking, visible, onClose, onAction
                 ) : (
                   <>
                     <Text style={styles.editLabel}>Service</Text>
+                    <Text style={styles.editCurrent}>{booking.service_name}</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
                       <View style={{ flexDirection: "row", gap: 6 }}>
-                        {editServices.map(s => (
-                          <TouchableOpacity
-                            key={s.id}
-                            style={[styles.editPill, editServiceId === String(s.id) && styles.editPillActive]}
-                            onPress={() => onEditServiceChange(String(s.id))}
-                          >
-                            <Text style={[styles.editPillText, editServiceId === String(s.id) && styles.editPillTextActive]}>
-                              {s.name} · {fmtMoney(s.price)}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
+                        {editServices.map(s => {
+                          const isActive = String(s.id) === editServiceId;
+                          return (
+                            <TouchableOpacity
+                              key={s.id}
+                              style={[styles.editPill, isActive && styles.editPillActive]}
+                              onPress={() => onEditServiceChange(String(s.id))}
+                            >
+                              <Text style={[styles.editPillText, isActive && styles.editPillTextActive]}>
+                                {s.name} · {fmtMoney(s.price)}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
                       </View>
                     </ScrollView>
                     <Text style={styles.editLabel}>Time</Text>
+                    <Text style={styles.editCurrent}>{fmt(booking.start_time)} – {fmt(booking.end_time)}</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
                       <View style={{ flexDirection: "row", gap: 6 }}>
                         {editSlots.map(s => (
@@ -306,9 +325,14 @@ export default function BookingDetailModal({ booking, visible, onClose, onAction
             <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
               <Text style={styles.closeBtnText}>Close</Text>
             </TouchableOpacity>
-            {!isCancelled && !editing && (
+            {!editing && (
               <TouchableOpacity style={styles.editBtn} onPress={startEdit}>
                 <Text style={styles.editBtnText}>Edit</Text>
+              </TouchableOpacity>
+            )}
+            {isCancelled && !editing && (
+              <TouchableOpacity style={styles.rescheduleBtn} onPress={handleReconfirm}>
+                <Text style={styles.rescheduleBtnText}>Reconfirm</Text>
               </TouchableOpacity>
             )}
             {!isCancelled && onReschedule && !editing && (
@@ -387,7 +411,8 @@ const styles = StyleSheet.create({
   closeBtnText: { fontSize: 12, fontWeight: "700", color: C.espresso },
   editBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, backgroundColor: C.surface, borderWidth: 1.5, borderColor: C.border, alignItems: "center" },
   editBtnText: { fontSize: 12, fontWeight: "700", color: C.espresso },
-  editLabel: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 8 },
+  editLabel: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 4 },
+  editCurrent: { fontSize: 13, fontWeight: "600", color: C.espresso, marginBottom: 8 },
   editPill: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.white },
   editPillActive: { backgroundColor: C.espresso, borderColor: C.espresso },
   editPillText: { fontSize: 12, fontWeight: "700", color: C.muted },

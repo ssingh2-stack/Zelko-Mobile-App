@@ -5,6 +5,8 @@ import {
 } from "react-native";
 import { api } from "../../../lib/api";
 import { C, serif, fmtMoney } from "../../../lib/theme";
+import { success as hapticSuccess } from "../../../lib/haptics";
+import { useToast, Toast } from "../../../components/Toast";
 
 export default function ServicesScreen() {
   const [services, setServices] = useState([]);
@@ -21,6 +23,7 @@ export default function ServicesScreen() {
   const [desc, setDesc]         = useState("");
   const [adding, setAdding]     = useState(false);
   const [addError, setAddError] = useState("");
+  const { showToast, toastProps } = useToast();
 
   const load = useCallback(async (quiet = false) => {
     if (!quiet) setLoading(true);
@@ -40,6 +43,7 @@ export default function ServicesScreen() {
     try {
       await api.adminAddService({ name: name.trim(), duration_min: parseInt(duration), price: parseFloat(price), description: desc.trim() });
       setName(""); setDuration(""); setPrice(""); setDesc("");
+      hapticSuccess(); showToast("Service added!");
       load(true);
     } catch (err) { setAddError(err.message); }
     finally { setAdding(false); }
@@ -64,6 +68,7 @@ export default function ServicesScreen() {
         description: editData.description?.trim() || "",
       });
       setEditingId(null);
+      hapticSuccess(); showToast("Service updated");
       load(true);
     } catch (err) { Alert.alert("Error", err.message); }
     finally { setSaving(false); }
@@ -199,6 +204,7 @@ export default function ServicesScreen() {
       </View>
 
       <View style={{ height: 32 }} />
+      <Toast {...toastProps} />
     </ScrollView>
   );
 }
