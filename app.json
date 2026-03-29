@@ -1,28 +1,43 @@
 {
   "expo": {
-    "name": "clipd-app",
+    "name": "Clipd",
     "slug": "clipd-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "scheme": "clipd",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#2C1810"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "ca.getclipd.app",
+      "infoPlist": {
+        "CFBundleDisplayName": "Clipd"
+      }
     },
     "android": {
+      "package": "ca.getclipd.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#2C1810"
       }
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-asset"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
+    },
+    "owner": "clipd"
   }
 }
