@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, Alert, ActivityIndicator, Modal, TextInput,
+  RefreshControl, Alert, ActivityIndicator, Modal, TextInput, Linking,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
@@ -51,6 +51,8 @@ export default function TodayScreen() {
   const [clientTags, setClientTags] = useState({});
   const [barberAvail, setBarberAvail] = useState({});
   const [error, setError] = useState(null);
+  const [trialExpired, setTrialExpired] = useState(false);
+  const [trialUpgradeUrl, setTrialUpgradeUrl] = useState("https://getclipd.ca/pricing");
   const [blockModal, setBlockModal] = useState(false);
   const [blockInfo, setBlockInfo] = useState({});
   const [blockDuration, setBlockDuration] = useState(30);
@@ -121,7 +123,12 @@ export default function TodayScreen() {
         });
       }
     }
-    catch (err) { if (!data) setError(err.message); }
+    catch (err) {
+      if (err.trialExpired) {
+        setTrialExpired(true);
+        if (err.upgradeUrl) setTrialUpgradeUrl(err.upgradeUrl);
+      } else if (!data) setError(err.message);
+    }
     finally { setLoading(false); setRefreshing(false); }
   }, []);
 
@@ -240,6 +247,30 @@ export default function TodayScreen() {
   const sortedBookings = [...bookings]
     .filter(b => barberFilter === "all" || String(b.barber_id) === barberFilter)
     .sort((a, b) => tMin(a.start_time) - tMin(b.start_time));
+
+  if (trialExpired) {
+    return (
+      <View style={styles.container}>
+        <Header />
+        <View style={styles.trialExpiredContainer}>
+          <Text style={styles.trialExpiredIcon}>&#128274;</Text>
+          <Text style={styles.trialExpiredTitle}>Your free trial has ended</Text>
+          <Text style={styles.trialExpiredMsg}>
+            Your 14-day trial is over. Subscribe to the Pro plan to keep managing your bookings, clients, and schedule.
+          </Text>
+          <TouchableOpacity
+            style={styles.trialExpiredBtn}
+            onPress={() => Linking.openURL(trialUpgradeUrl)}
+          >
+            <Text style={styles.trialExpiredBtnText}>Subscribe at getclipd.ca</Text>
+          </TouchableOpacity>
+          <Text style={styles.trialExpiredNote}>
+            Manage your subscription at getclipd.ca — no in-app purchases.
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -555,6 +586,15 @@ const badgeStyles = StyleSheet.create({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.cream },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
+
+  // Trial expired
+  trialExpiredContainer: { flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 32 },
+  trialExpiredIcon: { fontSize: 48, marginBottom: 16 },
+  trialExpiredTitle: { fontFamily: serif, fontSize: 24, fontWeight: "900", color: C.espresso, marginBottom: 12, textAlign: "center" },
+  trialExpiredMsg: { fontSize: 15, color: C.muted, lineHeight: 22, textAlign: "center", marginBottom: 28 },
+  trialExpiredBtn: { backgroundColor: C.terra, paddingVertical: 16, paddingHorizontal: 40, borderRadius: 12, marginBottom: 16 },
+  trialExpiredBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  trialExpiredNote: { fontSize: 12, color: C.muted, textAlign: "center" },
 
   // Strip
   strip: {

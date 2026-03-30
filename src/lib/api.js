@@ -19,7 +19,15 @@ async function request(path, options = {}) {
     const res = await fetch(`${BASE_URL}${path}`, { ...options, headers, signal: controller.signal });
     clearTimeout(timeout);
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Request failed");
+    if (!res.ok) {
+      if (data.error === "trial_expired") {
+        const err = new Error(data.message || "Your free trial has ended. Visit getclipd.ca to subscribe.");
+        err.trialExpired = true;
+        err.upgradeUrl = data.upgrade_url || "https://getclipd.ca/pricing";
+        throw err;
+      }
+      throw new Error(data.error || "Request failed");
+    }
     return data;
   } catch (err) {
     clearTimeout(timeout);
