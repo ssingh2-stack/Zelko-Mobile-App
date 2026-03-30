@@ -105,6 +105,7 @@ function RevenueChart({ data }) {
   if (!data || data.length === 0) {
     return <View style={styles.chartEmpty}><Text style={styles.chartEmptyText}>No revenue data for this period.</Text></View>;
   }
+  const DAY_ABBR = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   // Show at most 14 bars; aggregate by week if more
   const items = data.length > 14
     ? (() => {
@@ -115,7 +116,11 @@ function RevenueChart({ data }) {
         }
         return chunks;
       })()
-    : data.map(d => ({ label: d.date.slice(5), revenue: d.revenue }));
+    : data.map(d => {
+        const dt = new Date(d.date + "T12:00:00");
+        const lbl = data.length <= 7 ? DAY_ABBR[dt.getDay()] : d.date.slice(5);
+        return { label: lbl, revenue: d.revenue };
+      });
   const maxVal = Math.max(...items.map(i => i.revenue), 1);
   const BAR_H = 110;
   const barW = Math.max(32, Math.min(48, 320 / items.length));

@@ -449,7 +449,8 @@ export default function ScheduleScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={C.espresso} />}
         >
           {weekDates.map((wd, wi) => {
-            const dayBks = schedule[wd] || [];
+            const allDayBks = schedule[wd] || [];
+            const dayBks = barberFilter === "all" ? allDayBks : allDayBks.filter(b => String(b.barber_id) === barberFilter);
             const confirmed = dayBks.filter(b => b.status === "confirmed");
             const dayRev = confirmed.reduce((s, b) => s + (b.service_price ?? b.price ?? 0), 0);
             const wd_ = new Date(wd + "T12:00:00");
