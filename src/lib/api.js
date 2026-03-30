@@ -49,6 +49,13 @@ export const api = {
   adminUpdateService: (id, data) => request(`/api/admin/services/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
   adminDeleteService: (id) => request(`/api/admin/services/${id}`, { method: "DELETE" }),
   adminReorderServices: (order) => request("/api/admin/services/reorder", { method: "POST", body: JSON.stringify({ order }) }),
+  // Compensation
+  adminCompPlans: () => request("/api/admin/compensation/plans"),
+  adminCreateCompPlan: (data) => request("/api/admin/compensation/plans", { method: "POST", body: JSON.stringify(data) }),
+  adminUpdateCompPlan: (id, data) => request(`/api/admin/compensation/plans/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  adminDeleteCompPlan: (id) => request(`/api/admin/compensation/plans/${id}`, { method: "DELETE" }),
+  adminAssignBarberPlan: (barberId, planId) => request(`/api/admin/barbers/${barberId}/plan`, { method: "POST", body: JSON.stringify({ plan_id: planId }) }),
+  adminEarnings: (from, to) => request(`/api/admin/compensation/earnings?from=${from}&to=${to}`),
   adminBlocked: () => request("/api/admin/blocked"),
   adminBlockTime: (data) => request("/api/admin/blocked", { method: "POST", body: JSON.stringify(data) }),
   adminDeleteBlock: (id) => request(`/api/admin/blocked/${id}`, { method: "DELETE" }),

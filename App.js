@@ -21,6 +21,7 @@ import ShareScreen from "./src/screens/admin/more/ShareScreen";
 import PaymentsScreen from "./src/screens/admin/more/PaymentsScreen";
 import SettingsScreen from "./src/screens/admin/more/SettingsScreen";
 import BarbersScreen from "./src/screens/admin/more/BarbersScreen";
+import CompensationScreen from "./src/screens/admin/more/CompensationScreen";
 import OnboardingScreen from "./src/screens/admin/OnboardingScreen";
 
 const Stack = createNativeStackNavigator();
@@ -56,6 +57,7 @@ function MoreHomeScreen({ navigation }) {
   const items = [
     { icon: "cut-outline",       label: "Services", screen: "Services" },
     { icon: "person-add-outline", label: "Team",    screen: "Barbers" },
+    { icon: "wallet-outline",    label: "Compensation", screen: "Compensation" },
     { icon: "share-outline",     label: "Share",    screen: "Share" },
     { icon: "card-outline",      label: "Payments", screen: "Payments" },
     { icon: "settings-outline",  label: "Settings", screen: "Settings" },
@@ -116,6 +118,7 @@ function MoreNavigator() {
       <MoreStack.Screen name="Payments"     component={PaymentsScreen}  options={subScreenOptions("Payments")} />
       <MoreStack.Screen name="Settings"     component={SettingsScreen}  options={subScreenOptions("Settings")} />
       <MoreStack.Screen name="Barbers"      component={BarbersScreen}   options={subScreenOptions("Team")} />
+      <MoreStack.Screen name="Compensation" component={CompensationScreen} options={subScreenOptions("Compensation")} />
       {/* Clients_More reuses the same ClientsScreen */}
       <MoreStack.Screen name="Clients_More" component={ClientsScreen}   options={subScreenOptions("Clients")} />
     </MoreStack.Navigator>

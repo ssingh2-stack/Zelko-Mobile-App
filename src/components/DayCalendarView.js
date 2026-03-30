@@ -1,7 +1,8 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, Alert,
 } from "react-native";
+import { api } from "../lib/api";
 import { C, serif } from "../lib/theme";
 
 export const PX_PER_HOUR = 80;
@@ -92,6 +93,9 @@ export default function DayCalendarView({
   barberAvailability = {},
 }) {
   const touchStart = useRef({ x: 0, y: 0, t: 0 });
+  const [dragging, setDragging] = useState(null); // { code, top, height }
+  const [dragY, setDragY] = useState(0);
+  const colRef = useRef(null);
 
   const totalPx = TOTAL_H * PX_PER_HOUR;
   const todayStr = new Date().toISOString().split("T")[0];
@@ -140,6 +144,7 @@ export default function DayCalendarView({
     <ScrollView
       ref={scrollRef}
       style={styles.scroll}
+      scrollEnabled={!dragging}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.espresso} />}
       onTouchStart={(e) => {
         touchStart.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY, t: Date.now(), swiped: false };
@@ -239,9 +244,34 @@ export default function DayCalendarView({
                 key={barber.id}
                 style={[styles.col, { height: totalPx }]}
                 onPress={(e) => {
+                  if (dragging) {
+                    // Drop the dragged booking
+                    const snapMin = Math.round(dragY / PX_PER_HOUR * 60 / 15) * 15 + OPEN_HOUR * 60;
+                    const clamped = Math.max(OPEN_HOUR * 60, Math.min(CLOSE_HOUR * 60 - 15, snapMin));
+                    const newTime = `${String(Math.floor(clamped/60)).padStart(2,"0")}:${String(clamped%60).padStart(2,"0")}`;
+                    const code = dragging.code;
+                    setDragging(null);
+                    Alert.alert(`Move to ${fmtTime(newTime)}?`, null, [
+                      { text: "Cancel", style: "cancel" },
+                      { text: "Move", onPress: async () => {
+                        try {
+                          await api.adminUpdateBooking(code, { start_time: newTime });
+                          onRefresh?.();
+                        } catch (err) { Alert.alert("Error", err.message); }
+                      }},
+                    ]);
+                    return;
+                  }
                   if (!onSlotPress || touchStart.current.swiped) return;
                   const y = e.nativeEvent.locationY;
                   onSlotPress({ barberId: barber.id, barberName: barber.name, time: pxToTimeStr(y) });
+                }}
+                onMoveShouldSetResponder={() => !!dragging}
+                onResponderMove={(e) => {
+                  if (!dragging) return;
+                  const newY = e.nativeEvent.locationY - dragging.height / 2;
+                  const snapped = Math.round(newY / (PX_PER_HOUR / 4)) * (PX_PER_HOUR / 4);
+                  setDragY(Math.max(0, Math.min(totalPx - dragging.height, snapped)));
                 }}
                 activeOpacity={1}
               >
@@ -296,13 +326,21 @@ export default function DayCalendarView({
                       key={bk.confirmation_code}
                       style={[
                         styles.appt,
-                        { top, height: bkH, backgroundColor: blockBg, borderLeftColor: blockBorder,
+                        { top: dragging?.code === bk.confirmation_code ? dragY : top,
+                          height: bkH, backgroundColor: blockBg, borderLeftColor: blockBorder,
                           justifyContent: bkH > 60 ? "center" : "flex-start" },
                         cancelled && styles.apptCancelled,
                         isPast && !cancelled && styles.apptPast,
+                        dragging?.code === bk.confirmation_code && styles.apptDragging,
                       ]}
-                      onPress={(e) => { if (touchStart.current.swiped) return; e.stopPropagation?.(); onBookingPress?.(bk); }}
-                      activeOpacity={0.8}
+                      onPress={(e) => { if (touchStart.current.swiped || dragging) return; e.stopPropagation?.(); onBookingPress?.(bk); }}
+                      onLongPress={() => {
+                        if (cancelled) return;
+                        setDragging({ code: bk.confirmation_code, origTop: top, height: bkH, barberId: barber.id });
+                        setDragY(top);
+                      }}
+                      delayLongPress={400}
+                      activeOpacity={dragging?.code === bk.confirmation_code ? 1 : 0.8}
                     >
                       <Text style={[styles.apptTime, { color: blockBorder }]}>{fmtTime(bk.start_time)}</Text>
                       <Text style={[styles.apptName, (cancelled || isPast) && styles.apptNameMuted]} numberOfLines={1}>
@@ -494,6 +532,7 @@ const styles = StyleSheet.create({
     borderRadius: 7, padding: 4, paddingLeft: 7,
     borderLeftWidth: 4, overflow: "hidden", zIndex: 5,
   },
+  apptDragging: { opacity: 0.85, zIndex: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 8 },
   apptCancelled: { opacity: 0.25 },
   apptPast:      { opacity: 0.45 },
   apptTime: { fontSize: 9, fontWeight: "700", lineHeight: 11 },
