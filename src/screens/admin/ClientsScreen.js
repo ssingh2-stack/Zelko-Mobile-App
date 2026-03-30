@@ -4,6 +4,7 @@ import {
   TextInput, RefreshControl, Alert, ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../lib/api";
 import { C, serif, fmtMoney } from "../../lib/theme";
 import ClientProfileModal from "../../components/ClientProfileModal";
@@ -136,7 +137,7 @@ export default function ClientsScreen() {
       {/* Search */}
       <View style={styles.searchWrap}>
         <View style={styles.searchInner}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <Ionicons name="search" size={16} color={C.muted} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search by name, email or phone"
@@ -206,7 +207,7 @@ export default function ClientsScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={C.espresso} />}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>👤</Text>
+              <Ionicons name="person-outline" size={40} color={C.muted} />
               <Text style={styles.emptyTitle}>No clients found</Text>
               {search ? <Text style={styles.emptySub}>Try a different search</Text> : null}
             </View>
@@ -245,7 +246,7 @@ const styles = StyleSheet.create({
     backgroundColor: C.surface, borderRadius: 10,
     paddingHorizontal: 12, gap: 8,
   },
-  searchIcon: { fontSize: 14 },
+  searchIcon: {},
   searchInput: { flex: 1, paddingVertical: 10, fontSize: 14, color: C.espresso },
   searchClear: { padding: 4 },
   searchClearText: { fontSize: 13, color: C.muted },
@@ -277,7 +278,7 @@ const styles = StyleSheet.create({
   separator: { height: 1, backgroundColor: C.border, marginLeft: 72 },
 
   empty: { paddingTop: 80, alignItems: "center", gap: 8 },
-  emptyIcon: { fontSize: 40 },
+  emptyIcon: {},
   emptyTitle: { fontSize: 16, fontWeight: "700", color: C.muted },
   emptySub: { fontSize: 13, color: C.muted },
 });

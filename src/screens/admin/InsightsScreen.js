@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { View, Text, ScrollView, StyleSheet, RefreshControl, Alert, ActivityIndicator, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../../lib/api";
 import { C, serif, fmtMoney } from "../../lib/theme";
@@ -78,12 +79,15 @@ function KPICard({ icon, value, label, accent, trend }) {
   return (
     <View style={styles.kpi}>
       <View style={[styles.kpiAccent, { backgroundColor: accent || C.terra }]} />
-      <Text style={styles.kpiIcon}>{icon}</Text>
+      <Ionicons name={icon} size={20} color={accent || C.terra} style={styles.kpiIcon} />
       <Text style={styles.kpiValue}>{value}</Text>
       {trend !== null && trend !== undefined && (
-        <Text style={[styles.kpiTrend, trend >= 0 ? styles.kpiTrendUp : styles.kpiTrendDown]}>
-          {trend >= 0 ? "▲" : "▼"} {Math.abs(trend)}%
-        </Text>
+        <View style={styles.kpiTrendRow}>
+          <Ionicons name={trend >= 0 ? "caret-up" : "caret-down"} size={11} color={trend >= 0 ? "#059669" : "#DC2626"} />
+          <Text style={[styles.kpiTrend, trend >= 0 ? styles.kpiTrendUp : styles.kpiTrendDown]}>
+            {Math.abs(trend)}%
+          </Text>
+        </View>
       )}
       <Text style={styles.kpiLabel}>{label}</Text>
     </View>
@@ -239,10 +243,10 @@ export default function InsightsScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Overview</Text>
             <View style={styles.kpiGrid}>
-              <KPICard icon="💰" value={fmtMoney(data.total_revenue)} label="Total Revenue" accent={C.terra} trend={trends.revenue} />
-              <KPICard icon="📅" value={data.total_bookings ?? 0} label="Bookings" accent="#3B82F6" trend={trends.bookings} />
-              <KPICard icon="⭐" value={fmtMoney(data.avg_booking_value)} label="Avg Value" accent="#10B981" trend={trends.avg} />
-              <KPICard icon="❌" value={`${data.cancellation_rate ?? 0}%`} label="Cancel Rate" accent="#F59E0B" trend={trends.cancel} />
+              <KPICard icon="cash-outline" value={fmtMoney(data.total_revenue)} label="Total Revenue" accent={C.terra} trend={trends.revenue} />
+              <KPICard icon="calendar-outline" value={data.total_bookings ?? 0} label="Bookings" accent="#3B82F6" trend={trends.bookings} />
+              <KPICard icon="star-outline" value={fmtMoney(data.avg_booking_value)} label="Avg Value" accent="#10B981" trend={trends.avg} />
+              <KPICard icon="close-circle-outline" value={`${data.cancellation_rate ?? 0}%`} label="Cancel Rate" accent="#F59E0B" trend={trends.cancel} />
             </View>
           </View>
 
@@ -382,9 +386,10 @@ const styles = StyleSheet.create({
   kpiGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   kpi: { width: "47%", backgroundColor: C.white, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: C.border, overflow: "hidden" },
   kpiAccent: { position: "absolute", top: 0, left: 0, right: 0, height: 3 },
-  kpiIcon: { fontSize: 20, marginBottom: 8 },
+  kpiIcon: { marginBottom: 8 },
   kpiValue: { fontFamily: serif, fontSize: 26, fontWeight: "900", color: C.espresso, marginBottom: 2 },
-  kpiTrend: { fontSize: 11, fontWeight: "800", marginBottom: 2 },
+  kpiTrendRow: { flexDirection: "row", alignItems: "center", gap: 2, marginBottom: 2 },
+  kpiTrend: { fontSize: 11, fontWeight: "800" },
   kpiTrendUp: { color: "#059669" },
   kpiTrendDown: { color: "#DC2626" },
   kpiLabel: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1.5 },

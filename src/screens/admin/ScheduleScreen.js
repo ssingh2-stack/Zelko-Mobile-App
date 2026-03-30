@@ -4,6 +4,7 @@ import {
   RefreshControl, Alert, ActivityIndicator, TextInput, Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../lib/api";
 import { C, serif, fmtMoney } from "../../lib/theme";
 import { success as hapticSuccess, warn as hapticWarn } from "../../lib/haptics";
@@ -231,11 +232,11 @@ export default function ScheduleScreen() {
 
   function handleSlotTap({ barberId, barberName, time }) {
     Alert.alert(`${barberName} · ${fmtTime(time)}`, null, [
-      { text: "📅 New Booking", onPress: () => {
+      { text: "New Booking", onPress: () => {
         setNewBookingPrefill({ barberId: String(barberId), time });
         setShowNewBooking(true);
       }},
-      { text: "🚫 Block Time", onPress: () => {
+      { text: "Block Time", onPress: () => {
         setBlockInfo({ barberId, barberName, time });
         setBlockDuration(30);
         setBlockReason("");
@@ -305,7 +306,7 @@ export default function ScheduleScreen() {
 
       {/* Search bar */}
       <View style={styles.searchBar}>
-        <Text style={styles.searchIcon}>🔍</Text>
+        <Ionicons name="search" size={16} color={C.muted} />
         <TextInput
           style={styles.searchInput}
           value={searchQuery}
@@ -328,19 +329,19 @@ export default function ScheduleScreen() {
             style={[styles.toggleBtn, view === "cal" && styles.toggleBtnActive]}
             onPress={() => setView("cal")}
           >
-            <Text style={[styles.toggleBtnText, view === "cal" && styles.toggleBtnTextActive]}>📅 Calendar</Text>
+            <View style={styles.toggleBtnInner}><Ionicons name="calendar-outline" size={14} color={view === "cal" ? C.cream : C.muted} /><Text style={[styles.toggleBtnText, view === "cal" && styles.toggleBtnTextActive]}> Calendar</Text></View>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.toggleBtn, view === "list" && styles.toggleBtnActive]}
             onPress={() => setView("list")}
           >
-            <Text style={[styles.toggleBtnText, view === "list" && styles.toggleBtnTextActive]}>☰ List</Text>
+            <View style={styles.toggleBtnInner}><Ionicons name="menu" size={14} color={view === "list" ? C.cream : C.muted} /><Text style={[styles.toggleBtnText, view === "list" && styles.toggleBtnTextActive]}> List</Text></View>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.toggleBtn, view === "week" && styles.toggleBtnActive]}
             onPress={() => setView("week")}
           >
-            <Text style={[styles.toggleBtnText, view === "week" && styles.toggleBtnTextActive]}>▦ Week</Text>
+            <View style={styles.toggleBtnInner}><Ionicons name="grid-outline" size={14} color={view === "week" ? C.cream : C.muted} /><Text style={[styles.toggleBtnText, view === "week" && styles.toggleBtnTextActive]}> Week</Text></View>
           </TouchableOpacity>
         </View>
 
@@ -501,7 +502,7 @@ export default function ScheduleScreen() {
         >
           {sortedBookings.length === 0 ? (
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>📅</Text>
+              <Ionicons name="calendar-outline" size={40} color={C.muted} />
               <Text style={styles.emptyTitle}>No bookings</Text>
               <TouchableOpacity style={styles.emptyBtn} onPress={() => { setNewBookingPrefill({}); setShowNewBooking(true); }}>
                 <Text style={styles.emptyBtnText}>+ New Booking</Text>
@@ -666,6 +667,7 @@ const styles = StyleSheet.create({
   controlsRow: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingTop: 10, paddingBottom: 6 },
   toggleBtn: { paddingHorizontal: 11, paddingVertical: 6, borderRadius: 8, borderWidth: 1.5, borderColor: C.border },
   toggleBtnActive: { backgroundColor: C.espresso, borderColor: C.espresso },
+  toggleBtnInner: { flexDirection: "row", alignItems: "center" },
   toggleBtnText: { fontSize: 12, fontWeight: "700", color: C.muted },
   toggleBtnTextActive: { color: C.cream },
   filterScroll: { paddingBottom: 10 },
@@ -742,7 +744,7 @@ const styles = StyleSheet.create({
   blockSaveText: { fontSize: 14, fontWeight: "800", color: C.cream },
 
   empty: { paddingTop: 60, alignItems: "center", gap: 10 },
-  emptyIcon: { fontSize: 40 },
+  emptyIcon: {},
   emptyTitle: { fontSize: 16, fontWeight: "700", color: C.muted },
   emptyBtn: { marginTop: 4, paddingHorizontal: 20, paddingVertical: 10, backgroundColor: C.espresso, borderRadius: 10 },
   emptyBtnText: { fontSize: 14, fontWeight: "700", color: C.cream },

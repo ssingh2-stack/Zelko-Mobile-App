@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  TextInput, Alert, ActivityIndicator, Switch, Image,
+  TextInput, Alert, ActivityIndicator, Switch, Image, RefreshControl,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
@@ -140,7 +140,7 @@ export default function SettingsScreen() {
   if (loading) return <View style={styles.center}><ActivityIndicator color={C.espresso} /></View>;
 
   return (
-    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
+    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled" refreshControl={<RefreshControl refreshing={false} onRefresh={() => { setLoading(true); api.adminSettings().then(s => { setShopName(s.name || ""); setAddress(s.address || ""); setPhone(s.phone || ""); setEmail(s.email || ""); setGoogleUrl(s.google_review_url || ""); setSlug(s.slug || ""); setLogoUrl(s.logo_url || ""); setHours(s.hours || {}); }).finally(() => setLoading(false)); }} tintColor={C.espresso} />}>
 
       {/* Shop Info */}
       <View style={styles.card}>

@@ -94,6 +94,6 @@ const styles = StyleSheet.create({
     backgroundColor: C.espresso, borderRadius: 8,
   },
   goBtnText: { fontSize: 12, fontWeight: "800", color: C.cream },
-  dismiss: { padding: 4 },
+  dismiss: { padding: 10, minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
   dismissText: { fontSize: 14, color: "#B45309" },
 });

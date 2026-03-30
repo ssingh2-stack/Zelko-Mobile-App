@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   TextInput, Alert, ActivityIndicator, RefreshControl,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../../lib/api";
 import { C, serif, fmtMoney } from "../../../lib/theme";
 import { success as hapticSuccess } from "../../../lib/haptics";
@@ -199,10 +200,10 @@ export default function ServicesScreen() {
                 <View style={styles.svcRow}>
                   <View style={styles.reorderBtns}>
                     <TouchableOpacity onPress={() => moveService(sIdx, -1)} disabled={sIdx === 0} style={{ opacity: sIdx === 0 ? 0.2 : 1 }}>
-                      <Text style={styles.reorderArrow}>▲</Text>
+                      <Ionicons name="chevron-up" size={16} color={C.muted} style={styles.reorderArrow} />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => moveService(sIdx, 1)} disabled={sIdx === services.length - 1} style={{ opacity: sIdx === services.length - 1 ? 0.2 : 1 }}>
-                      <Text style={styles.reorderArrow}>▼</Text>
+                      <Ionicons name="chevron-down" size={16} color={C.muted} style={styles.reorderArrow} />
                     </TouchableOpacity>
                   </View>
                   <View style={{ flex: 1 }}>
@@ -250,7 +251,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: C.border, gap: 10,
   },
   reorderBtns: { alignItems: "center", gap: 2 },
-  reorderArrow: { fontSize: 12, color: C.muted, padding: 4 },
+  reorderArrow: { padding: 4 },
   svcRowEditing: { flexDirection: "column", alignItems: "stretch" },
   svcName: { fontSize: 15, fontWeight: "700", color: C.espresso },
   svcMeta: { fontSize: 12, color: C.muted, marginTop: 2 },
@@ -258,7 +259,7 @@ const styles = StyleSheet.create({
   svcActions: { flexDirection: "row", alignItems: "center", gap: 4 },
   editBtn: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 7, borderWidth: 1.5, borderColor: C.border },
   editBtnText: { fontSize: 12, fontWeight: "700", color: C.espresso },
-  deleteBtn: { padding: 8 },
+  deleteBtn: { padding: 10, minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
   deleteBtnText: { fontSize: 16, color: C.muted, fontWeight: "600" },
   editInlineRow: { flexDirection: "row" },
   editActions: { flexDirection: "row", gap: 8, marginTop: 12 },

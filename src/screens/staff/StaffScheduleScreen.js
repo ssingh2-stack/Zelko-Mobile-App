@@ -4,6 +4,7 @@ import {
   RefreshControl, Alert, ActivityIndicator, Modal, TextInput,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../lib/api";
 import { C, serif, fmtMoney } from "../../lib/theme";
 import NextUpCard from "../../components/NextUpCard";
@@ -182,13 +183,13 @@ export default function StaffScheduleScreen() {
             style={[styles.toggleBtn, view === "cal" && styles.toggleBtnActive]}
             onPress={() => setView("cal")}
           >
-            <Text style={[styles.toggleBtnText, view === "cal" && styles.toggleBtnTextActive]}>📅</Text>
+            <Ionicons name="calendar-outline" size={14} color={view === "cal" ? C.cream : "rgba(247,243,238,0.6)"} />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.toggleBtn, view === "list" && styles.toggleBtnActive]}
             onPress={() => setView("list")}
           >
-            <Text style={[styles.toggleBtnText, view === "list" && styles.toggleBtnTextActive]}>☰</Text>
+            <Ionicons name="menu" size={14} color={view === "list" ? C.cream : "rgba(247,243,238,0.6)"} />
           </TouchableOpacity>
         </View>
       </View>
@@ -221,7 +222,7 @@ export default function StaffScheduleScreen() {
         >
           {sortedBookings.length === 0 ? (
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>✂️</Text>
+              <Ionicons name="cut-outline" size={36} color={C.muted} />
               <Text style={styles.emptyTitle}>Nothing booked</Text>
             </View>
           ) : (
@@ -274,7 +275,7 @@ export default function StaffScheduleScreen() {
         setBlockAllDay(false); setBlockReason("");
         setBlockModal(true);
       }}>
-        <Text style={styles.fabText}>🚫</Text>
+        <Ionicons name="ban-outline" size={22} color={C.cream} />
       </TouchableOpacity>
 
       {/* Block Time Modal */}
@@ -363,7 +364,7 @@ const styles = StyleSheet.create({
 
   list: { flex: 1, padding: 12 },
   empty: { paddingTop: 60, alignItems: "center", gap: 10 },
-  emptyIcon: { fontSize: 36 },
+  emptyIcon: {},
   emptyTitle: { fontSize: 16, fontWeight: "700", color: C.muted },
 
   card: {
@@ -392,7 +393,7 @@ const styles = StyleSheet.create({
     shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 6,
     elevation: 6,
   },
-  fabText: { fontSize: 22 },
+  fabText: {},
 
   // Block Time Modal
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },

@@ -21,6 +21,21 @@ export const BARBER_PALETTES = [
 
 export const serif = Platform.OS === "ios" ? "Georgia" : "serif";
 
+// Standardized spacing and typography
+export const S = {
+  xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 32,
+};
+export const T = {
+  label: 10,
+  caption: 11,
+  body: 13,
+  bodyLg: 14,
+  subtitle: 15,
+  title: 17,
+  heading: 20,
+  hero: 28,
+};
+
 // Format a number as currency: 1234.5 → "$1,235"
 export function fmtMoney(n) {
   const num = parseFloat(n) || 0;

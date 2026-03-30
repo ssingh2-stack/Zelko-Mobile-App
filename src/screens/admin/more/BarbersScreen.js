@@ -4,6 +4,7 @@ import {
   TextInput, Alert, ActivityIndicator, RefreshControl, Image, Switch, Share,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../../lib/api";
 import { C, serif, DCAL_COLORS } from "../../../lib/theme";
 import { success as hapticSuccess, warn as hapticWarn } from "../../../lib/haptics";
@@ -273,7 +274,7 @@ export default function BarbersScreen() {
                         <Text style={[styles.avatarText, { color }]}>{initials(b.name)}</Text>
                       </View>
                     )}
-                    <View style={styles.cameraIcon}><Text style={styles.cameraText}>📷</Text></View>
+                    <View style={styles.cameraIcon}><Ionicons name="camera" size={10} color={C.muted} /></View>
                   </TouchableOpacity>
                   <View style={styles.barberInfo}>
                     <Text style={styles.barberName}>{b.name}</Text>
@@ -485,7 +486,7 @@ const styles = StyleSheet.create({
     backgroundColor: C.white, borderWidth: 1, borderColor: C.border,
     alignItems: "center", justifyContent: "center",
   },
-  cameraText: { fontSize: 9 },
+  cameraText: {},
   avatarText: { fontFamily: serif, fontSize: 16, fontWeight: "800" },
   barberInfo: { flex: 1 },
   barberName: { fontSize: 15, fontWeight: "700", color: C.espresso },

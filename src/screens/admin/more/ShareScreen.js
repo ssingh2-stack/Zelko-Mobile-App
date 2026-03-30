@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  Alert, ActivityIndicator, Share,
+  Alert, ActivityIndicator, Share, RefreshControl,
 } from "react-native";
 import QRCode from "react-native-qrcode-svg";
+import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../../lib/api";
 import { C, serif } from "../../../lib/theme";
 
@@ -11,12 +12,13 @@ export default function ShareScreen() {
   const [settings, setSettings] = useState(null);
   const [barbers, setBarbers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     Promise.all([api.adminSettings(), api.adminBarbers()])
       .then(([s, bs]) => { setSettings(s); setBarbers(bs); })
       .catch(err => Alert.alert("Error", err.message))
-      .finally(() => setLoading(false));
+      .finally(() => { setLoading(false); setRefreshing(false); });
   }, []);
 
   async function shareLink(url, label) {
@@ -34,7 +36,7 @@ export default function ShareScreen() {
   const shareMsg = `Hey! You can now book your next appointment at ${shopName} online — it only takes 30 seconds. Here's the link: ${bookingUrl}`;
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); Promise.all([api.adminSettings(), api.adminBarbers()]).then(([s, bs]) => { setSettings(s); setBarbers(bs); }).finally(() => { setRefreshing(false); }); }} tintColor={C.espresso} />}>
       {/* Main booking link */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Your Booking Page</Text>
@@ -86,7 +88,7 @@ export default function ShareScreen() {
                   <Text style={styles.barberUrl} numberOfLines={1}>{barberUrl}</Text>
                 </View>
                 <TouchableOpacity style={styles.shareIconBtn} onPress={() => shareLink(barberUrl, b.name)}>
-                  <Text style={styles.shareIconText}>↑</Text>
+                  <Ionicons name="share-outline" size={16} color={C.espresso} />
                 </TouchableOpacity>
               </View>
             );

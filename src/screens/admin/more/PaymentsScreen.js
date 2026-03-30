@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  Alert, ActivityIndicator, Switch, Linking, TextInput,
+  Alert, ActivityIndicator, Switch, Linking, TextInput, RefreshControl,
 } from "react-native";
 import { api } from "../../../lib/api";
 import { C, serif } from "../../../lib/theme";
@@ -9,6 +9,7 @@ import { C, serif } from "../../../lib/theme";
 export default function PaymentsScreen() {
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -18,7 +19,7 @@ export default function PaymentsScreen() {
     setLoading(true);
     try { setSettings(await api.adminPaymentSettings()); }
     catch (err) { Alert.alert("Error", err.message); }
-    finally { setLoading(false); }
+    finally { setLoading(false); setRefreshing(false); }
   }
 
   async function save() {
@@ -41,7 +42,7 @@ export default function PaymentsScreen() {
   const connected = settings.stripe_connected;
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={C.espresso} />}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Accept payments online</Text>
         <Text style={styles.cardSub}>
