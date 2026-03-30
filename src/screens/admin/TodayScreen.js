@@ -256,17 +256,17 @@ export default function TodayScreen() {
           <Text style={styles.trialExpiredIcon}>&#128274;</Text>
           <Text style={styles.trialExpiredTitle}>Your free trial has ended</Text>
           <Text style={styles.trialExpiredMsg}>
-            Your 14-day trial is over. Subscribe to the Pro plan to keep managing your bookings, clients, and schedule.
+            Your 14-day trial is over. Subscribe to keep managing your bookings, clients, and schedule.
+          </Text>
+          <Text style={[styles.trialExpiredNote, { marginBottom: 20 }]}>
+            Essentials (up to 3 barbers) $29/mo{"\n"}Pro (unlimited barbers) $49/mo
           </Text>
           <TouchableOpacity
             style={styles.trialExpiredBtn}
             onPress={() => Linking.openURL(trialUpgradeUrl)}
           >
-            <Text style={styles.trialExpiredBtnText}>Subscribe at getclipd.ca</Text>
+            <Text style={styles.trialExpiredBtnText}>View Plans at getclipd.ca →</Text>
           </TouchableOpacity>
-          <Text style={styles.trialExpiredNote}>
-            Manage your subscription at getclipd.ca — no in-app purchases.
-          </Text>
         </View>
       </View>
     );
