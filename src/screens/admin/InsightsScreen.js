@@ -207,7 +207,7 @@ export default function InsightsScreen() {
   if (error && !data) {
     return <View style={[styles.container, { paddingTop: insets.top }]}><ErrorState message={error} onRetry={() => load()} /></View>;
   }
-  if (loading && !data) {
+  if (loading) {
     return <View style={[styles.container, { paddingTop: insets.top, padding: 16 }]}><SkeletonKPI /><View style={{ height: 16 }} /><SkeletonCard lines={5} /><View style={{ height: 12 }} /><SkeletonCard lines={3} /></View>;
   }
 

@@ -377,7 +377,7 @@ export default function TodayScreen() {
 
       {error && !data ? (
         <ErrorState message={error} onRetry={() => load()} />
-      ) : loading && !data ? (
+      ) : loading ? (
         <View style={{ flex: 1, padding: 12 }}>{view === "cal" ? <SkeletonCalendar /> : <SkeletonList count={5} />}</View>
       ) : view === "cal" ? (
         <DayCalendarView

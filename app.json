@@ -17,14 +17,15 @@
       "supportsTablet": false,
       "bundleIdentifier": "ca.getclipd.app",
       "infoPlist": {
-        "CFBundleDisplayName": "Clipd"
+        "CFBundleDisplayName": "Clipd",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "package": "ca.getclipd.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#2C1810"
+        "backgroundColor": "#FFFFFF"
       }
     },
     "web": {
@@ -36,9 +37,9 @@
     "extra": {
       "googlePlacesKey": "AIzaSyCoqU_MEKty87QSJC8ES_yd-TodMlRdRSQ",
       "eas": {
-        "projectId": ""
+        "projectId": "0dae66a6-5feb-46b5-baa5-0abaab88fe12"
       }
     },
-    "owner": "clipd"
+    "owner": "sukhpreetsinghv"
   }
 }
