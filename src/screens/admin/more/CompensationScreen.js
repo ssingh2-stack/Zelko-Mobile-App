@@ -54,6 +54,7 @@ export default function CompensationScreen() {
   const [payPeriod, setPayPeriod] = useState("weekly");
   const [rentAmount, setRentAmount] = useState("");
   const [tiers, setTiers] = useState([{ min_revenue: 0, max_revenue: "", barber_pct: "60", shop_pct: "40" }]);
+  const [selectedBarberIds, setSelectedBarberIds] = useState([]);
   const [savingPlan, setSavingPlan] = useState(false);
 
   const load = useCallback(async (quiet = false) => {
@@ -81,6 +82,7 @@ export default function CompensationScreen() {
     setPayPeriod("weekly");
     setRentAmount("");
     setTiers([{ min_revenue: 0, max_revenue: "", barber_pct: "60", shop_pct: "40" }]);
+    setSelectedBarberIds([]);
     setShowPlanModal(true);
   }
 
@@ -99,7 +101,14 @@ export default function CompensationScreen() {
         }))
       : [{ min_revenue: 0, max_revenue: "", barber_pct: "60", shop_pct: "40" }]
     );
+    setSelectedBarberIds(barbers.filter(b => b.compensation_plan_id === plan.id).map(b => b.id));
     setShowPlanModal(true);
+  }
+
+  function toggleBarberSelection(barberId) {
+    setSelectedBarberIds(prev =>
+      prev.includes(barberId) ? prev.filter(id => id !== barberId) : [...prev, barberId]
+    );
   }
 
   async function savePlan() {
@@ -118,11 +127,22 @@ export default function CompensationScreen() {
       })),
     };
     try {
+      let planId;
       if (editingPlan) {
         await api.adminUpdateCompPlan(editingPlan.id, data);
+        planId = editingPlan.id;
       } else {
-        await api.adminCreateCompPlan(data);
+        const res = await api.adminCreateCompPlan(data);
+        planId = res.id;
       }
+      // Assign selected barbers to this plan, unassign others
+      await Promise.all(barbers.map(b => {
+        const shouldHave = selectedBarberIds.includes(b.id);
+        const hasIt = b.compensation_plan_id === planId;
+        if (shouldHave && !hasIt) return api.adminAssignBarberPlan(b.id, planId);
+        if (!shouldHave && hasIt) return api.adminAssignBarberPlan(b.id, null);
+        return Promise.resolve();
+      }));
       hapticSuccess(); showToast(editingPlan ? "Plan updated" : "Plan created");
       setShowPlanModal(false);
       load(true);
@@ -399,6 +419,22 @@ export default function CompensationScreen() {
                 </>
               )}
 
+              <Text style={styles.label}>Apply to Barbers</Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+                {barbers.map(b => {
+                  const selected = selectedBarberIds.includes(b.id);
+                  return (
+                    <TouchableOpacity
+                      key={b.id}
+                      style={[styles.barberChip, selected && styles.barberChipActive]}
+                      onPress={() => toggleBarberSelection(b.id)}
+                    >
+                      <Text style={[styles.barberChipText, selected && styles.barberChipTextActive]}>{b.name}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
               <View style={styles.modalBtns}>
                 <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setShowPlanModal(false)}>
                   <Text style={styles.modalCancelText}>Cancel</Text>
@@ -486,4 +522,8 @@ const styles = StyleSheet.create({
   modalCancelText: { fontSize: 14, fontWeight: "700", color: C.muted },
   modalSaveBtn: { flex: 2, paddingVertical: 12, borderRadius: 9, backgroundColor: C.espresso, alignItems: "center" },
   modalSaveText: { fontSize: 14, fontWeight: "800", color: C.cream },
+  barberChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.white },
+  barberChipActive: { backgroundColor: C.espresso, borderColor: C.espresso },
+  barberChipText: { fontSize: 12, fontWeight: "700", color: C.muted },
+  barberChipTextActive: { color: C.cream },
 });
