@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  TextInput, Alert, ActivityIndicator, Switch,
+  TextInput, Alert, ActivityIndicator, Switch, Image,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import * as ImagePicker from "expo-image-picker";
 import { api } from "../../../lib/api";
 import { C, serif } from "../../../lib/theme";
 import { clearSession } from "../../../lib/auth";
+import { success as hapticSuccess } from "../../../lib/haptics";
 import AddressAutocomplete from "../../../components/AddressAutocomplete";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -42,6 +44,7 @@ export default function SettingsScreen() {
   const [slug, setSlug]           = useState("");
   const [savingInfo, setSavingInfo] = useState(false);
   const [infoMsg, setInfoMsg] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
 
   // Hours
   const [hours, setHours] = useState({});
@@ -63,6 +66,7 @@ export default function SettingsScreen() {
       setEmail(s.email || "");
       setGoogleUrl(s.google_review_url || "");
       setSlug(s.slug || "");
+      setLogoUrl(s.logo_url || "");
       setHours(s.hours || {});
     }).catch(err => Alert.alert("Error", err.message))
       .finally(() => setLoading(false));
@@ -102,6 +106,21 @@ export default function SettingsScreen() {
     finally { setSavingPw(false); }
   }
 
+  async function pickLogo() {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (result.canceled) return;
+    try {
+      const res = await api.adminUpload(result.assets[0].uri, "logo");
+      setLogoUrl(res.url);
+      hapticSuccess();
+    } catch (err) { Alert.alert("Upload failed", err.message); }
+  }
+
   async function handleLogout() {
     Alert.alert("Log Out", "Are you sure you want to log out?", [
       { text: "Cancel", style: "cancel" },
@@ -126,6 +145,19 @@ export default function SettingsScreen() {
       {/* Shop Info */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Shop Info</Text>
+
+        {/* Logo */}
+        <TouchableOpacity style={styles.logoWrap} onPress={pickLogo}>
+          {logoUrl ? (
+            <Image source={{ uri: logoUrl }} style={styles.logoImg} />
+          ) : (
+            <View style={styles.logoPlaceholder}>
+              <Text style={styles.logoPlaceholderText}>+</Text>
+            </View>
+          )}
+          <Text style={styles.logoLabel}>{logoUrl ? "Change logo" : "Upload shop logo"}</Text>
+        </TouchableOpacity>
+
         <Field label="Shop Name" value={shopName} onChange={setShopName} placeholder="Your shop name" />
         <View style={styles.fieldWrap}>
           <Text style={styles.label}>Address</Text>
@@ -237,6 +269,15 @@ const styles = StyleSheet.create({
   timeInput: { flex: 1, backgroundColor: C.surface, borderRadius: 7, paddingHorizontal: 10, paddingVertical: 6, fontSize: 13, color: C.espresso, borderWidth: 1, borderColor: C.border, textAlign: "center" },
   timeDash: { fontSize: 13, color: C.muted },
   closed: { fontSize: 12, color: C.muted, fontStyle: "italic" },
+  logoWrap: { alignItems: "center", marginBottom: 16 },
+  logoImg: { width: 80, height: 80, borderRadius: 14, borderWidth: 2, borderColor: C.border },
+  logoPlaceholder: {
+    width: 80, height: 80, borderRadius: 14,
+    borderWidth: 2, borderColor: C.border, borderStyle: "dashed",
+    alignItems: "center", justifyContent: "center", backgroundColor: C.surface,
+  },
+  logoPlaceholderText: { fontSize: 28, color: C.muted, fontWeight: "300" },
+  logoLabel: { fontSize: 11, color: C.terra, fontWeight: "700", marginTop: 6 },
   logoutBtn: {
     paddingVertical: 14, borderRadius: 10,
     backgroundColor: "#FEF2F2", borderWidth: 1.5, borderColor: "#FECACA",

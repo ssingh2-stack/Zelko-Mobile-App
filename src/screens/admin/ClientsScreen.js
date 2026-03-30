@@ -40,6 +40,7 @@ export default function ClientsScreen() {
   const [showNewBooking, setShowNewBooking] = useState(false);
   const [newBookingClient, setNewBookingClient] = useState(null);
   const [error, setError] = useState(null);
+  const [sortBy, setSortBy] = useState("name");
 
   const load = useCallback(async (quiet = false) => {
     if (!quiet) setLoading(true);
@@ -75,8 +76,16 @@ export default function ClientsScreen() {
         c.phone?.includes(q)
       );
     }
+    list = [...list].sort((a, b) => {
+      switch (sortBy) {
+        case "visits": return (b.visit_count || 0) - (a.visit_count || 0);
+        case "spent": return (b.total_spent || 0) - (a.total_spent || 0);
+        case "recent": return (b.last_visit || "").localeCompare(a.last_visit || "");
+        default: return (a.name || "").localeCompare(b.name || "");
+      }
+    });
     setFiltered(list);
-  }, [clients, search, activeTag]);
+  }, [clients, search, activeTag, sortBy]);
 
   function openProfile(client) {
     setSelectedClient(client);
@@ -145,19 +154,37 @@ export default function ClientsScreen() {
         </View>
       </View>
 
-      {/* Tag filters */}
+      {/* Tag filters + sort */}
       <View style={styles.filters}>
-        {FILTERS.map(tag => (
-          <TouchableOpacity
-            key={tag}
-            style={[styles.filterBtn, activeTag === tag && styles.filterBtnActive]}
-            onPress={() => setActiveTag(tag)}
-          >
-            <Text style={[styles.filterText, activeTag === tag && styles.filterTextActive]}>
-              {tag === "all" ? "All" : tag.charAt(0).toUpperCase() + tag.slice(1)}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        <View style={styles.filterRow}>
+          {FILTERS.map(tag => (
+            <TouchableOpacity
+              key={tag}
+              style={[styles.filterBtn, activeTag === tag && styles.filterBtnActive]}
+              onPress={() => setActiveTag(tag)}
+            >
+              <Text style={[styles.filterText, activeTag === tag && styles.filterTextActive]}>
+                {tag === "all" ? "All" : tag.charAt(0).toUpperCase() + tag.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <View style={[styles.filterRow, { marginTop: 6 }]}>
+          {[
+            { key: "name", label: "A-Z" },
+            { key: "recent", label: "Recent" },
+            { key: "visits", label: "Visits" },
+            { key: "spent", label: "Spent" },
+          ].map(s => (
+            <TouchableOpacity
+              key={s.key}
+              style={[styles.filterBtn, sortBy === s.key && styles.sortBtnActive]}
+              onPress={() => setSortBy(s.key)}
+            >
+              <Text style={[styles.filterText, sortBy === s.key && styles.sortTextActive]}>{s.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
       {/* Client count */}
@@ -167,8 +194,10 @@ export default function ClientsScreen() {
         </View>
       )}
 
-      {loading ? (
-        error ? <ErrorState message={error} onRetry={() => load()} /> : <View style={{ flex: 1, padding: 16 }}><SkeletonList count={8} /></View>
+      {error && clients.length === 0 ? (
+        <ErrorState message={error} onRetry={() => load()} />
+      ) : loading && clients.length === 0 ? (
+        <View style={{ flex: 1, padding: 16 }}><SkeletonList count={8} /></View>
       ) : (
         <FlatList
           data={filtered}
@@ -191,6 +220,7 @@ export default function ClientsScreen() {
         visible={showProfile}
         onClose={() => setShowProfile(false)}
         onNewBooking={handleNewBookingForClient}
+        onClientUpdate={() => load(true)}
       />
 
       <NewBookingModal
@@ -220,11 +250,14 @@ const styles = StyleSheet.create({
   searchClear: { padding: 4 },
   searchClearText: { fontSize: 13, color: C.muted },
 
-  filters: { flexDirection: "row", paddingHorizontal: 12, paddingVertical: 10, gap: 6, backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border },
+  filters: { backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border, paddingVertical: 10 },
+  filterRow: { flexDirection: "row", paddingHorizontal: 12, gap: 6, alignItems: "center" },
   filterBtn: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999, borderWidth: 1.5, borderColor: C.border },
   filterBtnActive: { backgroundColor: C.espresso, borderColor: C.espresso },
   filterText: { fontSize: 12, fontWeight: "700", color: C.muted },
   filterTextActive: { color: C.cream },
+  sortBtnActive: { backgroundColor: C.terra, borderColor: C.terra },
+  sortTextActive: { color: C.cream },
 
   countBar: { paddingHorizontal: 16, paddingVertical: 6, backgroundColor: C.surface, borderBottomWidth: 1, borderBottomColor: C.border },
   countText: { fontSize: 11, fontWeight: "700", color: C.muted },

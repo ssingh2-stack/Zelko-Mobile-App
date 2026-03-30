@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  TextInput, Alert, ActivityIndicator, RefreshControl, Image, Switch,
+  TextInput, Alert, ActivityIndicator, RefreshControl, Image, Switch, Share,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { api } from "../../../lib/api";
@@ -31,6 +31,9 @@ export default function BarbersScreen() {
   const [editAvail, setEditAvail] = useState({});
   const [savingAvail, setSavingAvail] = useState(false);
   const [shopHours, setShopHours] = useState({});
+  const [allServices, setAllServices] = useState([]);
+  const [editBarberServices, setEditBarberServices] = useState([]);
+  const [savingServices, setSavingServices] = useState(false);
 
   const load = useCallback(async (quiet = false) => {
     if (!quiet) setLoading(true);
@@ -42,6 +45,7 @@ export default function BarbersScreen() {
   useEffect(() => {
     load();
     api.adminSettings().then(s => { if (s?.hours) setShopHours(s.hours); }).catch(() => {});
+    api.adminServices().then(s => setAllServices(Array.isArray(s) ? s : [])).catch(() => {});
   }, []);
 
   async function addBarber() {
@@ -83,11 +87,20 @@ export default function BarbersScreen() {
   const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   const DAY_MAP = { Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6, Sunday: 0 };
 
+  const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+
   function startEditBio(b) {
     setEditingId(b.id);
     setEditBio(b.bio || "");
     setEditYears(b.years_exp ? String(b.years_exp) : "");
     setEditIG(b.instagram || "");
+    setEditEmail(b.email || "");
+    setEditPhone(b.phone || "");
+    // Load barber services
+    api.adminBarberServices(b.id).then(svcIds => {
+      setEditBarberServices(Array.isArray(svcIds) ? svcIds.map(s => s.id || s.service_id || s) : []);
+    }).catch(() => setEditBarberServices([]));
     // Load barber availability
     api.adminBarberAvailability(b.id).then(avail => {
       const map = {};
@@ -111,16 +124,37 @@ export default function BarbersScreen() {
   async function saveBio(barberId) {
     setSavingBio(true);
     try {
-      await api.adminBarberBio(barberId, {
-        bio: editBio.trim(),
-        years_exp: editYears.trim(),
-        instagram: editIG.trim().replace(/^@/, ""),
-      });
+      await Promise.all([
+        api.adminBarberBio(barberId, {
+          bio: editBio.trim(),
+          years_exp: editYears.trim(),
+          instagram: editIG.trim().replace(/^@/, ""),
+        }),
+        api.adminBarberUpdate(barberId, {
+          email: editEmail.trim().toLowerCase(),
+          phone: editPhone.trim(),
+        }),
+      ]);
       setEditingId(null);
       hapticSuccess(); showToast("Profile saved");
       load(true);
     } catch (err) { Alert.alert("Error", err.message); }
     setSavingBio(false);
+  }
+
+  function toggleBarberService(svcId) {
+    setEditBarberServices(prev =>
+      prev.includes(svcId) ? prev.filter(id => id !== svcId) : [...prev, svcId]
+    );
+  }
+
+  async function saveBarberServices(barberId) {
+    setSavingServices(true);
+    try {
+      await api.adminSetBarberServices(barberId, editBarberServices);
+      hapticSuccess(); showToast("Services updated");
+    } catch (err) { Alert.alert("Error", err.message); }
+    setSavingServices(false);
   }
 
   async function saveAvailability(barberId) {
@@ -151,6 +185,17 @@ export default function BarbersScreen() {
       ...prev,
       [day]: { ...prev[day], [field]: val },
     }));
+  }
+
+  async function sendInvite(barberId, barberName) {
+    try {
+      const result = await api.adminBarberInvite(barberId);
+      hapticSuccess();
+      Alert.alert("Invite Sent", `An invite email has been sent to ${barberName}. They can also use this link:\n\n${result.invite_url}`, [
+        { text: "Copy Link", onPress: () => Share.share({ message: result.invite_url }) },
+        { text: "Done" },
+      ]);
+    } catch (err) { Alert.alert("Error", err.message); }
   }
 
   async function pickPhoto(barberId) {
@@ -252,6 +297,31 @@ export default function BarbersScreen() {
                 {/* Expanded edit form */}
                 {editingId === b.id && (
                   <View style={styles.editSection}>
+                    <View style={{ flexDirection: "row", gap: 10 }}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.editLabel}>Email</Text>
+                        <TextInput
+                          style={styles.editInput}
+                          value={editEmail}
+                          onChangeText={setEditEmail}
+                          placeholder="barber@shop.com"
+                          placeholderTextColor={C.muted}
+                          keyboardType="email-address"
+                          autoCapitalize="none"
+                        />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.editLabel}>Phone</Text>
+                        <TextInput
+                          style={styles.editInput}
+                          value={editPhone}
+                          onChangeText={setEditPhone}
+                          placeholder="416-555-0100"
+                          placeholderTextColor={C.muted}
+                          keyboardType="phone-pad"
+                        />
+                      </View>
+                    </View>
                     <Text style={styles.editLabel}>Bio</Text>
                     <TextInput
                       style={[styles.editInput, { minHeight: 60, textAlignVertical: "top" }]}
@@ -335,6 +405,40 @@ export default function BarbersScreen() {
                         <Text style={styles.saveBioBtnText}>{savingAvail ? "Saving…" : "Save Availability"}</Text>
                       </TouchableOpacity>
                     </View>
+
+                    {/* Services offered */}
+                    {allServices.length > 0 && (
+                      <View style={styles.availSection}>
+                        <Text style={styles.availTitle}>Services Offered</Text>
+                        <Text style={styles.availHint}>Toggle which services this barber performs</Text>
+                        {allServices.map(s => {
+                          const isOn = editBarberServices.includes(s.id);
+                          return (
+                            <View key={s.id} style={styles.svcRow}>
+                              <Text style={styles.svcRowName}>{s.name}</Text>
+                              <Switch
+                                value={isOn}
+                                onValueChange={() => toggleBarberService(s.id)}
+                                trackColor={{ true: C.terra }}
+                                thumbColor={C.white}
+                              />
+                            </View>
+                          );
+                        })}
+                        <TouchableOpacity style={[styles.saveBioBtn, savingServices && { opacity: 0.6 }]} onPress={() => saveBarberServices(b.id)} disabled={savingServices}>
+                          <Text style={styles.saveBioBtnText}>{savingServices ? "Saving…" : "Save Services"}</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+
+                    {/* Staff invite */}
+                    <View style={styles.availSection}>
+                      <Text style={styles.availTitle}>Staff Invite</Text>
+                      <Text style={styles.availHint}>Send an invite so this barber can log in to their own staff portal</Text>
+                      <TouchableOpacity style={styles.inviteBtn} onPress={() => sendInvite(b.id, b.name)}>
+                        <Text style={styles.inviteBtnText}>Send Invite →</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 )}
               </View>
@@ -415,6 +519,12 @@ const styles = StyleSheet.create({
   availInput: { flex: 1, backgroundColor: C.surface, borderRadius: 7, paddingHorizontal: 8, paddingVertical: 5, fontSize: 12, color: C.espresso, borderWidth: 1, borderColor: C.border, textAlign: "center" },
   availDash: { fontSize: 12, color: C.muted },
   availOff: { flex: 1, fontSize: 11, color: C.muted, fontStyle: "italic" },
+  // Service toggles
+  svcRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: C.border },
+  svcRowName: { fontSize: 13, fontWeight: "600", color: C.espresso },
+  // Invite
+  inviteBtn: { backgroundColor: C.terra, borderRadius: 9, paddingVertical: 11, alignItems: "center", marginTop: 8 },
+  inviteBtnText: { fontSize: 13, fontWeight: "800", color: C.cream },
   removeBtn: {
     paddingHorizontal: 10, paddingVertical: 6,
     borderRadius: 7, borderWidth: 1.5, borderColor: "#FECACA",

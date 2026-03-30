@@ -54,7 +54,6 @@ const tabBarOptions = {
 function MoreHomeScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const items = [
-    { icon: "people-outline",    label: "Clients",  screen: "Clients_More" },
     { icon: "cut-outline",       label: "Services", screen: "Services" },
     { icon: "person-add-outline", label: "Team",    screen: "Barbers" },
     { icon: "share-outline",     label: "Share",    screen: "Share" },

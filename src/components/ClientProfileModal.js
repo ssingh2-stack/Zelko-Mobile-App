@@ -39,16 +39,18 @@ const STATUS_COLORS = {
   no_show:   { bg: "#FEF3C7", text: "#92400E" },
 };
 
-export default function ClientProfileModal({ client, visible, onClose, onNewBooking }) {
+export default function ClientProfileModal({ client, visible, onClose, onNewBooking, onClientUpdate }) {
   const insets = useSafeAreaInsets();
   const [bookings, setBookings] = useState(null);
   const [notes, setNotes] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
+  const [isVip, setIsVip] = useState(false);
 
   useEffect(() => {
     if (!visible || !client?.email) return;
     setBookings(null);
     setNotes("");
+    setIsVip(client.tags?.includes("vip") || false);
     Promise.all([
       api.adminClientBookings(client.email),
       api.adminClientNotes(client.email).catch(() => ({ notes: "" })),
@@ -66,6 +68,15 @@ export default function ClientProfileModal({ client, visible, onClose, onNewBook
   const completed = (bookings || []).filter(b => b.status === "confirmed");
   const totalSpent = completed.reduce((s, b) => s + parseFloat(b.service_price || b.price || 0), 0);
   const lastVisit = completed[0]?.date;
+
+  async function toggleVip() {
+    const newVal = !isVip;
+    setIsVip(newVal);
+    try {
+      await api.adminClientVip(client.email, newVal);
+      onClientUpdate?.();
+    } catch { setIsVip(!newVal); }
+  }
 
   async function saveNotes() {
     if (!client.email) return;
@@ -110,9 +121,14 @@ export default function ClientProfileModal({ client, visible, onClose, onNewBook
                 <Text style={styles.clientSub}>Prefers {client.preferred_barber}</Text>
               ) : null}
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Text style={styles.closeBtnText}>✕</Text>
-            </TouchableOpacity>
+            <View style={styles.headerActions}>
+              <TouchableOpacity onPress={toggleVip} style={[styles.vipBtn, isVip && styles.vipBtnActive]}>
+                <Text style={[styles.vipBtnText, isVip && styles.vipBtnTextActive]}>{isVip ? "★ VIP" : "☆ VIP"}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+                <Text style={styles.closeBtnText}>✕</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Stats strip */}
@@ -262,7 +278,12 @@ const styles = StyleSheet.create({
   headerInfo: { flex: 1, paddingTop: 4 },
   clientName: { fontFamily: serif, fontSize: 22, fontWeight: "700", color: C.espresso },
   clientSub: { fontSize: 12, color: C.muted, marginTop: 3 },
-  closeBtn: { padding: 4, marginTop: 4 },
+  headerActions: { alignItems: "flex-end", gap: 6 },
+  vipBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 1.5, borderColor: "#FDE68A", backgroundColor: C.white },
+  vipBtnActive: { backgroundColor: "#FEF3C7", borderColor: "#F59E0B" },
+  vipBtnText: { fontSize: 11, fontWeight: "800", color: C.muted },
+  vipBtnTextActive: { color: "#92400E" },
+  closeBtn: { padding: 4 },
   closeBtnText: { fontSize: 18, color: C.muted },
 
   // Stats

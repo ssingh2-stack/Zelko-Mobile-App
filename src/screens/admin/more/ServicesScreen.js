@@ -74,6 +74,20 @@ export default function ServicesScreen() {
     finally { setSaving(false); }
   }
 
+  async function moveService(index, direction) {
+    const newIdx = index + direction;
+    if (newIdx < 0 || newIdx >= services.length) return;
+    const reordered = [...services];
+    [reordered[index], reordered[newIdx]] = [reordered[newIdx], reordered[index]];
+    setServices(reordered);
+    try {
+      await api.adminReorderServices(reordered.map(s => s.id));
+      hapticSuccess();
+    } catch (err) {
+      load(true); // Revert on failure
+    }
+  }
+
   async function deleteService(id, svcName) {
     Alert.alert("Delete Service", `Delete "${svcName}"?`, [
       { text: "Cancel", style: "cancel" },
@@ -129,7 +143,7 @@ export default function ServicesScreen() {
         ) : services.length === 0 ? (
           <Text style={styles.empty}>No services yet.</Text>
         ) : (
-          services.map(s => (
+          services.map((s, sIdx) => (
             <View key={s.id}>
               {editingId === s.id ? (
                 // ── Inline edit form ──
@@ -183,6 +197,14 @@ export default function ServicesScreen() {
               ) : (
                 // ── Display row ──
                 <View style={styles.svcRow}>
+                  <View style={styles.reorderBtns}>
+                    <TouchableOpacity onPress={() => moveService(sIdx, -1)} disabled={sIdx === 0} style={{ opacity: sIdx === 0 ? 0.2 : 1 }}>
+                      <Text style={styles.reorderArrow}>▲</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => moveService(sIdx, 1)} disabled={sIdx === services.length - 1} style={{ opacity: sIdx === services.length - 1 ? 0.2 : 1 }}>
+                      <Text style={styles.reorderArrow}>▼</Text>
+                    </TouchableOpacity>
+                  </View>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.svcName}>{s.name}</Text>
                     <Text style={styles.svcMeta}>{s.duration_min}min · {fmtMoney(s.price)}</Text>
@@ -225,8 +247,10 @@ const styles = StyleSheet.create({
   svcRow: {
     flexDirection: "row", alignItems: "center",
     backgroundColor: C.white, borderRadius: 10, padding: 14, marginBottom: 8,
-    borderWidth: 1, borderColor: C.border,
+    borderWidth: 1, borderColor: C.border, gap: 10,
   },
+  reorderBtns: { alignItems: "center", gap: 2 },
+  reorderArrow: { fontSize: 12, color: C.muted, padding: 4 },
   svcRowEditing: { flexDirection: "column", alignItems: "stretch" },
   svcName: { fontSize: 15, fontWeight: "700", color: C.espresso },
   svcMeta: { fontSize: 12, color: C.muted, marginTop: 2 },
