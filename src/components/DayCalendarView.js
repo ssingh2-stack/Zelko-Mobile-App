@@ -311,7 +311,7 @@ export default function DayCalendarView({
                   const startMin = tMin(bk.start_time);
                   if (startMin < OPEN_HOUR * 60 || startMin >= CLOSE_HOUR * 60) return null;
                   const top  = tPx(startMin);
-                  const bkH  = Math.max((bk.duration_min || 30) / 60 * PX_PER_HOUR, 36);
+                  const bkH  = Math.max((bk.duration_min || 30) / 60 * PX_PER_HOUR - 3, 32);
                   const cancelled = bk.status === "cancelled" || bk.status === "no_show";
                   const endMin = bk.end_time ? tMin(bk.end_time) : startMin + (bk.duration_min || 30);
                   const isPast = showNow && endMin < nowMin;
