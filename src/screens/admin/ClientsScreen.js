@@ -196,7 +196,7 @@ export default function ClientsScreen() {
 
       {error && clients.length === 0 ? (
         <ErrorState message={error} onRetry={() => load()} />
-      ) : loading && clients.length === 0 ? (
+      ) : loading ? (
         <View style={{ flex: 1, padding: 16 }}><SkeletonList count={8} /></View>
       ) : (
         <FlatList
