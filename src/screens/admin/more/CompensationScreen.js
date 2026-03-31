@@ -312,25 +312,29 @@ export default function CompensationScreen() {
           const currentPlan = plans.find(p => p.id === b.compensation_plan_id);
           return (
             <View key={b.id} style={styles.assignRow}>
-              <Text style={styles.assignName}>{b.name}</Text>
-              <Text style={styles.assignMeta}>{currentPlan ? currentPlan.name : "No plan assigned"}</Text>
-              <View style={styles.assignPills}>
-                <TouchableOpacity
-                  style={[styles.assignPill, !b.compensation_plan_id && styles.assignPillActive]}
-                  onPress={() => assignPlan(b.id, null)}
-                >
-                  <Text style={[styles.assignPillText, !b.compensation_plan_id && styles.assignPillTextActive]}>None</Text>
-                </TouchableOpacity>
-                {plans.map(p => (
-                  <TouchableOpacity
-                    key={p.id}
-                    style={[styles.assignPill, b.compensation_plan_id === p.id && styles.assignPillActive]}
-                    onPress={() => assignPlan(b.id, p.id)}
-                  >
-                    <Text style={[styles.assignPillText, b.compensation_plan_id === p.id && styles.assignPillTextActive]}>{p.name}</Text>
-                  </TouchableOpacity>
-                ))}
+              <View style={styles.assignHeader}>
+                <Text style={styles.assignName} numberOfLines={1}>{b.name}</Text>
+                <Text style={styles.assignCurrent}>{currentPlan ? currentPlan.name : "No plan"}</Text>
               </View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 6 }}>
+                <View style={{ flexDirection: "row", gap: 6 }}>
+                  <TouchableOpacity
+                    style={[styles.assignPill, !b.compensation_plan_id && styles.assignPillActive]}
+                    onPress={() => assignPlan(b.id, null)}
+                  >
+                    <Text style={[styles.assignPillText, !b.compensation_plan_id && styles.assignPillTextActive]}>None</Text>
+                  </TouchableOpacity>
+                  {plans.map(p => (
+                    <TouchableOpacity
+                      key={p.id}
+                      style={[styles.assignPill, b.compensation_plan_id === p.id && styles.assignPillActive]}
+                      onPress={() => assignPlan(b.id, p.id)}
+                    >
+                      <Text style={[styles.assignPillText, b.compensation_plan_id === p.id && styles.assignPillTextActive]}>{p.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
             </View>
           );
         })}
@@ -489,9 +493,9 @@ const styles = StyleSheet.create({
 
   // Assign
   assignRow: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.border },
-  assignName: { fontSize: 14, fontWeight: "700", color: C.espresso },
-  assignMeta: { fontSize: 11, color: C.muted, marginBottom: 8 },
-  assignPills: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  assignHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  assignName: { fontSize: 14, fontWeight: "700", color: C.espresso, flex: 1 },
+  assignCurrent: { fontSize: 11, color: C.muted, fontWeight: "600" },
   assignPill: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6, borderWidth: 1.5, borderColor: C.border },
   assignPillActive: { backgroundColor: C.espresso, borderColor: C.espresso },
   assignPillText: { fontSize: 11, fontWeight: "700", color: C.muted },
