@@ -51,6 +51,7 @@ export const api = {
   adminCancelBooking: (code) => request(`/api/admin/bookings/${code}/cancel`, { method: "POST" }),
   adminUpdateBooking: (code, data) => request(`/api/admin/bookings/${code}`, { method: "PATCH", body: JSON.stringify(data) }),
   adminNoShow: (code) => request(`/api/admin/bookings/${code}/noshow`, { method: "POST" }),
+  adminMarkPaid: (code, data) => request(`/api/admin/bookings/${code}/pay`, { method: "POST", body: JSON.stringify(data) }),
   adminBarbers: () => request("/api/admin/barbers"),
   adminServices: () => request("/api/admin/services"),
   adminAddService: (data) => request("/api/admin/services", { method: "POST", body: JSON.stringify(data) }),

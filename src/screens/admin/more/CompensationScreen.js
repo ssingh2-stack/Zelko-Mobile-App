@@ -252,6 +252,15 @@ export default function CompensationScreen() {
                 {e.booking_count} booking{e.booking_count !== 1 ? "s" : ""} · {e.plan ? e.plan.name : "No plan"}
               </Text>
               {e.breakdown ? <Text style={styles.earningsBreakdown}>{e.breakdown}</Text> : null}
+              {(e.total_tips > 0 || e.cash_collected > 0 || e.card_collected > 0) ? (
+                <Text style={styles.earningsPayment}>
+                  {e.total_tips > 0 ? `Tips: ${fmtMoney(e.total_tips)}` : ""}
+                  {e.total_tips > 0 && (e.cash_collected > 0 || e.card_collected > 0) ? "  ·  " : ""}
+                  {e.cash_collected > 0 ? `Cash: ${fmtMoney(e.cash_collected)}` : ""}
+                  {e.cash_collected > 0 && e.card_collected > 0 ? "  ·  " : ""}
+                  {e.card_collected > 0 ? `Card: ${fmtMoney(e.card_collected)}` : ""}
+                </Text>
+              ) : null}
             </View>
             <View style={styles.earningsAmounts}>
               <Text style={styles.earningsBarber}>{fmtMoney(e.barber_take)}</Text>
@@ -476,6 +485,7 @@ const styles = StyleSheet.create({
   earningsName: { fontSize: 14, fontWeight: "700", color: C.espresso },
   earningsMeta: { fontSize: 11, color: C.muted, marginTop: 1 },
   earningsBreakdown: { fontSize: 10, color: C.terra, fontWeight: "600", marginTop: 2 },
+  earningsPayment: { fontSize: 10, color: C.muted, fontWeight: "600", marginTop: 2 },
   earningsAmounts: { alignItems: "flex-end" },
   earningsBarber: { fontFamily: serif, fontSize: 16, fontWeight: "700", color: C.espresso },
   earningsShop: { fontSize: 10, color: C.muted, fontWeight: "600" },

@@ -300,6 +300,26 @@ export default function TodayScreen() {
             </View>
           </View>
         </View>
+        {/* Payment breakdown */}
+        {confirmed.length > 0 && (() => {
+          const cashPaid = confirmed.filter(b => b.payment_status === "cash_paid");
+          const cardPaid = confirmed.filter(b => b.payment_status === "paid" || b.payment_status === "card_paid");
+          const depositPaid = confirmed.filter(b => b.payment_status === "deposit_paid");
+          const unpaid = confirmed.filter(b => !b.payment_status || b.payment_status === "unpaid");
+          const cashTotal = cashPaid.reduce((s, b) => s + (b.amount_paid || b.service_price || 0), 0);
+          const cardTotal = cardPaid.reduce((s, b) => s + (b.amount_paid || b.service_price || 0), 0);
+          return (
+            <Text style={styles.paymentBreakdown}>
+              {cashPaid.length > 0 ? `Cash: ${fmtMoney(cashTotal)}` : ""}
+              {cashPaid.length > 0 && cardPaid.length > 0 ? "  ·  " : ""}
+              {cardPaid.length > 0 ? `Card: ${fmtMoney(cardTotal)}` : ""}
+              {(cashPaid.length > 0 || cardPaid.length > 0) && unpaid.length > 0 ? "  ·  " : ""}
+              {unpaid.length > 0 ? `Unpaid: ${unpaid.length}` : ""}
+              {cashPaid.length === 0 && cardPaid.length === 0 && unpaid.length > 0 ? `${unpaid.length} unpaid` : ""}
+              {depositPaid.length > 0 ? `  ·  ${depositPaid.length} deposit` : ""}
+            </Text>
+          );
+        })()}
         {/* Occupancy bar */}
         <View style={styles.occRow}>
           <View style={styles.occTrack}>
@@ -612,6 +632,7 @@ const styles = StyleSheet.create({
   statDivider: { width: 1, height: 28, backgroundColor: "rgba(255,255,255,0.1)", marginHorizontal: 12 },
 
   // Occupancy bar
+  paymentBreakdown: { fontSize: 10, fontWeight: "600", color: "rgba(247,243,238,0.45)", marginBottom: 6, marginTop: 2 },
   occRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   occTrack: { flex: 1, height: 4, backgroundColor: "rgba(255,255,255,0.12)", borderRadius: 2, overflow: "hidden" },
   occFill: { height: 4, backgroundColor: C.terra, borderRadius: 2, minWidth: 4 },

@@ -342,7 +342,15 @@ export default function DayCalendarView({
                       delayLongPress={400}
                       activeOpacity={dragging?.code === bk.confirmation_code ? 1 : 0.8}
                     >
-                      <Text style={[styles.apptTime, { color: blockBorder }]}>{fmtTime(bk.start_time)}</Text>
+                      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                        <Text style={[styles.apptTime, { color: blockBorder }]}>{fmtTime(bk.start_time)}</Text>
+                        {(bk.payment_status === "paid" || bk.payment_status === "cash_paid" || bk.payment_status === "card_paid") && (
+                          <Text style={styles.paidIcon}>$</Text>
+                        )}
+                        {bk.payment_status === "deposit_paid" && (
+                          <Text style={styles.depositIcon}>$</Text>
+                        )}
+                      </View>
                       <Text style={[styles.apptName, (cancelled || isPast) && styles.apptNameMuted]} numberOfLines={1}>
                         {bk.customer_name}
                       </Text>
@@ -543,4 +551,6 @@ const styles = StyleSheet.create({
   svcDot: { width: 6, height: 6, borderRadius: 3 },
   apptSvc:  { fontSize: 10, color: C.muted },
   apptNote: { fontSize: 9, color: "#92400E", fontStyle: "italic", marginTop: 1 },
+  paidIcon: { fontSize: 8, fontWeight: "900", color: "#065F46", backgroundColor: "#D1FAE5", borderRadius: 3, paddingHorizontal: 3, paddingVertical: 1, overflow: "hidden" },
+  depositIcon: { fontSize: 8, fontWeight: "900", color: "#92400E", backgroundColor: "#FEF3C7", borderRadius: 3, paddingHorizontal: 3, paddingVertical: 1, overflow: "hidden" },
 });

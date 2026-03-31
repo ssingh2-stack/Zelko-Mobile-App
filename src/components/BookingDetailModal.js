@@ -28,6 +28,14 @@ const STATUS_COLORS = {
   no_show:   { bg: "#FEF3C7", text: "#92400E" },
 };
 
+const PAYMENT_BADGES = {
+  paid:         { label: "Paid",         bg: "#D1FAE5", text: "#065F46" },
+  deposit_paid: { label: "Deposit Paid", bg: "#FEF3C7", text: "#92400E" },
+  cash_paid:    { label: "Cash",         bg: "#D1FAE5", text: "#065F46" },
+  card_paid:    { label: "Card",         bg: "#D1FAE5", text: "#065F46" },
+  unpaid:       { label: "Unpaid",       bg: "#F3F4F6", text: "#6B7280" },
+};
+
 export default function BookingDetailModal({ booking, visible, onClose, onAction, onReschedule }) {
   const [history, setHistory] = useState(null);
   const [notes, setNotes] = useState("");
@@ -39,12 +47,18 @@ export default function BookingDetailModal({ booking, visible, onClose, onAction
   const [editSlot, setEditSlot] = useState("");
   const [editLoading, setEditLoading] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
+  const [showPay, setShowPay] = useState(false);
+  const [tipAmount, setTipAmount] = useState("");
+  const [payingMethod, setPayingMethod] = useState(null);
 
   useEffect(() => {
     if (!visible || !booking) return;
     setHistory(null);
     setNotes("");
     setEditing(false);
+    setShowPay(false);
+    setTipAmount("");
+    setPayingMethod(null);
     const email = booking.customer_email;
     if (email && email !== "walk-in@getclipd.ca") {
       Promise.all([
@@ -125,6 +139,23 @@ export default function BookingDetailModal({ booking, visible, onClose, onAction
     ]);
   }
 
+  async function handleMarkPaid(method) {
+    setPayingMethod(method);
+    try {
+      const amount = Math.round(parseFloat(booking.service_price ?? booking.price ?? 0) * 100);
+      const tip = tipAmount ? Math.round(parseFloat(tipAmount) * 100) : 0;
+      await api.adminMarkPaid(booking.confirmation_code, { method, amount, tip });
+      hapticSuccess();
+      setShowPay(false);
+      setTipAmount("");
+      onAction();
+      onClose();
+    } catch (err) {
+      Alert.alert("Error", err.message);
+    }
+    setPayingMethod(null);
+  }
+
   async function startEdit() {
     setEditing(true);
     setEditLoading(true);
@@ -193,10 +224,23 @@ export default function BookingDetailModal({ booking, visible, onClose, onAction
               <Text style={styles.title}>{booking.customer_name}</Text>
               <Text style={styles.sub}>{fmt(booking.start_time)} · {booking.barber_name} · {fmtDate(booking.date)}</Text>
             </View>
-            <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
-              <Text style={[styles.statusText, { color: statusStyle.text }]}>
-                {booking.status === "confirmed" ? "✓ Confirmed" : booking.status === "no_show" ? "No-show" : "Cancelled"}
-              </Text>
+            <View style={{ alignItems: "flex-end", gap: 4, marginLeft: 8, marginTop: 2 }}>
+              <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg, marginLeft: 0, marginTop: 0 }]}>
+                <Text style={[styles.statusText, { color: statusStyle.text }]}>
+                  {booking.status === "confirmed" ? "✓ Confirmed" : booking.status === "no_show" ? "No-show" : "Cancelled"}
+                </Text>
+              </View>
+              {(() => {
+                const ps = booking.payment_status || "unpaid";
+                const badge = PAYMENT_BADGES[ps] || PAYMENT_BADGES.unpaid;
+                return (
+                  <View style={[styles.statusBadge, { backgroundColor: badge.bg, marginLeft: 0, marginTop: 0 }]}>
+                    <Text style={[styles.statusText, { color: badge.text }]}>
+                      {ps === "unpaid" ? "$ Unpaid" : `$ ${badge.label}`}
+                    </Text>
+                  </View>
+                );
+              })()}
             </View>
           </View>
 
@@ -264,7 +308,67 @@ export default function BookingDetailModal({ booking, visible, onClose, onAction
               <Row icon="🕐" label="Time" value={`${fmt(booking.start_time)} – ${fmt(booking.end_time)}`} />
               {!isWalkin && <Row icon="📧" label="Contact" value={`${booking.customer_email}${booking.customer_phone ? " · " + booking.customer_phone : ""}`} />}
               {booking.notes && <Row icon="📝" label="Notes" value={booking.notes} />}
+              {(booking.payment_status === "cash_paid" || booking.payment_status === "card_paid" || booking.payment_status === "paid") && (
+                <Row icon="💰" label="Payment" value={
+                  `${(PAYMENT_BADGES[booking.payment_status] || {}).label || "Paid"}` +
+                  (booking.amount_paid ? ` · ${fmtMoney(booking.amount_paid / 100)}` : "") +
+                  (booking.tip_amount ? ` · Tip ${fmtMoney(booking.tip_amount / 100)}` : "")
+                } />
+              )}
             </View>
+            )}
+
+            {/* Mark as Paid */}
+            {!isCancelled && !editing && booking.payment_status !== "paid" && booking.payment_status !== "cash_paid" && booking.payment_status !== "card_paid" && (
+              <View style={styles.section}>
+                <TouchableOpacity onPress={() => setShowPay(!showPay)}>
+                  <Text style={styles.sectionTitle}>{showPay ? "Payment ▾" : "Mark as Paid ▸"}</Text>
+                </TouchableOpacity>
+                {showPay && (
+                  <View>
+                    <Text style={styles.editLabel}>Tip</Text>
+                    <View style={{ flexDirection: "row", gap: 6, marginBottom: 8 }}>
+                      {[5, 10, 15, 20].map(t => (
+                        <TouchableOpacity
+                          key={t}
+                          style={[styles.editPill, tipAmount === String(t) && styles.editPillActive]}
+                          onPress={() => setTipAmount(tipAmount === String(t) ? "" : String(t))}
+                        >
+                          <Text style={[styles.editPillText, tipAmount === String(t) && styles.editPillTextActive]}>${t}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                    <TextInput
+                      style={[styles.notesInput, { minHeight: 38, marginBottom: 10 }]}
+                      value={tipAmount}
+                      onChangeText={setTipAmount}
+                      placeholder="Custom tip amount"
+                      placeholderTextColor={C.muted}
+                      keyboardType="decimal-pad"
+                    />
+                    <View style={{ flexDirection: "row", gap: 8 }}>
+                      <TouchableOpacity
+                        style={[styles.payBtn, { backgroundColor: "#D1FAE5" }, payingMethod === "cash" && { opacity: 0.6 }]}
+                        onPress={() => handleMarkPaid("cash")}
+                        disabled={!!payingMethod}
+                      >
+                        <Text style={[styles.payBtnText, { color: "#065F46" }]}>
+                          {payingMethod === "cash" ? "Saving…" : "💵 Cash"}
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.payBtn, { backgroundColor: "rgba(59,130,246,0.1)" }, payingMethod === "card" && { opacity: 0.6 }]}
+                        onPress={() => handleMarkPaid("card")}
+                        disabled={!!payingMethod}
+                      >
+                        <Text style={[styles.payBtnText, { color: "#1D4ED8" }]}>
+                          {payingMethod === "card" ? "Saving…" : "💳 Card"}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+              </View>
             )}
 
             {/* Client history */}
@@ -425,4 +529,6 @@ const styles = StyleSheet.create({
   warnBtnText: { fontSize: 12, fontWeight: "700", color: "#92400E" },
   dangerBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, backgroundColor: "rgba(196,104,62,0.12)", alignItems: "center" },
   dangerBtnText: { fontSize: 12, fontWeight: "700", color: C.terra },
+  payBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: "center" },
+  payBtnText: { fontSize: 13, fontWeight: "800" },
 });

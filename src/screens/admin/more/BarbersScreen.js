@@ -432,6 +432,25 @@ export default function BarbersScreen() {
                       </View>
                     )}
 
+                    {/* Stripe Connect Status */}
+                    <View style={styles.availSection}>
+                      <Text style={styles.availTitle}>Stripe Connect</Text>
+                      {b.stripe_connect_account_id ? (
+                        <View style={styles.stripeStatusRow}>
+                          <View style={styles.stripeConnectedDot} />
+                          <Text style={styles.stripeConnectedText}>Connected</Text>
+                        </View>
+                      ) : (
+                        <View>
+                          <View style={styles.stripeStatusRow}>
+                            <View style={styles.stripeDisconnectedDot} />
+                            <Text style={styles.stripeDisconnectedText}>Not Connected</Text>
+                          </View>
+                          <Text style={styles.availHint}>Connect via web dashboard to enable direct payouts</Text>
+                        </View>
+                      )}
+                    </View>
+
                     {/* Staff invite */}
                     <View style={styles.availSection}>
                       <Text style={styles.availTitle}>Staff Invite</Text>
@@ -526,6 +545,12 @@ const styles = StyleSheet.create({
   // Invite
   inviteBtn: { backgroundColor: C.terra, borderRadius: 9, paddingVertical: 11, alignItems: "center", marginTop: 8 },
   inviteBtnText: { fontSize: 13, fontWeight: "800", color: C.cream },
+  // Stripe Connect
+  stripeStatusRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 6 },
+  stripeConnectedDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#10B981" },
+  stripeConnectedText: { fontSize: 13, fontWeight: "700", color: "#10B981" },
+  stripeDisconnectedDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.muted },
+  stripeDisconnectedText: { fontSize: 13, fontWeight: "700", color: C.muted },
   removeBtn: {
     paddingHorizontal: 10, paddingVertical: 6,
     borderRadius: 7, borderWidth: 1.5, borderColor: "#FECACA",
