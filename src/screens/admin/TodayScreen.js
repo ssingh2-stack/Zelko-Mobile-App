@@ -506,7 +506,10 @@ export default function TodayScreen() {
                     </View>
                     <Text style={styles.listSvc} numberOfLines={1}>{b.service_name}</Text>
                     {clientNotes[b.customer_email] ? (
-                      <Text style={styles.listNote} numberOfLines={1}>📝 {clientNotes[b.customer_email]}</Text>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 3, marginBottom: 4 }}>
+                        <Ionicons name="document-text-outline" size={10} color="#92400E" />
+                        <Text style={styles.listNote} numberOfLines={1}>{clientNotes[b.customer_email]}</Text>
+                      </View>
                     ) : null}
                     <View style={styles.listFooter}>
                       <Text style={styles.listPrice}>${b.service_price ?? b.price ?? 0}</Text>

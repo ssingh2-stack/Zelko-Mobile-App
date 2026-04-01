@@ -3,6 +3,7 @@ import {
   View, Text, Modal, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, Alert, ActivityIndicator,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { api } from "../lib/api";
 import { C, serif, fmtMoney } from "../lib/theme";
 import { success as hapticSuccess, warn as hapticWarn } from "../lib/haptics";
@@ -304,12 +305,12 @@ export default function BookingDetailModal({ booking, visible, onClose, onAction
             ) : (
             /* Details */
             <View style={styles.section}>
-              <Row icon="✂️" label="Service" value={`${booking.service_name} · ${fmtMoney(booking.service_price ?? booking.price ?? 0)} · ${booking.duration_min}m`} />
-              <Row icon="🕐" label="Time" value={`${fmt(booking.start_time)} – ${fmt(booking.end_time)}`} />
-              {!isWalkin && <Row icon="📧" label="Contact" value={`${booking.customer_email}${booking.customer_phone ? " · " + booking.customer_phone : ""}`} />}
-              {booking.notes && <Row icon="📝" label="Notes" value={booking.notes} />}
+              <Row icon="cut-outline" label="Service" value={`${booking.service_name} · ${fmtMoney(booking.service_price ?? booking.price ?? 0)} · ${booking.duration_min}m`} />
+              <Row icon="time-outline" label="Time" value={`${fmt(booking.start_time)} – ${fmt(booking.end_time)}`} />
+              {!isWalkin && <Row icon="mail-outline" label="Contact" value={`${booking.customer_email}${booking.customer_phone ? " · " + booking.customer_phone : ""}`} />}
+              {booking.notes && <Row icon="document-text-outline" label="Notes" value={booking.notes} />}
               {(booking.payment_status === "cash_paid" || booking.payment_status === "card_paid" || booking.payment_status === "paid") && (
-                <Row icon="💰" label="Payment" value={
+                <Row icon="card-outline" label="Payment" value={
                   `${(PAYMENT_BADGES[booking.payment_status] || {}).label || "Paid"}` +
                   (booking.amount_paid ? ` · ${fmtMoney(booking.amount_paid / 100)}` : "") +
                   (booking.tip_amount ? ` · Tip ${fmtMoney(booking.tip_amount / 100)}` : "")
@@ -464,7 +465,7 @@ export default function BookingDetailModal({ booking, visible, onClose, onAction
 function Row({ icon, label, value }) {
   return (
     <View style={styles.detailRow}>
-      <Text style={styles.detailIcon}>{icon}</Text>
+      <Ionicons name={icon} size={18} color={C.muted} style={{ marginTop: 2 }} />
       <View style={{ flex: 1 }}>
         <Text style={styles.detailLabel}>{label}</Text>
         <Text style={styles.detailValue}>{value}</Text>

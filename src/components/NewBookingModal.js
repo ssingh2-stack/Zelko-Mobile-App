@@ -3,6 +3,7 @@ import {
   View, Text, Modal, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, Alert, ActivityIndicator, Switch, KeyboardAvoidingView, Platform,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { api } from "../lib/api";
 import { C, serif } from "../lib/theme";
 
@@ -321,7 +322,7 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
                     <>
                       {/* ── Search box ── */}
                       <View style={styles.searchWrap}>
-                        <Text style={styles.searchIcon}>🔍</Text>
+                        <Ionicons name="search" size={16} color={C.muted} style={{ marginRight: 8 }} />
                         <TextInput
                           ref={searchRef}
                           style={styles.searchInput}
