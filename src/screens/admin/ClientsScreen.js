@@ -109,7 +109,7 @@ export default function ClientsScreen() {
           </View>
           <View style={styles.rowInfo}>
             <View style={styles.nameRow}>
-              <Text style={styles.name}>{c.name}</Text>
+              <Text style={styles.name} numberOfLines={1}>{c.name}</Text>
               {primaryTag && tagStyle && (
                 <View style={[styles.tag, { backgroundColor: tagStyle.bg, borderColor: tagStyle.border }]}>
                   <Text style={[styles.tagText, { color: tagStyle.text }]}>{primaryTag}</Text>

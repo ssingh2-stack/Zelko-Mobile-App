@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import { Animated, View, Text, StyleSheet, TouchableOpacity, PanResponder } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { C } from "../lib/theme";
 
 const SWIPE_THRESHOLD = 60;
@@ -51,7 +52,7 @@ export default function SwipeableCard({ children, onNoShow, onCancel, disabled }
       {/* Action buttons revealed on swipe */}
       <View style={[styles.actions, { width: ACTION_WIDTH }]}>
         <TouchableOpacity style={styles.noShowBtn} onPress={() => { close(); onNoShow?.(); }}>
-          <Text style={styles.actionIcon}>👻</Text>
+          <Ionicons name="eye-off-outline" size={18} color="#F59E0B" />
           <Text style={styles.noShowText}>No-show</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.cancelBtn} onPress={() => { close(); onCancel?.(); }}>

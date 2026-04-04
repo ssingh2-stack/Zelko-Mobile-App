@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, Alert,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { api } from "../lib/api";
 import { C, serif } from "../lib/theme";
 
@@ -131,7 +132,7 @@ export default function DayCalendarView({
         }}
       >
         <View style={styles.closedCard}>
-          <Text style={styles.closedIcon}>🔒</Text>
+          <Ionicons name="lock-closed-outline" size={40} color={C.muted} />
           <Text style={styles.closedTitle}>Shop Closed</Text>
           <Text style={styles.closedSub}>{dayOfWeek}s are not a business day</Text>
           <Text style={styles.closedHint}>Update your hours in Settings → Business Hours</Text>

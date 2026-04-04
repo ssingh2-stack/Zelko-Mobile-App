@@ -167,7 +167,7 @@ export default function SettingsScreen() {
         <Field label="Email" value={email} onChange={setEmail} placeholder="hello@yourshop.com" keyboardType="email-address" />
         <Field label="Google Review Link" value={googleUrl} onChange={setGoogleUrl} placeholder="https://g.page/r/XXXXXXXX/review" keyboardType="url" />
         <View style={styles.noteRow}>
-          <Text style={styles.noteText}>🔗 Booking URL: <Text style={styles.noteUrl}>app.getclipd.ca/book/{slug}</Text></Text>
+          <Text style={styles.noteText}>Booking URL: <Text style={styles.noteUrl}>app.getclipd.ca/book/{slug}</Text></Text>
         </View>
         <View style={styles.saveRow}>
           <TouchableOpacity style={[styles.saveBtn, savingInfo && { opacity: 0.6 }]} onPress={saveInfo} disabled={savingInfo}>
