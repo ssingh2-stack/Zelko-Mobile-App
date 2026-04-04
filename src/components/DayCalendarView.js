@@ -94,6 +94,7 @@ export default function DayCalendarView({
   barberAvailability = {},
 }) {
   const touchStart = useRef({ x: 0, y: 0, t: 0 });
+  const bookingTapped = useRef(false);
   const [dragging, setDragging] = useState(null); // { code, top, height }
   const [dragY, setDragY] = useState(0);
   const colRef = useRef(null);
@@ -263,6 +264,7 @@ export default function DayCalendarView({
                     ]);
                     return;
                   }
+                  if (bookingTapped.current) { bookingTapped.current = false; return; }
                   if (!onSlotPress || touchStart.current.swiped) return;
                   const y = e.nativeEvent.locationY;
                   onSlotPress({ barberId: barber.id, barberName: barber.name, time: pxToTimeStr(y) });
@@ -334,7 +336,7 @@ export default function DayCalendarView({
                         isPast && !cancelled && styles.apptPast,
                         dragging?.code === bk.confirmation_code && styles.apptDragging,
                       ]}
-                      onPress={(e) => { if (touchStart.current.swiped || dragging) return; e.stopPropagation?.(); onBookingPress?.(bk); }}
+                      onPress={(e) => { if (touchStart.current.swiped || dragging) return; bookingTapped.current = true; onBookingPress?.(bk); }}
                       onLongPress={() => {
                         if (cancelled) return;
                         setDragging({ code: bk.confirmation_code, origTop: top, height: bkH, barberId: barber.id });
