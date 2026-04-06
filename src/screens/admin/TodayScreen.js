@@ -734,6 +734,7 @@ const styles = StyleSheet.create({
   listCard: {
     borderRadius: 10, padding: 10, paddingLeft: 12,
     borderWidth: 1, borderColor: "transparent", borderLeftWidth: 3,
+    overflow: "hidden",
   },
   listCardCancelled: { opacity: 0.4 },
   listCardPast: { opacity: 0.55 },
