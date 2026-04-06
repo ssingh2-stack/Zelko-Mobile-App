@@ -530,8 +530,8 @@ export default function TodayScreen() {
                     </View>
                     <Text style={styles.listSvc} numberOfLines={1}>{b.service_name}</Text>
                     {clientNotes[b.customer_email] ? (
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 3, marginBottom: 4 }}>
-                        <Ionicons name="document-text-outline" size={10} color="#92400E" />
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 3, marginBottom: 4, overflow: "hidden" }}>
+                        <Ionicons name="document-text-outline" size={10} color="#92400E" style={{ flexShrink: 0 }} />
                         <Text style={styles.listNote} numberOfLines={1}>{clientNotes[b.customer_email]}</Text>
                       </View>
                     ) : null}
@@ -745,7 +745,7 @@ const styles = StyleSheet.create({
   clientTagText: { fontSize: 8, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 },
   listNameMuted: { color: C.muted, textDecorationLine: "line-through" },
   listSvc: { fontSize: 11, color: C.muted, marginBottom: 3 },
-  listNote: { fontSize: 10, color: "#92400E", fontStyle: "italic", marginBottom: 4 },
+  listNote: { fontSize: 10, color: "#92400E", fontStyle: "italic", flex: 1 },
   listFooter: { flexDirection: "row", alignItems: "center" },
   listPrice: { fontSize: 12, fontWeight: "700", color: C.espresso },
   listMeta: { fontSize: 10, color: C.muted },
