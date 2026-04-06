@@ -52,6 +52,7 @@ export const api = {
   adminUpdateBooking: (code, data) => request(`/api/admin/bookings/${code}`, { method: "PATCH", body: JSON.stringify(data) }),
   adminNoShow: (code) => request(`/api/admin/bookings/${code}/noshow`, { method: "POST" }),
   adminMarkPaid: (code, data) => request(`/api/admin/bookings/${code}/pay`, { method: "POST", body: JSON.stringify(data) }),
+  adminRefund: (code, data) => request(`/api/admin/bookings/${code}/refund`, { method: "POST", body: JSON.stringify(data) }),
   adminTerminalToken: () => request("/api/admin/terminal/connection-token", { method: "POST" }),
   adminCreatePaymentIntent: (code, data) => request(`/api/admin/bookings/${code}/create-payment-intent`, { method: "POST", body: JSON.stringify(data) }),
   adminConfirmPayment: (code, data) => request(`/api/admin/bookings/${code}/confirm-payment`, { method: "POST", body: JSON.stringify(data) }),
@@ -68,6 +69,8 @@ export const api = {
   adminDeleteCompPlan: (id) => request(`/api/admin/compensation/plans/${id}`, { method: "DELETE" }),
   adminAssignBarberPlan: (barberId, planId) => request(`/api/admin/barbers/${barberId}/plan`, { method: "POST", body: JSON.stringify({ plan_id: planId }) }),
   adminEarnings: (from, to) => request(`/api/admin/compensation/earnings?from=${from}&to=${to}`),
+  adminProcessPayout: (data) => request("/api/admin/compensation/payout", { method: "POST", body: JSON.stringify(data) }),
+  adminPayoutHistory: (barberId) => request(`/api/admin/compensation/payouts${barberId ? `?barber_id=${barberId}` : ""}`),
   adminBlocked: () => request("/api/admin/blocked"),
   adminBlockTime: (data) => request("/api/admin/blocked", { method: "POST", body: JSON.stringify(data) }),
   adminDeleteBlock: (id) => request(`/api/admin/blocked/${id}`, { method: "DELETE" }),
@@ -128,6 +131,11 @@ export const api = {
   adminSetBarberServices: (id, serviceIds) => request(`/api/admin/barbers/${id}/services`, { method: "POST", body: JSON.stringify({ service_ids: serviceIds }) }),
   adminBarberInvite: (id) => request(`/api/admin/barbers/${id}/invite`, { method: "POST" }),
   adminClientVip: (email, isVip) => request(`/api/admin/clients/${encodeURIComponent(email)}/vip`, { method: "POST", body: JSON.stringify({ is_vip: isVip }) }),
+
+  adminExportUrl: async (from, to) => {
+    const token = await getToken();
+    return `${BASE_URL}/api/admin/export/transactions?from=${from}&to=${to}&token=${token}`;
+  },
 
   staffSchedule: () => request("/api/staff/schedule"),
   staffBookings: (data) => request("/api/staff/bookings", { method: "POST", body: JSON.stringify(data) }),

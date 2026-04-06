@@ -360,6 +360,27 @@ export default function TodayScreen() {
               <Text style={styles.eodStatLbl}>Cancelled</Text>
             </View>
           </View>
+          {/* Cash & Card Summary */}
+          {(() => {
+            const cashBookings = confirmed.filter(b => b.payment_status === "cash_paid");
+            const cardBookings = confirmed.filter(b => b.payment_status === "paid" || b.payment_status === "card_paid");
+            const cashTotal = cashBookings.reduce((s, b) => s + ((b.amount_paid || 0) / 100 || b.service_price || b.price || 0), 0);
+            const cardTotal = cardBookings.reduce((s, b) => s + ((b.amount_paid || 0) / 100 || b.service_price || b.price || 0), 0);
+            return (cashBookings.length > 0 || cardBookings.length > 0) ? (
+              <View style={styles.eodCashRow}>
+                {cashBookings.length > 0 && (
+                  <Text style={styles.eodCashText}>
+                    Cash in register: {fmtMoney(cashTotal)} across {cashBookings.length} payment{cashBookings.length !== 1 ? "s" : ""}
+                  </Text>
+                )}
+                {cardBookings.length > 0 && (
+                  <Text style={styles.eodCashText}>
+                    Card collected: {fmtMoney(cardTotal)} across {cardBookings.length} payment{cardBookings.length !== 1 ? "s" : ""}
+                  </Text>
+                )}
+              </View>
+            ) : null;
+          })()}
           <Text style={styles.eodOcc}>{Math.round(occupancy * 100)}% chair utilization today</Text>
         </View>
       )}
@@ -677,6 +698,12 @@ const styles = StyleSheet.create({
   },
   eodStatLbl: {
     fontSize: 9, fontWeight: "700", color: "rgba(247,243,238,0.5)", textTransform: "uppercase", letterSpacing: 1,
+  },
+  eodCashRow: {
+    marginBottom: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: "rgba(247,243,238,0.15)",
+  },
+  eodCashText: {
+    fontSize: 12, fontWeight: "600", color: "rgba(247,243,238,0.7)", marginBottom: 4,
   },
   eodOcc: {
     fontSize: 11, fontWeight: "600", color: "rgba(247,243,238,0.4)", textAlign: "center",

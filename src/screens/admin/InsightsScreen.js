@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, Text, ScrollView, StyleSheet, RefreshControl, Alert, ActivityIndicator, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, StyleSheet, RefreshControl, Alert, ActivityIndicator, TouchableOpacity, Linking } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../../lib/api";
@@ -239,6 +239,21 @@ export default function InsightsScreen() {
               <Text style={[styles.periodBtnText, period === p.key && styles.periodBtnTextActive]}>{p.label}</Text>
             </TouchableOpacity>
           ))}
+          <TouchableOpacity
+            style={styles.exportBtn}
+            onPress={async () => {
+              const { from, to } = getDateRange(period);
+              const fromDate = from || "2020-01-01";
+              const toDate = to || isoToday();
+              try {
+                const url = await api.adminExportUrl(fromDate, toDate);
+                Linking.openURL(url);
+              } catch (err) { Alert.alert("Error", err.message); }
+            }}
+          >
+            <Ionicons name="download-outline" size={14} color={C.terra} />
+            <Text style={styles.exportBtnText}>Export CSV</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -385,6 +400,8 @@ const styles = StyleSheet.create({
   periodBtnActive: { backgroundColor: C.espresso, borderColor: C.espresso },
   periodBtnText: { fontSize: 12, fontWeight: "700", color: C.muted },
   periodBtnTextActive: { color: C.cream },
+  exportBtn: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1.5, borderColor: C.terra },
+  exportBtnText: { fontSize: 12, fontWeight: "700", color: C.terra },
 
   section: { margin: 16, marginBottom: 0 },
   sectionTitle: { fontFamily: serif, fontSize: 18, fontWeight: "700", color: C.espresso, marginBottom: 12 },

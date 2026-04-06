@@ -29,6 +29,7 @@ export default function PaymentsScreen() {
         payments_enabled: settings.payments_enabled,
         payment_type:     settings.payment_type,
         deposit_amount:   settings.deposit_amount,
+        deposit_type:     settings.deposit_type || "flat",
       });
       setMsg("Saved!");
       setTimeout(() => setMsg(""), 2000);
@@ -95,17 +96,35 @@ export default function PaymentsScreen() {
                   <Text style={styles.radioLabel}>Deposit (fixed amount)</Text>
                 </TouchableOpacity>
                 {settings.payment_type === "deposit" && (
-                  <View style={styles.depositRow}>
-                    <Text style={styles.dollarSign}>$</Text>
-                    <TextInput
-                      style={styles.depositInput}
-                      value={String(settings.deposit_amount || "")}
-                      onChangeText={v => setSettings({ ...settings, deposit_amount: parseFloat(v) || 0 })}
-                      keyboardType="decimal-pad"
-                      placeholder="20"
-                      placeholderTextColor={C.muted}
-                    />
-                    <Text style={styles.perBooking}>per booking</Text>
+                  <View>
+                    <View style={styles.depositTypeRow}>
+                      <TouchableOpacity
+                        style={[styles.depositTypePill, (settings.deposit_type || "flat") === "flat" && styles.depositTypePillActive]}
+                        onPress={() => setSettings({ ...settings, deposit_type: "flat" })}
+                      >
+                        <Text style={[styles.depositTypePillText, (settings.deposit_type || "flat") === "flat" && styles.depositTypePillTextActive]}>Flat $</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.depositTypePill, settings.deposit_type === "percent" && styles.depositTypePillActive]}
+                        onPress={() => setSettings({ ...settings, deposit_type: "percent" })}
+                      >
+                        <Text style={[styles.depositTypePillText, settings.deposit_type === "percent" && styles.depositTypePillTextActive]}>% of service</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <View style={styles.depositRow}>
+                      <Text style={styles.dollarSign}>{settings.deposit_type === "percent" ? "%" : "$"}</Text>
+                      <TextInput
+                        style={styles.depositInput}
+                        value={String(settings.deposit_amount || "")}
+                        onChangeText={v => setSettings({ ...settings, deposit_amount: parseFloat(v) || 0 })}
+                        keyboardType="decimal-pad"
+                        placeholder={settings.deposit_type === "percent" ? "25" : "20"}
+                        placeholderTextColor={C.muted}
+                      />
+                      <Text style={styles.perBooking}>
+                        {settings.deposit_type === "percent" ? "of service price" : "per booking"}
+                      </Text>
+                    </View>
                   </View>
                 )}
                 <TouchableOpacity
@@ -155,6 +174,11 @@ const styles = StyleSheet.create({
   radio: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: C.border },
   radioActive: { borderColor: C.terra, backgroundColor: C.terra },
   radioLabel: { fontSize: 13, fontWeight: "600", color: C.espresso },
+  depositTypeRow: { flexDirection: "row", gap: 6, paddingLeft: 28, marginBottom: 10 },
+  depositTypePill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1.5, borderColor: C.border },
+  depositTypePillActive: { backgroundColor: C.espresso, borderColor: C.espresso },
+  depositTypePillText: { fontSize: 12, fontWeight: "700", color: C.muted },
+  depositTypePillTextActive: { color: C.cream },
   depositRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingLeft: 28, marginBottom: 4 },
   dollarSign: { fontSize: 14, fontWeight: "700", color: C.espresso },
   depositInput: { width: 70, padding: 8, borderWidth: 1.5, borderColor: C.border, borderRadius: 8, fontSize: 14, fontWeight: "700", color: C.espresso },

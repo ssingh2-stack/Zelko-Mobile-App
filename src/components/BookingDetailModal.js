@@ -34,6 +34,7 @@ const PAYMENT_BADGES = {
   deposit_paid: { label: "Deposit Paid", bg: "#FEF3C7", text: "#92400E" },
   cash_paid:    { label: "Cash",         bg: "#D1FAE5", text: "#065F46" },
   card_paid:    { label: "Card",         bg: "#D1FAE5", text: "#065F46" },
+  refunded:     { label: "Refunded",     bg: "#FEE2E2", text: "#DC2626" },
   unpaid:       { label: "Unpaid",       bg: "#F3F4F6", text: "#6B7280" },
 };
 
@@ -155,6 +156,27 @@ export default function BookingDetailModal({ booking, visible, onClose, onAction
       Alert.alert("Error", err.message);
     }
     setPayingMethod(null);
+  }
+
+  async function handleRefund() {
+    const amount = booking.amount_paid || Math.round(parseFloat(booking.service_price ?? booking.price ?? 0) * 100);
+    const displayAmount = fmtMoney(amount / 100);
+    hapticWarn();
+    Alert.alert(
+      "Refund Payment",
+      `Refund ${displayAmount} to ${booking.customer_name}?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Refund", style: "destructive", onPress: async () => {
+          try {
+            await api.adminRefund(booking.confirmation_code, { amount, reason: "Refund requested" });
+            hapticSuccess();
+            onAction();
+            onClose();
+          } catch (err) { Alert.alert("Error", err.message); }
+        }},
+      ]
+    );
   }
 
   async function startEdit() {
@@ -433,6 +455,11 @@ export default function BookingDetailModal({ booking, visible, onClose, onAction
             {!editing && (
               <TouchableOpacity style={styles.editBtn} onPress={startEdit}>
                 <Text style={styles.editBtnText}>Edit</Text>
+              </TouchableOpacity>
+            )}
+            {!isCancelled && !editing && (booking.payment_status === "card_paid" || booking.payment_status === "cash_paid" || booking.payment_status === "paid") && booking.payment_status !== "refunded" && (
+              <TouchableOpacity style={[styles.warnBtn, { backgroundColor: "#FEE2E2" }]} onPress={handleRefund}>
+                <Text style={[styles.warnBtnText, { color: "#DC2626" }]}>Refund</Text>
               </TouchableOpacity>
             )}
             {!isCancelled && !editing && onCollectPayment && booking.payment_status !== "card_paid" && booking.payment_status !== "cash_paid" && booking.payment_status !== "paid" && (

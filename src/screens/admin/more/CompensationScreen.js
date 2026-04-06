@@ -46,6 +46,8 @@ export default function CompensationScreen() {
   const [earningsPeriod, setEarningsPeriod] = useState("week");
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
+  const [payouts, setPayouts] = useState([]);
+  const [payingBarber, setPayingBarber] = useState(null);
   const { showToast, toastProps } = useToast();
 
   // Plan form state
@@ -74,6 +76,41 @@ export default function CompensationScreen() {
     const { from, to } = periodDates(earningsPeriod);
     api.adminEarnings(from, to).then(e => setEarnings(e || [])).catch(() => {});
   }, [earningsPeriod, plans]);
+
+  useEffect(() => {
+    api.adminPayoutHistory().then(p => setPayouts(p || [])).catch(() => {});
+  }, []);
+
+  async function handlePayout(barberEarnings) {
+    const { from, to } = periodDates(earningsPeriod);
+    const cardAmount = barberEarnings.card_collected || 0;
+    if (cardAmount <= 0) {
+      Alert.alert("No Card Earnings", "This barber has no card earnings to transfer for this period. Cash must be settled in person.");
+      return;
+    }
+    Alert.alert(
+      "Process Payout",
+      `Transfer ${fmtMoney(Math.min(cardAmount, barberEarnings.barber_take))} to ${barberEarnings.barber_name} via Stripe?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Transfer", onPress: async () => {
+          setPayingBarber(barberEarnings.barber_id);
+          try {
+            await api.adminProcessPayout({
+              barber_id: barberEarnings.barber_id,
+              from_date: from,
+              to_date: to,
+            });
+            hapticSuccess();
+            showToast("Payout processed");
+            const p = await api.adminPayoutHistory();
+            setPayouts(p || []);
+          } catch (err) { Alert.alert("Error", err.message); }
+          setPayingBarber(null);
+        }},
+      ]
+    );
+  }
 
   function openNewPlan() {
     setEditingPlan(null);
@@ -265,6 +302,17 @@ export default function CompensationScreen() {
             <View style={styles.earningsAmounts}>
               <Text style={styles.earningsBarber}>{fmtMoney(e.barber_take)}</Text>
               <Text style={styles.earningsShop}>{fmtMoney(e.shop_take)} shop</Text>
+              {e.card_collected > 0 && (
+                <TouchableOpacity
+                  style={[styles.payoutBtn, payingBarber === e.barber_id && { opacity: 0.6 }]}
+                  onPress={() => handlePayout(e)}
+                  disabled={payingBarber === e.barber_id}
+                >
+                  <Text style={styles.payoutBtnText}>
+                    {payingBarber === e.barber_id ? "Processing..." : "Process Payout"}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         ))}
@@ -348,6 +396,30 @@ export default function CompensationScreen() {
           );
         })}
       </View>
+
+      {/* Payout History */}
+      {payouts.length > 0 && (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Payout History</Text>
+          {payouts.slice(0, 20).map(p => (
+            <View key={p.id} style={styles.payoutRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.earningsName}>{p.barber_name}</Text>
+                <Text style={styles.earningsMeta}>
+                  {p.period_from} to {p.period_to}
+                  {p.stripe_transfer_id ? ` · ${p.stripe_transfer_id.slice(0, 12)}...` : ""}
+                </Text>
+              </View>
+              <View style={{ alignItems: "flex-end" }}>
+                <Text style={styles.earningsBarber}>{fmtMoney(p.amount / 100)}</Text>
+                <Text style={[styles.earningsMeta, { color: p.status === "completed" ? "#059669" : C.muted }]}>
+                  {p.status === "completed" ? "Completed" : p.status}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
 
       <View style={{ height: 40 }} />
 
@@ -489,6 +561,9 @@ const styles = StyleSheet.create({
   earningsAmounts: { alignItems: "flex-end" },
   earningsBarber: { fontFamily: serif, fontSize: 16, fontWeight: "700", color: C.espresso },
   earningsShop: { fontSize: 10, color: C.muted, fontWeight: "600" },
+  payoutBtn: { marginTop: 6, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6, backgroundColor: "rgba(5,150,105,0.1)" },
+  payoutBtnText: { fontSize: 10, fontWeight: "800", color: "#059669" },
+  payoutRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: C.border },
 
   // Plans
   newPlanBtn: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 8, backgroundColor: C.terra },
