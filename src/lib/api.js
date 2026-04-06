@@ -89,6 +89,8 @@ export const api = {
     return request(`/api/admin/insights/heatmap${qs}`);
   },
   adminSettings: () => request("/api/admin/settings"),
+  adminBillingPortal: () => request("/api/admin/billing/portal", { method: "POST" }),
+  adminCheckoutUrl: (plan) => request("/api/create-checkout-session", { method: "POST", body: JSON.stringify({ plan }) }),
   adminSaveInfo: (data) => request("/api/admin/settings/info", { method: "POST", body: JSON.stringify(data) }),
   adminSaveHours: (hours) => request("/api/admin/settings/hours", { method: "POST", body: JSON.stringify({ hours }) }),
   adminSavePassword: (current, newPw) =>

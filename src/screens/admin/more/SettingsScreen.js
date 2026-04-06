@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  TextInput, Alert, ActivityIndicator, Switch, Image, RefreshControl,
+  TextInput, Alert, ActivityIndicator, Switch, Image, RefreshControl, Linking,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
@@ -46,6 +46,9 @@ export default function SettingsScreen() {
   const [infoMsg, setInfoMsg] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
 
+  // Billing
+  const [plan, setPlan] = useState({});
+
   // Hours
   const [hours, setHours] = useState({});
   const [savingHours, setSavingHours] = useState(false);
@@ -68,6 +71,7 @@ export default function SettingsScreen() {
       setSlug(s.slug || "");
       setLogoUrl(s.logo_url || "");
       setHours(s.hours || {});
+      setPlan({ key: s.plan, label: s.plan_label, price: s.plan_price, maxBarbers: s.max_barbers, barberCount: s.barber_count, trialEnds: s.trial_ends_at, hasStripe: !!s.stripe_customer_id });
     }).catch(err => Alert.alert("Error", err.message))
       .finally(() => setLoading(false));
   }, []);
@@ -236,6 +240,65 @@ export default function SettingsScreen() {
         </View>
       </View>
 
+      {/* Billing */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Billing</Text>
+        <View style={styles.billingPlanRow}>
+          <View>
+            <Text style={styles.billingPlanName}>{plan.label || "Trial"}</Text>
+            <Text style={styles.billingPlanMeta}>
+              {plan.key === "trial"
+                ? `Trial${plan.trialEnds ? ` · Ends ${plan.trialEnds}` : ""}`
+                : `$${plan.price}/mo · ${plan.maxBarbers ? `Up to ${plan.maxBarbers} barbers` : "Unlimited barbers"}`}
+            </Text>
+            <Text style={styles.billingPlanMeta}>{plan.barberCount || 0} barber{plan.barberCount !== 1 ? "s" : ""} active</Text>
+          </View>
+        </View>
+        <View style={styles.billingBtns}>
+          {plan.key === "trial" || !plan.hasStripe ? (
+            <>
+              <TouchableOpacity style={styles.billingBtn} onPress={async () => {
+                try {
+                  const res = await api.adminCheckoutUrl("essentials");
+                  if (res.url) Linking.openURL(res.url);
+                } catch (err) { Alert.alert("Error", err.message); }
+              }}>
+                <Text style={styles.billingBtnText}>Subscribe — Essentials $29/mo</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.billingBtn, { backgroundColor: C.terra }]} onPress={async () => {
+                try {
+                  const res = await api.adminCheckoutUrl("pro");
+                  if (res.url) Linking.openURL(res.url);
+                } catch (err) { Alert.alert("Error", err.message); }
+              }}>
+                <Text style={styles.billingBtnText}>Subscribe — Pro $49/mo</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              {plan.key === "essentials" && (
+                <TouchableOpacity style={[styles.billingBtn, { backgroundColor: C.terra }]} onPress={async () => {
+                  try {
+                    const res = await api.adminCheckoutUrl("pro");
+                    if (res.url) Linking.openURL(res.url);
+                  } catch (err) { Alert.alert("Error", err.message); }
+                }}>
+                  <Text style={styles.billingBtnText}>Upgrade to Pro — $49/mo</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity style={styles.billingManageBtn} onPress={async () => {
+                try {
+                  const res = await api.adminBillingPortal();
+                  if (res.url) Linking.openURL(res.url);
+                } catch (err) { Alert.alert("Error", err.message); }
+              }}>
+                <Text style={styles.billingManageBtnText}>Manage Subscription</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+      </View>
+
       {/* Logout */}
       <View style={[styles.card, { marginTop: 24 }]}>
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
@@ -278,6 +341,14 @@ const styles = StyleSheet.create({
   },
   logoPlaceholderText: { fontSize: 28, color: C.muted, fontWeight: "300" },
   logoLabel: { fontSize: 11, color: C.terra, fontWeight: "700", marginTop: 6 },
+  billingPlanRow: { marginBottom: 16 },
+  billingPlanName: { fontFamily: serif, fontSize: 22, fontWeight: "900", color: C.espresso, marginBottom: 4 },
+  billingPlanMeta: { fontSize: 13, color: C.muted, marginTop: 2 },
+  billingBtns: { gap: 8 },
+  billingBtn: { backgroundColor: C.espresso, borderRadius: 9, paddingVertical: 12, alignItems: "center" },
+  billingBtnText: { fontSize: 14, fontWeight: "800", color: C.cream },
+  billingManageBtn: { borderRadius: 9, paddingVertical: 12, alignItems: "center", borderWidth: 1.5, borderColor: C.border },
+  billingManageBtnText: { fontSize: 14, fontWeight: "700", color: C.espresso },
   logoutBtn: {
     paddingVertical: 14, borderRadius: 10,
     backgroundColor: "#FEF2F2", borderWidth: 1.5, borderColor: "#FECACA",
