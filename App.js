@@ -4,7 +4,9 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Text, ActivityIndicator, View, TouchableOpacity, StyleSheet } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
+import { StripeTerminalProvider } from "@stripe/stripe-react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { fetchConnectionToken } from "./src/lib/stripe";
 import { getSession } from "./src/lib/auth";
 import { api } from "./src/lib/api";
 import { C, serif } from "./src/lib/theme";
@@ -201,7 +203,8 @@ export default function App() {
   }, []);
 
   return (
-    <SafeAreaProvider>
+    <StripeTerminalProvider tokenProvider={fetchConnectionToken}>
+      <SafeAreaProvider>
         {!initialRoute ? (
           <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: C.cream }}>
             <ActivityIndicator color={C.espresso} size="large" />
@@ -217,5 +220,6 @@ export default function App() {
           </NavigationContainer>
         )}
       </SafeAreaProvider>
+    </StripeTerminalProvider>
   );
 }

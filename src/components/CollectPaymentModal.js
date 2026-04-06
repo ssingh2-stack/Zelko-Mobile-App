@@ -1,11 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View, Text, Modal, StyleSheet, TouchableOpacity, TextInput, Alert, ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import {
+  useStripeTerminal,
+  DiscoveryMethod,
+} from "@stripe/stripe-react-native";
 import { api } from "../lib/api";
 import { C, serif, fmtMoney } from "../lib/theme";
 import { success as hapticSuccess, error as hapticError } from "../lib/haptics";
+import { fetchConnectionToken } from "../lib/stripe";
 
 export default function CollectPaymentModal({ booking, visible, onClose, onSuccess }) {
   const [tipAmount, setTipAmount] = useState("");
@@ -30,62 +35,78 @@ export default function CollectPaymentModal({ booking, visible, onClose, onSucce
   const remaining = Math.max(servicePrice - depositPaid, 0);
   const total = remaining + tipNum;
 
+  const { initialize, discoverReaders, connectLocalMobileReader, retrievePaymentIntent, collectPaymentMethod, confirmPaymentIntent } = useStripeTerminal({
+    onUpdateDiscoveredReaders: () => {},
+  });
+
   async function collectWithTerminal() {
     setProcessing(true);
     setStatus("creating");
     setErrorMsg("");
 
     try {
-      // Step 1: Create payment intent on backend
+      // Step 1: Initialize Terminal SDK
+      const initResult = await initialize({ logLevel: "verbose" });
+      if (initResult.error) throw new Error(initResult.error.message || "Failed to initialize terminal");
+
+      // Step 2: Create payment intent on backend
       const tipCents = Math.round(tipNum * 100);
       const result = await api.adminCreatePaymentIntent(booking.confirmation_code, {
         tip: tipCents,
       });
+      if (result.error) throw new Error(result.error);
 
-      if (result.error) {
-        throw new Error(result.error);
+      // Step 3: Discover and connect to local mobile reader (Tap to Pay on iPhone)
+      setStatus("connecting");
+      const { readers, error: discoverError } = await discoverReaders({
+        discoveryMethod: DiscoveryMethod.LocalMobile,
+        simulated: false,
+      });
+
+      if (discoverError) throw new Error(discoverError.message || "Could not find reader");
+      if (!readers || readers.length === 0) throw new Error("No reader found. Make sure Tap to Pay is enabled.");
+
+      const { reader, error: connectError } = await connectLocalMobileReader({
+        reader: readers[0],
+        locationId: readers[0].locationId,
+      });
+      if (connectError) throw new Error(connectError.message || "Could not connect to reader");
+
+      // Step 4: Retrieve the payment intent
+      setStatus("waiting");
+      const { paymentIntent, error: retrieveError } = await retrievePaymentIntent(result.client_secret);
+      if (retrieveError) throw new Error(retrieveError.message || "Could not retrieve payment");
+
+      // Step 5: Collect card — this shows the Tap to Pay UI on the iPhone
+      const { paymentIntent: collected, error: collectError } = await collectPaymentMethod({ paymentIntent });
+      if (collectError) {
+        if (collectError.code === "Canceled") {
+          setStatus("idle");
+          setProcessing(false);
+          return;
+        }
+        throw new Error(collectError.message || "Card collection failed");
       }
 
-      // Step 2: In a real Terminal integration, we'd now use the Stripe Terminal SDK
-      // to collect the payment with the reader. For now, we show the intent was created
-      // and the barber needs to complete it with the reader.
-      setStatus("waiting");
+      // Step 6: Confirm the payment
+      setStatus("confirming");
+      const { paymentIntent: confirmed, error: confirmError } = await confirmPaymentIntent({ paymentIntent: collected });
+      if (confirmError) throw new Error(confirmError.message || "Payment confirmation failed");
 
-      // The Terminal SDK would handle:
-      // 1. stripeTerminal.retrievePaymentIntent(result.client_secret)
-      // 2. stripeTerminal.collectPaymentMethod(intent)
-      // 3. stripeTerminal.confirmPaymentIntent(intent)
-      //
-      // For now, we'll mark it as a placeholder that works with the manual flow.
-      // When the M2 reader arrives and Terminal SDK is connected, this becomes automatic.
+      // Step 7: Update our backend
+      await api.adminConfirmPayment(booking.confirmation_code, {
+        payment_intent_id: confirmed.id,
+        amount: result.amount,
+        tip: tipCents,
+      });
 
-      Alert.alert(
-        "Ready for Card",
-        `Amount: ${fmtMoney(total)}\n\nHold the reader near the client's card or phone to collect payment.`,
-        [
-          { text: "Cancel", style: "cancel", onPress: () => { setStatus("idle"); setProcessing(false); } },
-          { text: "Payment Collected", onPress: async () => {
-            // Confirm payment on backend
-            try {
-              await api.adminConfirmPayment(booking.confirmation_code, {
-                payment_intent_id: result.payment_intent_id,
-                amount: result.amount,
-                tip: tipCents,
-              });
-              hapticSuccess();
-              setStatus("success");
-              setTimeout(() => {
-                onSuccess?.();
-                onClose();
-              }, 1000);
-            } catch (err) {
-              setErrorMsg(err.message);
-              setStatus("error");
-              hapticError();
-            }
-          }},
-        ]
-      );
+      hapticSuccess();
+      setStatus("success");
+      setTimeout(() => {
+        onSuccess?.();
+        onClose();
+      }, 1000);
+
     } catch (err) {
       setErrorMsg(err.message);
       setStatus("error");
@@ -196,7 +217,7 @@ export default function CollectPaymentModal({ booking, visible, onClose, onSucce
                 >
                   <Ionicons name="card-outline" size={20} color={C.cream} />
                   <Text style={styles.cardBtnText}>
-                    {status === "creating" ? "Processing..." : "Tap to Pay"}
+                    {status === "creating" ? "Setting up..." : status === "connecting" ? "Connecting..." : status === "waiting" ? "Ready — Tap Card" : status === "confirming" ? "Confirming..." : "Tap to Pay"}
                   </Text>
                 </TouchableOpacity>
 
