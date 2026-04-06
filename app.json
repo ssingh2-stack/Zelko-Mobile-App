@@ -33,7 +33,14 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-asset"
+      "expo-asset",
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.ca.getclipd.app",
+          "enableGooglePay": false
+        }
+      ]
     ],
     "extra": {
       "googlePlacesKey": "AIzaSyCoqU_MEKty87QSJC8ES_yd-TodMlRdRSQ",
