@@ -63,7 +63,7 @@ export default function SwipeableCard({ children, onNoShow, onCancel, disabled }
 
       {/* Card — slides left */}
       <Animated.View
-        style={{ transform: [{ translateX }] }}
+        style={{ transform: [{ translateX }], backgroundColor: C.cream, overflow: "hidden" }}
         {...panResponder.panHandlers}
       >
         {children}

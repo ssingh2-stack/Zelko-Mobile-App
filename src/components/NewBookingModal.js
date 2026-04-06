@@ -85,6 +85,7 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
     setSlot("");
     setRepeatWeeks(0);
     setRepeatCount(4);
+    autoAdvanceRef.current = false;
     setDate(prefillDate || todayISO());
 
     Promise.all([api.adminBarbers(), api.adminServices(), api.adminClients()]).then(([bs, ss, cl]) => {
@@ -101,6 +102,8 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
     }).catch(() => setLoadingMeta(false));
   }, [visible]);
 
+  const autoAdvanceRef = useRef(false);
+
   useEffect(() => {
     if (!barberId || !serviceId || !date) return;
     setLoadingSlots(true);
@@ -113,6 +116,12 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
         if (match) setSlot(prefillTime);
       } else if (slotList.length) {
         setSlot(slotList[0].time);
+      } else if (!prefillDate && !autoAdvanceRef.current) {
+        // No slots today and no prefilled date — auto-advance to next day
+        autoAdvanceRef.current = true;
+        const next = new Date(date + "T12:00:00");
+        next.setDate(next.getDate() + 1);
+        setDate(next.toISOString().split("T")[0]);
       }
     }).catch(() => setSlots([])).finally(() => setLoadingSlots(false));
   }, [barberId, serviceId, date]);
@@ -243,6 +252,11 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
               {/* Time slot */}
               {loadingSlots ? (
                 <View style={styles.fieldWrap}><ActivityIndicator color={C.espresso} /></View>
+              ) : slotOptions.length === 0 ? (
+                <View style={styles.fieldWrap}>
+                  <Text style={styles.fieldLabel}>Time</Text>
+                  <Text style={{ fontSize: 13, color: C.muted, marginTop: 6 }}>No available times — try another day →</Text>
+                </View>
               ) : (
                 <Picker label="Time" value={slot} onChange={setSlot} options={slotOptions} />
               )}

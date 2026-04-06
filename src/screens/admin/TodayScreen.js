@@ -4,7 +4,7 @@ import {
   RefreshControl, Alert, ActivityIndicator, Modal, TextInput, Linking,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../lib/api";
 import { C, serif, fmtMoney } from "../../lib/theme";
@@ -136,6 +136,9 @@ export default function TodayScreen() {
   }, []);
 
   useEffect(() => { load(); }, []);
+
+  // Refresh when tab comes into focus
+  useFocusEffect(useCallback(() => { load(true); }, []));
 
   useEffect(() => {
     const timer = setInterval(() => setNowTop(getNowTop()), 60000);

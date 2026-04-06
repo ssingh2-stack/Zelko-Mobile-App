@@ -344,9 +344,18 @@ export default function BookingDetailModal({ booking, visible, onClose, onAction
             {/* Mark as Paid */}
             {!isCancelled && !editing && booking.payment_status !== "paid" && booking.payment_status !== "cash_paid" && booking.payment_status !== "card_paid" && (
               <View style={styles.section}>
-                <TouchableOpacity onPress={() => setShowPay(!showPay)}>
-                  <Text style={styles.sectionTitle}>{showPay ? "Payment ▾" : "Mark as Paid ▸"}</Text>
-                </TouchableOpacity>
+                {!showPay ? (
+                  <TouchableOpacity
+                    style={{ backgroundColor: C.espresso, paddingVertical: 14, borderRadius: 10, alignItems: "center" }}
+                    onPress={() => setShowPay(true)}
+                  >
+                    <Text style={{ color: C.cream, fontSize: 15, fontWeight: "700" }}>Mark as Paid</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity onPress={() => setShowPay(false)}>
+                    <Text style={styles.sectionTitle}>Payment ▾</Text>
+                  </TouchableOpacity>
+                )}
                 {showPay && (
                   <View>
                     <Text style={styles.editLabel}>Tip</Text>

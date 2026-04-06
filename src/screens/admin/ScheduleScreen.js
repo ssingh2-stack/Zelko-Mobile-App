@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, Alert, ActivityIndicator, TextInput, Modal,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../lib/api";
@@ -139,6 +140,9 @@ export default function ScheduleScreen() {
   }, [weekOffset]);
 
   useEffect(() => { load(); }, [weekOffset]);
+
+  // Refresh when tab comes into focus (e.g. after creating booking on Today tab)
+  useFocusEffect(useCallback(() => { load(true); }, [weekOffset]));
 
   useEffect(() => {
     const timer = setInterval(() => setNowTop(getNowTop()), 60000);
@@ -277,7 +281,7 @@ export default function ScheduleScreen() {
           <Text style={styles.navLabel}>{dayLabel}</Text>
           {!isToday && (
             <TouchableOpacity onPress={goToToday} style={styles.todayPill}>
-              <Text style={styles.todayPillText}>Today</Text>
+              <Text style={styles.todayPillText}>← Back to today</Text>
             </TouchableOpacity>
           )}
         </View>
