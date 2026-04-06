@@ -4,9 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Text, ActivityIndicator, View, TouchableOpacity, StyleSheet } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
-import { StripeTerminalProvider } from "@stripe/stripe-react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { fetchConnectionToken } from "./src/lib/stripe";
 import { getSession } from "./src/lib/auth";
 import { api } from "./src/lib/api";
 import { C, serif } from "./src/lib/theme";
@@ -203,23 +201,21 @@ export default function App() {
   }, []);
 
   return (
-    <StripeTerminalProvider tokenProvider={fetchConnectionToken}>
-      <SafeAreaProvider>
-        {!initialRoute ? (
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: C.cream }}>
-            <ActivityIndicator color={C.espresso} size="large" />
-          </View>
-        ) : (
-          <NavigationContainer>
-            <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="Login"      component={LoginScreen} />
-              <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-              <Stack.Screen name="AdminTabs"  component={AdminTabs} />
-              <Stack.Screen name="StaffTabs"  component={StaffTabs} />
-            </Stack.Navigator>
-          </NavigationContainer>
-        )}
-      </SafeAreaProvider>
-    </StripeTerminalProvider>
+    <SafeAreaProvider>
+      {!initialRoute ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: C.cream }}>
+          <ActivityIndicator color={C.espresso} size="large" />
+        </View>
+      ) : (
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Login"      component={LoginScreen} />
+            <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+            <Stack.Screen name="AdminTabs"  component={AdminTabs} />
+            <Stack.Screen name="StaffTabs"  component={StaffTabs} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      )}
+    </SafeAreaProvider>
   );
 }

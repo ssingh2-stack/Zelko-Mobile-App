@@ -1,18 +1,15 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View, Text, Modal, StyleSheet, TouchableOpacity, TextInput, Alert, ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  useStripeTerminal,
-  DiscoveryMethod,
-} from "@stripe/stripe-react-native";
+import { StripeTerminalProvider, useStripeTerminal, DiscoveryMethod } from "@stripe/stripe-react-native";
 import { api } from "../lib/api";
 import { C, serif, fmtMoney } from "../lib/theme";
 import { success as hapticSuccess, error as hapticError } from "../lib/haptics";
 import { fetchConnectionToken } from "../lib/stripe";
 
-export default function CollectPaymentModal({ booking, visible, onClose, onSuccess }) {
+function CollectPaymentInner({ booking, visible, onClose, onSuccess }) {
   const [tipAmount, setTipAmount] = useState("");
   const [processing, setProcessing] = useState(false);
   const [status, setStatus] = useState("idle"); // idle, creating, waiting, success, error
@@ -306,3 +303,13 @@ const styles = StyleSheet.create({
   successText: { fontFamily: serif, fontSize: 22, fontWeight: "800", color: C.espresso, marginTop: 12 },
   successAmount: { fontFamily: serif, fontSize: 32, fontWeight: "900", color: C.terra, marginTop: 4 },
 });
+
+// Wrap with StripeTerminalProvider only when modal is visible
+export default function CollectPaymentModal(props) {
+  if (!props.visible) return null;
+  return (
+    <StripeTerminalProvider tokenProvider={fetchConnectionToken}>
+      <CollectPaymentInner {...props} />
+    </StripeTerminalProvider>
+  );
+}
