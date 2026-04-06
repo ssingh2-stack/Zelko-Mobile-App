@@ -12,6 +12,7 @@ import { light as hapticLight, success as hapticSuccess, warn as hapticWarn } fr
 import { useToast, Toast } from "../../components/Toast";
 import Header from "../../components/Header";
 import BookingDetailModal from "../../components/BookingDetailModal";
+import CollectPaymentModal from "../../components/CollectPaymentModal";
 import NewBookingModal from "../../components/NewBookingModal";
 import DayCalendarView, {
   DCAL_COLORS, PX_PER_HOUR, OPEN_HOUR, CLOSE_HOUR, TOTAL_H,
@@ -43,6 +44,8 @@ export default function TodayScreen() {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
   const [showNewBooking, setShowNewBooking] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+  const [paymentBooking, setPaymentBooking] = useState(null);
   const [newBookingPrefill, setNewBookingPrefill] = useState({});
   const [nowTop, setNowTop] = useState(getNowTop);
   const [blockedSlots, setBlockedSlots] = useState([]);
@@ -531,6 +534,13 @@ export default function TodayScreen() {
         onClose={() => setShowDetail(false)}
         onAction={() => load(true)}
         onReschedule={handleReschedule}
+        onCollectPayment={(bk) => { setShowDetail(false); setPaymentBooking(bk); setShowPayment(true); }}
+      />
+      <CollectPaymentModal
+        booking={paymentBooking}
+        visible={showPayment}
+        onClose={() => setShowPayment(false)}
+        onSuccess={() => { showToast("Payment collected!"); load(true); }}
       />
       <NewBookingModal
         visible={showNewBooking}

@@ -37,7 +37,7 @@ const PAYMENT_BADGES = {
   unpaid:       { label: "Unpaid",       bg: "#F3F4F6", text: "#6B7280" },
 };
 
-export default function BookingDetailModal({ booking, visible, onClose, onAction, onReschedule }) {
+export default function BookingDetailModal({ booking, visible, onClose, onAction, onReschedule, onCollectPayment }) {
   const [history, setHistory] = useState(null);
   const [notes, setNotes] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
@@ -433,6 +433,11 @@ export default function BookingDetailModal({ booking, visible, onClose, onAction
             {!editing && (
               <TouchableOpacity style={styles.editBtn} onPress={startEdit}>
                 <Text style={styles.editBtnText}>Edit</Text>
+              </TouchableOpacity>
+            )}
+            {!isCancelled && !editing && onCollectPayment && booking.payment_status !== "card_paid" && booking.payment_status !== "cash_paid" && booking.payment_status !== "paid" && (
+              <TouchableOpacity style={[styles.rescheduleBtn, { backgroundColor: "rgba(5,150,105,0.1)" }]} onPress={() => onCollectPayment(booking)}>
+                <Text style={[styles.rescheduleBtnText, { color: "#059669" }]}>Collect $</Text>
               </TouchableOpacity>
             )}
             {isCancelled && !editing && (

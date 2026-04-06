@@ -18,7 +18,21 @@
       }
     },
     "production": {
-      "autoIncrement": true
+      "distribution": "store",
+      "autoIncrement": true,
+      "credentialsSource": "local"
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "6761668788",
+        "appleId": "sukhpreet.singh@live.ca",
+        "appleTeamId": "TR868G47NQ",
+        "ascApiKeyPath": "./asc-key.p8",
+        "ascApiKeyId": "L64H34ZD48",
+        "ascApiKeyIssuerId": "11ad609f-f158-426f-8352-aefda090220a"
+      }
     }
   }
 }
