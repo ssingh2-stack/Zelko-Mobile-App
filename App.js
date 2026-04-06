@@ -4,6 +4,8 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Text, ActivityIndicator, View, TouchableOpacity, StyleSheet } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
+import { StripeProvider } from "@stripe/stripe-react-native";
+import Constants from "expo-constants";
 import { Ionicons } from "@expo/vector-icons";
 import { getSession } from "./src/lib/auth";
 import { api } from "./src/lib/api";
@@ -200,22 +202,29 @@ export default function App() {
     });
   }, []);
 
+  const stripeKey = Constants.expoConfig?.extra?.stripePublishableKey || "";
+
   return (
-    <SafeAreaProvider>
-      {!initialRoute ? (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: C.cream }}>
-          <ActivityIndicator color={C.espresso} size="large" />
-        </View>
-      ) : (
-        <NavigationContainer>
-          <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="Login"      component={LoginScreen} />
-            <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-            <Stack.Screen name="AdminTabs"  component={AdminTabs} />
-            <Stack.Screen name="StaffTabs"  component={StaffTabs} />
-          </Stack.Navigator>
-        </NavigationContainer>
-      )}
-    </SafeAreaProvider>
+    <StripeProvider
+      publishableKey={stripeKey}
+      merchantIdentifier="merchant.ca.getclipd.app"
+    >
+      <SafeAreaProvider>
+        {!initialRoute ? (
+          <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: C.cream }}>
+            <ActivityIndicator color={C.espresso} size="large" />
+          </View>
+        ) : (
+          <NavigationContainer>
+            <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="Login"      component={LoginScreen} />
+              <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+              <Stack.Screen name="AdminTabs"  component={AdminTabs} />
+              <Stack.Screen name="StaffTabs"  component={StaffTabs} />
+            </Stack.Navigator>
+          </NavigationContainer>
+        )}
+      </SafeAreaProvider>
+    </StripeProvider>
   );
 }
