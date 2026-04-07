@@ -11,6 +11,7 @@ import { C, serif, fmtMoney } from "../../lib/theme";
 import { success as hapticSuccess, warn as hapticWarn } from "../../lib/haptics";
 import { useToast, Toast } from "../../components/Toast";
 import BookingDetailModal from "../../components/BookingDetailModal";
+import CollectPaymentModal from "../../components/CollectPaymentModal";
 import NewBookingModal from "../../components/NewBookingModal";
 import SwipeableCard from "../../components/SwipeableCard";
 import { SkeletonCalendar, SkeletonList } from "../../components/Skeleton";
@@ -67,6 +68,8 @@ export default function ScheduleScreen() {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
   const [showNewBooking, setShowNewBooking] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+  const [paymentBooking, setPaymentBooking] = useState(null);
   const [newBookingPrefill, setNewBookingPrefill] = useState({});
   const [nowTop, setNowTop] = useState(getNowTop);
   const [blockedSlots, setBlockedSlots] = useState([]);
@@ -566,6 +569,13 @@ export default function ScheduleScreen() {
         onClose={() => setShowDetail(false)}
         onAction={() => load(true)}
         onReschedule={handleReschedule}
+        onCollectPayment={(bk) => { setShowDetail(false); setPaymentBooking(bk); setShowPayment(true); }}
+      />
+      <CollectPaymentModal
+        booking={paymentBooking}
+        visible={showPayment}
+        onClose={() => { setShowPayment(false); setPaymentBooking(null); }}
+        onSuccess={() => { hapticSuccess(); showToast("Payment collected!"); load(true); }}
       />
       <NewBookingModal
         visible={showNewBooking}
