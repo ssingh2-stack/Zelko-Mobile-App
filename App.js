@@ -15,6 +15,7 @@ import ScheduleScreen from "./src/screens/admin/ScheduleScreen";
 import ClientsScreen from "./src/screens/admin/ClientsScreen";
 import InsightsScreen from "./src/screens/admin/InsightsScreen";
 import StaffScheduleScreen from "./src/screens/staff/StaffScheduleScreen";
+import StaffSettingsScreen from "./src/screens/staff/StaffSettingsScreen";
 
 import ServicesScreen from "./src/screens/admin/more/ServicesScreen";
 import ShareScreen from "./src/screens/admin/more/ShareScreen";
@@ -165,6 +166,11 @@ function StaffTabs() {
         name="My Schedule"
         component={StaffScheduleScreen}
         options={{ tabBarIcon: ({ color }) => <TabIon name="calendar-outline" color={color} /> }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={StaffSettingsScreen}
+        options={{ tabBarIcon: ({ color }) => <TabIon name="settings-outline" color={color} /> }}
       />
     </Tab.Navigator>
   );

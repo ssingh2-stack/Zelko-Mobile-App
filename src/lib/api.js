@@ -151,4 +151,7 @@ export const api = {
   staffClientNotes: (email) => request(`/api/staff/clients/${encodeURIComponent(email)}/notes`),
   staffSaveNotes: (email, notes) =>
     request(`/api/staff/clients/${encodeURIComponent(email)}/notes`, { method: "POST", body: JSON.stringify({ notes }) }),
+  staffUpdateProfile: (data) => request("/api/staff/profile", { method: "POST", body: JSON.stringify(data) }),
+  staffUpdateBio: (data) => request("/api/staff/profile/bio", { method: "POST", body: JSON.stringify(data) }),
+  staffSlots: (serviceId, date) => request(`/api/staff/slots?service_id=${serviceId}&date=${date}`),
 };

@@ -13,14 +13,17 @@ import DayCalendarView, {
   DCAL_COLORS, tMin, fmtTime, getNowTop, isNowVisible, pxToTimeStr, PX_PER_HOUR,
 } from "../../components/DayCalendarView";
 
-const todayStr = () => new Date().toISOString().split("T")[0];
+function localISO(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+const todayStr = () => localISO(new Date());
 
 function getDayStrip() {
   const today = new Date();
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(today);
     d.setDate(today.getDate() - 3 + i);
-    return d.toISOString().split("T")[0];
+    return localISO(d);
   });
 }
 
