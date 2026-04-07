@@ -42,18 +42,18 @@ export const api = {
   staffLogin: (email, password) =>
     request("/api/mobile/staff-login", { method: "POST", body: JSON.stringify({ email, password }) }),
   adminSignup: (data) => request("/api/mobile/admin-signup", { method: "POST", body: JSON.stringify(data) }),
-  logout: () => request("/api/mobile/logout", { method: "POST" }),
+  logout: () => request("/api/mobile/logout", { method: "POST", body: JSON.stringify({}) }),
 
   adminToday: () => request("/api/admin/today"),
   adminSchedule: (weekStart) => request(`/api/admin/schedule${weekStart ? `?week=${weekStart}` : ""}`),
   adminSlots: (date, barberId, serviceId) => request(`/api/admin/slots?date=${date}&barber_id=${barberId}&service_id=${serviceId || ""}`),
   adminCreateBooking: (data) => request("/api/admin/bookings", { method: "POST", body: JSON.stringify(data) }),
-  adminCancelBooking: (code) => request(`/api/admin/bookings/${code}/cancel`, { method: "POST" }),
+  adminCancelBooking: (code) => request(`/api/admin/bookings/${code}/cancel`, { method: "POST", body: JSON.stringify({}) }),
   adminUpdateBooking: (code, data) => request(`/api/admin/bookings/${code}`, { method: "PATCH", body: JSON.stringify(data) }),
-  adminNoShow: (code) => request(`/api/admin/bookings/${code}/noshow`, { method: "POST" }),
+  adminNoShow: (code) => request(`/api/admin/bookings/${code}/noshow`, { method: "POST", body: JSON.stringify({}) }),
   adminMarkPaid: (code, data) => request(`/api/admin/bookings/${code}/pay`, { method: "POST", body: JSON.stringify(data) }),
   adminRefund: (code, data) => request(`/api/admin/bookings/${code}/refund`, { method: "POST", body: JSON.stringify(data) }),
-  adminTerminalToken: () => request("/api/admin/terminal/connection-token", { method: "POST" }),
+  adminTerminalToken: () => request("/api/admin/terminal/connection-token", { method: "POST", body: JSON.stringify({}) }),
   adminCreatePaymentIntent: (code, data) => request(`/api/admin/bookings/${code}/create-payment-intent`, { method: "POST", body: JSON.stringify(data) }),
   adminConfirmPayment: (code, data) => request(`/api/admin/bookings/${code}/confirm-payment`, { method: "POST", body: JSON.stringify(data) }),
   adminBarbers: () => request("/api/admin/barbers"),
@@ -89,7 +89,7 @@ export const api = {
     return request(`/api/admin/insights/heatmap${qs}`);
   },
   adminSettings: () => request("/api/admin/settings"),
-  adminBillingPortal: () => request("/api/admin/billing/portal", { method: "POST" }),
+  adminBillingPortal: () => request("/api/admin/billing/portal", { method: "POST", body: JSON.stringify({}) }),
   adminCheckoutUrl: (plan) => request("/api/create-checkout-session", { method: "POST", body: JSON.stringify({ plan }) }),
   adminSaveInfo: (data) => request("/api/admin/settings/info", { method: "POST", body: JSON.stringify(data) }),
   adminSaveHours: (hours) => request("/api/admin/settings/hours", { method: "POST", body: JSON.stringify({ hours }) }),
@@ -131,7 +131,7 @@ export const api = {
   adminSetBarberAvailability: (id, days) => request(`/api/admin/barbers/${id}/availability`, { method: "POST", body: JSON.stringify({ days }) }),
   adminBarberServices: (id) => request(`/api/admin/barbers/${id}/services`),
   adminSetBarberServices: (id, serviceIds) => request(`/api/admin/barbers/${id}/services`, { method: "POST", body: JSON.stringify({ service_ids: serviceIds }) }),
-  adminBarberInvite: (id) => request(`/api/admin/barbers/${id}/invite`, { method: "POST" }),
+  adminBarberInvite: (id) => request(`/api/admin/barbers/${id}/invite`, { method: "POST", body: JSON.stringify({}) }),
   adminClientVip: (email, isVip) => request(`/api/admin/clients/${encodeURIComponent(email)}/vip`, { method: "POST", body: JSON.stringify({ is_vip: isVip }) }),
 
   adminExportUrl: async (from, to) => {
@@ -141,8 +141,8 @@ export const api = {
 
   staffSchedule: () => request("/api/staff/schedule"),
   staffBookings: (data) => request("/api/staff/bookings", { method: "POST", body: JSON.stringify(data) }),
-  staffNoShow: (code) => request(`/api/staff/bookings/${code}/noshow`, { method: "POST" }),
-  staffCancelBooking: (code) => request(`/api/staff/bookings/${code}/cancel`, { method: "POST" }),
+  staffNoShow: (code) => request(`/api/staff/bookings/${code}/noshow`, { method: "POST", body: JSON.stringify({}) }),
+  staffCancelBooking: (code) => request(`/api/staff/bookings/${code}/cancel`, { method: "POST", body: JSON.stringify({}) }),
   staffBlocked: () => request("/api/staff/blocked"),
   staffBlockTime: (data) => request("/api/staff/blocked", { method: "POST", body: JSON.stringify(data) }),
   staffDeleteBlock: (id) => request(`/api/staff/blocked/${id}`, { method: "DELETE" }),
