@@ -140,7 +140,7 @@ export const api = {
   },
 
   staffSchedule: () => request("/api/staff/schedule"),
-  staffBookings: (data) => request("/api/staff/bookings", { method: "POST", body: JSON.stringify(data) }),
+  staffCreateBooking: (data) => request("/api/staff/bookings", { method: "POST", body: JSON.stringify(data) }),
   staffNoShow: (code) => request(`/api/staff/bookings/${code}/noshow`, { method: "POST", body: JSON.stringify({}) }),
   staffCancelBooking: (code) => request(`/api/staff/bookings/${code}/cancel`, { method: "POST", body: JSON.stringify({}) }),
   staffBlocked: () => request("/api/staff/blocked"),

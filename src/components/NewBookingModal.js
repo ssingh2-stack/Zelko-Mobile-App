@@ -42,7 +42,7 @@ function initials(name) {
     : name[0].toUpperCase();
 }
 
-export default function NewBookingModal({ visible, onClose, onSuccess, prefillDate, prefillTime, prefillBarberId, startAsWalkin, prefillName, prefillPhone, prefillEmail }) {
+export default function NewBookingModal({ visible, onClose, onSuccess, prefillDate, prefillTime, prefillBarberId, startAsWalkin, prefillName, prefillPhone, prefillEmail, staffMode }) {
   const [barbers, setBarbers] = useState([]);
   const [services, setServices] = useState([]);
   const [clients, setClients] = useState([]);
@@ -88,18 +88,30 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
     autoAdvanceRef.current = false;
     setDate(prefillDate || todayISO());
 
-    Promise.all([api.adminBarbers(), api.adminServices(), api.adminClients()]).then(([bs, ss, cl]) => {
-      setBarbers(bs);
-      setServices(ss);
-      // adminClients returns { clients: [...] } or array
-      const clientList = Array.isArray(cl) ? cl : (cl.clients || []);
-      setClients(clientList);
-      const initBarber = prefillBarberId ?? (bs[0]?.id ?? null);
-      const initService = ss[0]?.id ?? null;
-      setBarberId(String(initBarber));
-      setServiceId(String(initService));
-      setLoadingMeta(false);
-    }).catch(() => setLoadingMeta(false));
+    if (staffMode) {
+      // Staff mode: no barber picker, just load services
+      Promise.all([api.adminServices().catch(() => []), api.adminClients().catch(() => [])]).then(([ss, cl]) => {
+        setBarbers([]);
+        setServices(Array.isArray(ss) ? ss : []);
+        const clientList = Array.isArray(cl) ? cl : (cl.clients || []);
+        setClients(clientList);
+        setBarberId("staff"); // placeholder — staff API auto-assigns barber
+        setServiceId(String(ss[0]?.id ?? ""));
+        setLoadingMeta(false);
+      }).catch(() => setLoadingMeta(false));
+    } else {
+      Promise.all([api.adminBarbers(), api.adminServices(), api.adminClients()]).then(([bs, ss, cl]) => {
+        setBarbers(bs);
+        setServices(ss);
+        const clientList = Array.isArray(cl) ? cl : (cl.clients || []);
+        setClients(clientList);
+        const initBarber = prefillBarberId ?? (bs[0]?.id ?? null);
+        const initService = ss[0]?.id ?? null;
+        setBarberId(String(initBarber));
+        setServiceId(String(initService));
+        setLoadingMeta(false);
+      }).catch(() => setLoadingMeta(false));
+    }
   }, [visible]);
 
   const autoAdvanceRef = useRef(false);
@@ -108,7 +120,10 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
     if (!barberId || !serviceId || !date) return;
     setLoadingSlots(true);
     setSlot("");
-    api.adminSlots(date, barberId, serviceId).then(data => {
+    const slotsPromise = staffMode
+      ? api.staffSlots(serviceId, date)
+      : api.adminSlots(date, barberId, serviceId);
+    slotsPromise.then(data => {
       const slotList = Array.isArray(data) ? data : (data.slots || []);
       setSlots(slotList);
       if (prefillTime) {
@@ -163,7 +178,6 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
     setSubmitting(true);
     try {
       const bookingData = {
-        barber_id: parseInt(barberId),
         service_id: parseInt(serviceId),
         date,
         start_time: slot,
@@ -171,7 +185,8 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
         customer_phone: effectivePhone,
         customer_email: effectiveEmail,
       };
-      await api.adminCreateBooking(bookingData);
+      if (!staffMode) bookingData.barber_id = parseInt(barberId);
+      await (staffMode ? api.staffCreateBooking(bookingData) : api.adminCreateBooking(bookingData));
 
       // Create recurring bookings if repeat is enabled
       if (repeatWeeks > 0 && repeatCount > 0) {
@@ -180,10 +195,8 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
           const futureDate = new Date(date + "T12:00:00");
           futureDate.setDate(futureDate.getDate() + repeatWeeks * 7 * i);
           try {
-            await api.adminCreateBooking({
-              ...bookingData,
-              date: futureDate.toISOString().split("T")[0],
-            });
+            const futureData = { ...bookingData, date: `${futureDate.getFullYear()}-${String(futureDate.getMonth()+1).padStart(2,"0")}-${String(futureDate.getDate()).padStart(2,"0")}` };
+            await (staffMode ? api.staffCreateBooking(futureData) : api.adminCreateBooking(futureData));
           } catch {
             failed++;
           }
@@ -229,8 +242,8 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
             <View style={styles.center}><ActivityIndicator color={C.espresso} /></View>
           ) : (
             <ScrollView style={styles.body} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 40 }}>
-              {/* Barber */}
-              <Picker label="Barber" value={barberId} onChange={setBarberId} options={barberOptions} />
+              {/* Barber — hidden in staff mode */}
+              {!staffMode && <Picker label="Barber" value={barberId} onChange={setBarberId} options={barberOptions} />}
 
               {/* Service */}
               <Picker label="Service" value={serviceId} onChange={setServiceId} options={serviceOptions} />

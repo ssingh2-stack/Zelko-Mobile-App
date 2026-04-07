@@ -12,6 +12,8 @@ import SwipeableCard from "../../components/SwipeableCard";
 import DayCalendarView, {
   DCAL_COLORS, tMin, fmtTime, getNowTop, isNowVisible, pxToTimeStr, PX_PER_HOUR,
 } from "../../components/DayCalendarView";
+import NewBookingModal from "../../components/NewBookingModal";
+import { success as hapticSuccess } from "../../lib/haptics";
 
 function localISO(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
@@ -42,6 +44,8 @@ export default function StaffScheduleScreen() {
   const [blockStart, setBlockStart] = useState("09:00");
   const [blockEnd, setBlockEnd] = useState("10:00");
   const [blockSaving, setBlockSaving] = useState(false);
+  const [showNewBooking, setShowNewBooking] = useState(false);
+  const [newBookingPrefill, setNewBookingPrefill] = useState({});
   const calScrollRef = useRef(null);
 
   const isViewingToday = selectedDate === todayStr();
@@ -50,10 +54,12 @@ export default function StaffScheduleScreen() {
     if (!quiet) setLoading(true);
     try {
       const [bData, blocked] = await Promise.all([
-        api.staffBookings({ date: selectedDate }),
+        api.staffSchedule(),
         api.staffBlocked(),
       ]);
-      setBookings(bData.bookings || []);
+      // Filter bookings to selected date
+      const all = bData.bookings || [];
+      setBookings(all.filter(b => b.date === selectedDate));
       const allBlocked = Array.isArray(blocked) ? blocked : (blocked?.blocked || []);
       setBlockedSlots(allBlocked.filter(b => b.date === selectedDate));
     } catch (err) {
@@ -100,14 +106,22 @@ export default function StaffScheduleScreen() {
   }
 
   function handleSlotTap({ barberId, barberName, time }) {
-    setBlockStart(time);
-    // Default end = start + 1 hour
-    const [h, m] = time.split(":").map(Number);
-    const endH = Math.min(h + 1, 21);
-    setBlockEnd(`${String(endH).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
-    setBlockAllDay(false);
-    setBlockReason("");
-    setBlockModal(true);
+    Alert.alert("What would you like to do?", `${time} on ${selectedDate}`, [
+      { text: "Cancel", style: "cancel" },
+      { text: "Block Time", onPress: () => {
+        setBlockStart(time);
+        const [h, m] = time.split(":").map(Number);
+        const endH = Math.min(h + 1, 21);
+        setBlockEnd(`${String(endH).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+        setBlockAllDay(false);
+        setBlockReason("");
+        setBlockModal(true);
+      }},
+      { text: "New Booking", onPress: () => {
+        setNewBookingPrefill({ date: selectedDate, time });
+        setShowNewBooking(true);
+      }},
+    ]);
   }
 
   async function submitBlock() {
@@ -272,14 +286,31 @@ export default function StaffScheduleScreen() {
         </ScrollView>
       )}
 
-      {/* Block Time FAB */}
+      {/* New Booking FAB */}
       <TouchableOpacity style={styles.fab} onPress={() => {
+        setNewBookingPrefill({ date: selectedDate });
+        setShowNewBooking(true);
+      }}>
+        <Ionicons name="add" size={26} color={C.cream} />
+      </TouchableOpacity>
+
+      {/* Block Time FAB (secondary) */}
+      <TouchableOpacity style={[styles.fab, styles.fabSecondary]} onPress={() => {
         setBlockStart("09:00"); setBlockEnd("10:00");
         setBlockAllDay(false); setBlockReason("");
         setBlockModal(true);
       }}>
-        <Ionicons name="ban-outline" size={22} color={C.cream} />
+        <Ionicons name="ban-outline" size={18} color={C.espresso} />
       </TouchableOpacity>
+
+      <NewBookingModal
+        visible={showNewBooking}
+        onClose={() => setShowNewBooking(false)}
+        onSuccess={() => { hapticSuccess(); load(true); }}
+        prefillDate={newBookingPrefill.date || selectedDate}
+        prefillTime={newBookingPrefill.time}
+        staffMode
+      />
 
       {/* Block Time Modal */}
       <Modal visible={blockModal} transparent animationType="slide">
@@ -396,7 +427,10 @@ const styles = StyleSheet.create({
     shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 6,
     elevation: 6,
   },
-  fabText: {},
+  fabSecondary: {
+    bottom: 84, right: 24, width: 40, height: 40, borderRadius: 20,
+    backgroundColor: C.white, borderWidth: 1.5, borderColor: C.border,
+  },
 
   // Block Time Modal
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
