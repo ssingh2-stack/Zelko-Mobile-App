@@ -279,33 +279,33 @@ export default function InsightsScreen() {
           </View>
 
           {/* Barber performance */}
-          {data.barber_breakdown?.length > 0 && (() => {
-            const maxRev = Math.max(...data.barber_breakdown.map(b => b.revenue || 0), 1);
-            const maxBks = Math.max(...data.barber_breakdown.map(b => b.booking_count || 0), 1);
+          {data.top_barbers?.length > 0 && (() => {
+            const maxRev = Math.max(...data.top_barbers.map(b => b.revenue || 0), 1);
+            const maxBks = Math.max(...data.top_barbers.map(b => b.count || 0), 1);
             return (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Barber Performance</Text>
-                {data.barber_breakdown.map((b, i) => {
-                  const avgVal = b.booking_count > 0 ? Math.round(b.revenue / b.booking_count) : 0;
+                {data.top_barbers.map((b, i) => {
+                  const avgVal = b.count > 0 ? Math.round(b.revenue / b.count) : 0;
                   const revPct = (b.revenue || 0) / maxRev;
                   return (
-                    <View key={b.barber_name} style={styles.perfCard}>
+                    <View key={b.name} style={styles.perfCard}>
                       <View style={styles.perfHeader}>
                         <View style={[styles.perfAvatar, { backgroundColor: DCAL_COLORS[i % DCAL_COLORS.length].bg, borderColor: DCAL_COLORS[i % DCAL_COLORS.length].bd }]}>
                           <Text style={[styles.perfInitials, { color: DCAL_COLORS[i % DCAL_COLORS.length].tx }]}>
-                            {b.barber_name?.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase()}
+                            {b.name?.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase()}
                           </Text>
                         </View>
-                        <Text style={styles.perfName}>{b.barber_name}</Text>
+                        <Text style={styles.perfName}>{b.name}</Text>
                         <Text style={styles.perfRevenue}>{fmtMoney(b.revenue)}</Text>
                       </View>
                       <View style={styles.perfBar}>
                         <View style={[styles.perfBarFill, { width: `${Math.max(revPct * 100, 4)}%` }]} />
                       </View>
                       <View style={styles.perfStats}>
-                        <Text style={styles.perfStat}>{b.booking_count} bookings</Text>
+                        <Text style={styles.perfStat}>{b.count} bookings</Text>
                         <Text style={styles.perfStat}>Avg {fmtMoney(avgVal)}</Text>
-                        <Text style={styles.perfStat}>{Math.round((b.booking_count / maxBks) * 100)}% of top</Text>
+                        <Text style={styles.perfStat}>{Math.round((b.count / maxBks) * 100)}% of top</Text>
                       </View>
                     </View>
                   );
