@@ -16,6 +16,7 @@ import ClientsScreen from "./src/screens/admin/ClientsScreen";
 import InsightsScreen from "./src/screens/admin/InsightsScreen";
 import StaffScheduleScreen from "./src/screens/staff/StaffScheduleScreen";
 import StaffSettingsScreen from "./src/screens/staff/StaffSettingsScreen";
+import StaffMoreScreen from "./src/screens/staff/StaffMoreScreen";
 
 import ServicesScreen from "./src/screens/admin/more/ServicesScreen";
 import ShareScreen from "./src/screens/admin/more/ShareScreen";
@@ -27,6 +28,7 @@ import OnboardingScreen from "./src/screens/admin/OnboardingScreen";
 
 const Stack = createNativeStackNavigator();
 const MoreStack = createNativeStackNavigator();
+const StaffMoreStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function TabIon({ name, color, size = 22 }) {
@@ -159,18 +161,43 @@ function AdminTabs() {
   );
 }
 
+function StaffMoreNavigator() {
+  return (
+    <StaffMoreStack.Navigator screenOptions={{ headerShown: false }}>
+      <StaffMoreStack.Screen name="StaffMoreHome" component={StaffMoreScreen} />
+      <StaffMoreStack.Screen name="StaffSettings" component={StaffSettingsScreen} options={subScreenOptions("My Profile")} />
+      <StaffMoreStack.Screen name="Share" component={ShareScreen} options={subScreenOptions("Share")} />
+    </StaffMoreStack.Navigator>
+  );
+}
+
 function StaffTabs() {
   return (
     <Tab.Navigator screenOptions={tabBarOptions}>
       <Tab.Screen
-        name="My Schedule"
-        component={StaffScheduleScreen}
+        name="Today"
+        component={TodayScreen}
+        options={{ tabBarIcon: ({ color }) => <TabIon name="sunny-outline" color={color} /> }}
+      />
+      <Tab.Screen
+        name="Schedule"
+        component={ScheduleScreen}
         options={{ tabBarIcon: ({ color }) => <TabIon name="calendar-outline" color={color} /> }}
       />
       <Tab.Screen
-        name="Settings"
-        component={StaffSettingsScreen}
-        options={{ tabBarIcon: ({ color }) => <TabIon name="settings-outline" color={color} /> }}
+        name="Clients"
+        component={ClientsScreen}
+        options={{ tabBarIcon: ({ color }) => <TabIon name="people-outline" color={color} /> }}
+      />
+      <Tab.Screen
+        name="Insights"
+        component={InsightsScreen}
+        options={{ tabBarIcon: ({ color }) => <TabIon name="bar-chart-outline" color={color} /> }}
+      />
+      <Tab.Screen
+        name="More"
+        component={StaffMoreNavigator}
+        options={{ tabBarIcon: ({ color }) => <TabIon name="grid-outline" color={color} /> }}
       />
     </Tab.Navigator>
   );
