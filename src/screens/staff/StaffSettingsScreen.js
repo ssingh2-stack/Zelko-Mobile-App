@@ -1,18 +1,21 @@
 import React, { useEffect, useState } from "react";
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  TextInput, Alert, ActivityIndicator, RefreshControl,
+  TextInput, Alert, ActivityIndicator, RefreshControl, Switch,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../lib/api";
 import { C, serif } from "../../lib/theme";
-import { clearSession } from "../../lib/auth";
-import { useNavigation } from "@react-navigation/native";
+
+const DAYS = [
+  { label: "Monday", dow: 0 }, { label: "Tuesday", dow: 1 }, { label: "Wednesday", dow: 2 },
+  { label: "Thursday", dow: 3 }, { label: "Friday", dow: 4 }, { label: "Saturday", dow: 5 },
+  { label: "Sunday", dow: 6 },
+];
 
 export default function StaffSettingsScreen() {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
   const [loading, setLoading] = useState(true);
 
   // Profile
@@ -29,23 +32,35 @@ export default function StaffSettingsScreen() {
   const [savingBio, setSavingBio] = useState(false);
   const [bioMsg, setBioMsg] = useState("");
 
-  // Stats
-  const [stats, setStats] = useState(null);
+  // Availability
+  const [availability, setAvailability] = useState([]);
+  const [savingAvail, setSavingAvail] = useState(false);
+  const [availMsg, setAvailMsg] = useState("");
+  const [barberId, setBarberId] = useState(null);
 
   useEffect(() => { load(); }, []);
 
   async function load() {
     setLoading(true);
     try {
-      const s = await api.staffStats();
-      setStats(s);
-      // staffStats returns barber info
+      const [s, settings] = await Promise.all([
+        api.staffStats(),
+        api.adminSettings().catch(() => ({})),
+      ]);
       setName(s.name || "");
       setHandle(s.handle || "");
       setPhone(s.phone || "");
       setBio(s.bio || "");
       setYearsExp(s.years_exp ? String(s.years_exp) : "");
       setInstagram(s.instagram || "");
+
+      // Load availability for this barber
+      const bid = settings.staff_barber_id;
+      if (bid) {
+        setBarberId(bid);
+        const avail = await api.adminBarberAvailability(bid).catch(() => []);
+        setAvailability(Array.isArray(avail) ? avail : []);
+      }
     } catch {}
     setLoading(false);
   }
@@ -71,15 +86,34 @@ export default function StaffSettingsScreen() {
     setSavingBio(false);
   }
 
-  async function handleLogout() {
-    Alert.alert("Log Out", "Are you sure?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Log Out", style: "destructive", onPress: async () => {
-        try { await api.logout(); } catch {}
-        await clearSession();
-        navigation.reset({ index: 0, routes: [{ name: "Login" }] });
-      }},
-    ]);
+  function getAvailForDay(dow) {
+    return availability.find(a => a.day_of_week === dow);
+  }
+
+  function toggleDay(dow) {
+    const existing = getAvailForDay(dow);
+    if (existing) {
+      setAvailability(availability.filter(a => a.day_of_week !== dow));
+    } else {
+      setAvailability([...availability, { day_of_week: dow, start_time: "09:00", end_time: "19:00" }]);
+    }
+  }
+
+  function updateDayTime(dow, field, value) {
+    setAvailability(availability.map(a =>
+      a.day_of_week === dow ? { ...a, [field]: value } : a
+    ));
+  }
+
+  async function saveAvailability() {
+    if (!barberId) return;
+    setSavingAvail(true); setAvailMsg("");
+    try {
+      await api.adminSetBarberAvailability(barberId, availability);
+      setAvailMsg("Saved!");
+      setTimeout(() => setAvailMsg(""), 2000);
+    } catch (err) { Alert.alert("Error", err.message); }
+    setSavingAvail(false);
   }
 
   if (loading) {
@@ -97,7 +131,7 @@ export default function StaffSettingsScreen() {
         keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={C.espresso} />}
       >
-        <Text style={styles.pageTitle}>Settings</Text>
+        <Text style={styles.pageTitle}>My Profile</Text>
 
         {/* Profile Section */}
         <View style={styles.section}>
@@ -145,32 +179,52 @@ export default function StaffSettingsScreen() {
           </View>
         </View>
 
-        {/* Stats */}
-        {stats && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Your Stats</Text>
-            <View style={styles.statsGrid}>
-              <View style={styles.statCard}>
-                <Text style={styles.statVal}>{stats.today_count ?? 0}</Text>
-                <Text style={styles.statLbl}>Today</Text>
-              </View>
-              <View style={styles.statCard}>
-                <Text style={styles.statVal}>{stats.week_count ?? 0}</Text>
-                <Text style={styles.statLbl}>This Week</Text>
-              </View>
-              <View style={styles.statCard}>
-                <Text style={styles.statVal}>{stats.month_count ?? 0}</Text>
-                <Text style={styles.statLbl}>This Month</Text>
-              </View>
-            </View>
+        {/* Availability Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>My Hours</Text>
+          <View style={styles.card}>
+            {DAYS.map(({ label, dow }) => {
+              const avail = getAvailForDay(dow);
+              const isOn = !!avail;
+              return (
+                <View key={dow} style={styles.availRow}>
+                  <View style={styles.availDayRow}>
+                    <Text style={[styles.availDay, !isOn && { color: C.muted }]}>{label}</Text>
+                    <Switch
+                      value={isOn}
+                      onValueChange={() => toggleDay(dow)}
+                      trackColor={{ false: C.border, true: C.terra }}
+                      thumbColor={C.white}
+                    />
+                  </View>
+                  {isOn && (
+                    <View style={styles.availTimes}>
+                      <TextInput
+                        style={styles.timeInput}
+                        value={avail.start_time}
+                        onChangeText={v => updateDayTime(dow, "start_time", v)}
+                        placeholder="09:00"
+                        placeholderTextColor={C.muted}
+                      />
+                      <Text style={styles.timeDash}>–</Text>
+                      <TextInput
+                        style={styles.timeInput}
+                        value={avail.end_time}
+                        onChangeText={v => updateDayTime(dow, "end_time", v)}
+                        placeholder="19:00"
+                        placeholderTextColor={C.muted}
+                      />
+                    </View>
+                  )}
+                </View>
+              );
+            })}
+            <TouchableOpacity style={[styles.saveBtn, savingAvail && { opacity: 0.6 }]} onPress={saveAvailability} disabled={savingAvail}>
+              <Text style={styles.saveBtnText}>{savingAvail ? "Saving…" : "Save Hours"}</Text>
+            </TouchableOpacity>
+            {availMsg ? <Text style={styles.savedMsg}>{availMsg}</Text> : null}
           </View>
-        )}
-
-        {/* Logout */}
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={18} color="#DC2626" />
-          <Text style={styles.logoutText}>Log Out</Text>
-        </TouchableOpacity>
+        </View>
 
         <View style={{ height: 60 }} />
       </ScrollView>
@@ -196,15 +250,14 @@ const styles = StyleSheet.create({
   saveBtnText: { color: C.cream, fontSize: 14, fontWeight: "700" },
   savedMsg: { fontSize: 12, color: "#059669", fontWeight: "600", textAlign: "center", marginTop: 8 },
 
-  statsGrid: { flexDirection: "row", gap: 8 },
-  statCard: { flex: 1, backgroundColor: C.white, borderRadius: 12, padding: 14, alignItems: "center", borderWidth: 1, borderColor: C.border },
-  statVal: { fontFamily: serif, fontSize: 22, fontWeight: "900", color: C.espresso },
-  statLbl: { fontSize: 9, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1, marginTop: 4 },
-
-  logoutBtn: {
-    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
-    marginHorizontal: 20, marginTop: 20, paddingVertical: 14, borderRadius: 10,
-    borderWidth: 1.5, borderColor: "#FCA5A5", backgroundColor: "#FEF2F2",
+  // Availability
+  availRow: { borderBottomWidth: 1, borderBottomColor: C.border, paddingVertical: 12 },
+  availDayRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  availDay: { fontSize: 14, fontWeight: "600", color: C.espresso },
+  availTimes: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 },
+  timeInput: {
+    flex: 1, backgroundColor: C.surface, borderRadius: 9, paddingHorizontal: 12, paddingVertical: 9,
+    fontSize: 14, color: C.espresso, borderWidth: 1, borderColor: C.border, textAlign: "center",
   },
-  logoutText: { fontSize: 14, fontWeight: "700", color: "#DC2626" },
+  timeDash: { fontSize: 16, color: C.muted },
 });

@@ -13,6 +13,7 @@ import { useToast, Toast } from "../../components/Toast";
 import BookingDetailModal from "../../components/BookingDetailModal";
 import CollectPaymentModal from "../../components/CollectPaymentModal";
 import NewBookingModal from "../../components/NewBookingModal";
+import { useRole } from "../../lib/RoleContext";
 import SwipeableCard from "../../components/SwipeableCard";
 import { SkeletonCalendar, SkeletonList } from "../../components/Skeleton";
 import ErrorState from "../../components/ErrorState";
@@ -56,6 +57,7 @@ const badgeStyles = StyleSheet.create({
 
 export default function ScheduleScreen() {
   const insets = useSafeAreaInsets();
+  const { role } = useRole();
   const [schedule, setSchedule] = useState({});
   const [allBarbersList, setAllBarbersList] = useState([]);
   const [weekOffset, setWeekOffset] = useState(0);
@@ -588,6 +590,7 @@ export default function ScheduleScreen() {
         prefillName={newBookingPrefill.prefillName}
         prefillPhone={newBookingPrefill.prefillPhone}
         prefillEmail={newBookingPrefill.prefillEmail}
+        staffMode={role === "staff"}
       />
       {/* Block Time Modal */}
       <Modal visible={blockModal} transparent animationType="slide">

@@ -14,6 +14,7 @@ import Header from "../../components/Header";
 import BookingDetailModal from "../../components/BookingDetailModal";
 import CollectPaymentModal from "../../components/CollectPaymentModal";
 import NewBookingModal from "../../components/NewBookingModal";
+import { useRole } from "../../lib/RoleContext";
 import DayCalendarView, {
   DCAL_COLORS, PX_PER_HOUR, OPEN_HOUR, CLOSE_HOUR, TOTAL_H,
   tMin, fmtTime, pxToTimeStr, getNowTop, isNowVisible, buildServiceColorMap,
@@ -35,6 +36,7 @@ function clientTagStyle(tag) { return CLIENT_TAG_STYLES[tag] || CLIENT_TAG_STYLE
 
 export default function TodayScreen() {
   const navigation = useNavigation();
+  const { role } = useRole();
   const [data, setData] = useState(null);
   const [allBarbers, setAllBarbers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -579,6 +581,7 @@ export default function TodayScreen() {
         prefillName={newBookingPrefill.prefillName}
         prefillPhone={newBookingPrefill.prefillPhone}
         prefillEmail={newBookingPrefill.prefillEmail}
+        staffMode={role === "staff"}
       />
       {/* Block Time Modal */}
       <Modal visible={blockModal} transparent animationType="slide">

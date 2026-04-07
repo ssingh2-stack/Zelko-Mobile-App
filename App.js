@@ -8,6 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { getSession } from "./src/lib/auth";
 import { api } from "./src/lib/api";
 import { C, serif } from "./src/lib/theme";
+import { RoleProvider } from "./src/lib/RoleContext";
 
 import LoginScreen from "./src/screens/LoginScreen";
 import TodayScreen from "./src/screens/admin/TodayScreen";
@@ -164,7 +165,7 @@ function AdminTabs() {
 function StaffMoreNavigator() {
   return (
     <StaffMoreStack.Navigator screenOptions={{ headerShown: false }}>
-      <StaffMoreStack.Screen name="StaffMoreHome" component={StaffMoreScreen} />
+      <StaffMoreStack.Screen name="MoreHome" component={StaffMoreScreen} />
       <StaffMoreStack.Screen name="StaffSettings" component={StaffSettingsScreen} options={subScreenOptions("My Profile")} />
       <StaffMoreStack.Screen name="Share" component={ShareScreen} options={subScreenOptions("Share")} />
     </StaffMoreStack.Navigator>
@@ -173,33 +174,35 @@ function StaffMoreNavigator() {
 
 function StaffTabs() {
   return (
-    <Tab.Navigator screenOptions={tabBarOptions}>
-      <Tab.Screen
-        name="Today"
-        component={TodayScreen}
-        options={{ tabBarIcon: ({ color }) => <TabIon name="sunny-outline" color={color} /> }}
-      />
-      <Tab.Screen
-        name="Schedule"
-        component={ScheduleScreen}
-        options={{ tabBarIcon: ({ color }) => <TabIon name="calendar-outline" color={color} /> }}
-      />
-      <Tab.Screen
-        name="Clients"
-        component={ClientsScreen}
-        options={{ tabBarIcon: ({ color }) => <TabIon name="people-outline" color={color} /> }}
-      />
-      <Tab.Screen
-        name="Insights"
-        component={InsightsScreen}
-        options={{ tabBarIcon: ({ color }) => <TabIon name="bar-chart-outline" color={color} /> }}
-      />
-      <Tab.Screen
-        name="More"
-        component={StaffMoreNavigator}
-        options={{ tabBarIcon: ({ color }) => <TabIon name="grid-outline" color={color} /> }}
-      />
-    </Tab.Navigator>
+    <RoleProvider value={{ role: "staff" }}>
+      <Tab.Navigator screenOptions={tabBarOptions}>
+        <Tab.Screen
+          name="Today"
+          component={TodayScreen}
+          options={{ tabBarIcon: ({ color }) => <TabIon name="sunny-outline" color={color} /> }}
+        />
+        <Tab.Screen
+          name="Schedule"
+          component={ScheduleScreen}
+          options={{ tabBarIcon: ({ color }) => <TabIon name="calendar-outline" color={color} /> }}
+        />
+        <Tab.Screen
+          name="Clients"
+          component={ClientsScreen}
+          options={{ tabBarIcon: ({ color }) => <TabIon name="people-outline" color={color} /> }}
+        />
+        <Tab.Screen
+          name="Insights"
+          component={InsightsScreen}
+          options={{ tabBarIcon: ({ color }) => <TabIon name="bar-chart-outline" color={color} /> }}
+        />
+        <Tab.Screen
+          name="More"
+          component={StaffMoreNavigator}
+          options={{ tabBarIcon: ({ color }) => <TabIon name="grid-outline" color={color} /> }}
+        />
+      </Tab.Navigator>
+    </RoleProvider>
   );
 }
 
