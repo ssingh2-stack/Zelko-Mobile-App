@@ -173,6 +173,22 @@ export default function ClientProfileModal({ client, visible, onClose, onNewBook
           </View>
 
           <ScrollView style={styles.body} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            {/* Private notes — shown first for quick access */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Private Notes</Text>
+              <TextInput
+                style={styles.notesInput}
+                value={notes}
+                onChangeText={setNotes}
+                onBlur={saveNotes}
+                multiline
+                placeholder="Add notes about this client…"
+                placeholderTextColor={C.muted}
+                textAlignVertical="top"
+              />
+              {savingNotes && <Text style={styles.savingText}>Saving…</Text>}
+            </View>
+
             {/* Contact info */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Contact</Text>
@@ -221,22 +237,6 @@ export default function ClientProfileModal({ client, visible, onClose, onNewBook
                   );
                 })
               )}
-            </View>
-
-            {/* Private notes */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Private Notes</Text>
-              <TextInput
-                style={styles.notesInput}
-                value={notes}
-                onChangeText={setNotes}
-                onBlur={saveNotes}
-                multiline
-                placeholder="Add notes about this client…"
-                placeholderTextColor={C.muted}
-                textAlignVertical="top"
-              />
-              {savingNotes && <Text style={styles.savingText}>Saving…</Text>}
             </View>
 
             <View style={{ height: 40 }} />
