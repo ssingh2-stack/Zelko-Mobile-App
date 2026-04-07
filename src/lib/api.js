@@ -43,6 +43,7 @@ export const api = {
     request("/api/mobile/staff-login", { method: "POST", body: JSON.stringify({ email, password }) }),
   adminSignup: (data) => request("/api/mobile/admin-signup", { method: "POST", body: JSON.stringify(data) }),
   logout: () => request("/api/mobile/logout", { method: "POST", body: JSON.stringify({}) }),
+  deleteAccount: (confirmation) => request("/api/mobile/delete-account", { method: "POST", body: JSON.stringify({ confirmation }) }),
 
   adminToday: () => request("/api/admin/today"),
   adminSchedule: (weekStart) => request(`/api/admin/schedule${weekStart ? `?week=${weekStart}` : ""}`),

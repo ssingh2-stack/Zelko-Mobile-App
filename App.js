@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Text, ActivityIndicator, View, TouchableOpacity, StyleSheet } from "react-native";
+import { Text, ActivityIndicator, View, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { getSession } from "./src/lib/auth";
+import { getSession, clearSession } from "./src/lib/auth";
 import { api } from "./src/lib/api";
 import { C, serif } from "./src/lib/theme";
 import { RoleProvider } from "./src/lib/RoleContext";
@@ -66,6 +66,40 @@ function MoreHomeScreen({ navigation }) {
     { icon: "card-outline",      label: "Payments", screen: "Payments" },
     { icon: "settings-outline",  label: "Settings", screen: "Settings" },
   ];
+
+  function handleDeleteAccount() {
+    Alert.alert(
+      "Delete Account",
+      "This will permanently delete your shop, all barbers, bookings, and data. This cannot be undone.\n\nAre you sure?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: () => {
+          Alert.prompt(
+            "Confirm Deletion",
+            'Type "DELETE" to confirm permanent account deletion.',
+            [
+              { text: "Cancel", style: "cancel" },
+              { text: "Delete Forever", style: "destructive", onPress: async (text) => {
+                if (text !== "DELETE") {
+                  Alert.alert("Error", 'You must type "DELETE" to confirm.');
+                  return;
+                }
+                try {
+                  await api.deleteAccount("DELETE");
+                  await clearSession();
+                  navigation.reset({ index: 0, routes: [{ name: "Login" }] });
+                } catch (err) {
+                  Alert.alert("Error", err.message);
+                }
+              }},
+            ],
+            "plain-text"
+          );
+        }},
+      ]
+    );
+  }
+
   return (
     <View style={[moreStyles.container, { paddingTop: insets.top }]}>
       <View style={moreStyles.header}>
@@ -79,6 +113,10 @@ function MoreHomeScreen({ navigation }) {
           <Ionicons name="chevron-forward" size={18} color={C.muted} />
         </TouchableOpacity>
       ))}
+      <TouchableOpacity style={moreStyles.deleteRow} onPress={handleDeleteAccount}>
+        <Ionicons name="trash-outline" size={18} color="#DC2626" style={{ width: 28, textAlign: "center" }} />
+        <Text style={moreStyles.deleteLabel}>Delete Account</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -99,6 +137,13 @@ const moreStyles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: C.border,
   },
   rowLabel: { flex: 1, fontSize: 15, fontWeight: "600", color: C.espresso },
+  deleteRow: {
+    flexDirection: "row", alignItems: "center", gap: 16,
+    paddingHorizontal: 20, paddingVertical: 16,
+    marginTop: 20, marginHorizontal: 16, borderRadius: 10,
+    borderWidth: 1.5, borderColor: "#FCA5A5", backgroundColor: "#FEF2F2",
+  },
+  deleteLabel: { flex: 1, fontSize: 14, fontWeight: "700", color: "#DC2626" },
 });
 
 // ── Shared nav header style ───────────────────────────────────────────────────
@@ -165,7 +210,7 @@ function AdminTabs() {
 function StaffMoreNavigator() {
   return (
     <StaffMoreStack.Navigator screenOptions={{ headerShown: false }}>
-      <StaffMoreStack.Screen name="MoreHome" component={StaffMoreScreen} />
+      <StaffMoreStack.Screen name="MoreHome" component={StaffMoreScreen} options={{ headerShown: false, title: "More" }} />
       <StaffMoreStack.Screen name="StaffSettings" component={StaffSettingsScreen} options={subScreenOptions("My Profile")} />
       <StaffMoreStack.Screen name="Share" component={ShareScreen} options={subScreenOptions("Share")} />
     </StaffMoreStack.Navigator>

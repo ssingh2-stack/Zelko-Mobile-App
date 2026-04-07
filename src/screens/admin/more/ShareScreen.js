@@ -7,8 +7,10 @@ import QRCode from "react-native-qrcode-svg";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../../lib/api";
 import { C, serif } from "../../../lib/theme";
+import { useRole } from "../../../lib/RoleContext";
 
 export default function ShareScreen() {
+  const { role } = useRole();
   const [settings, setSettings] = useState(null);
   const [barbers, setBarbers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,18 +34,25 @@ export default function ShareScreen() {
 
   const slug = settings.slug;
   const shopName = settings.name;
-  const bookingUrl = `https://app.getclipd.ca/book/${slug}`;
-  const shareMsg = `Hey! You can now book your next appointment at ${shopName} online — it only takes 30 seconds. Here's the link: ${bookingUrl}`;
+  const isStaff = role === "staff";
+
+  // For staff, use their personal barber link as the main link
+  const myBarber = isStaff && barbers.length > 0 ? barbers[0] : null;
+  const bookingUrl = myBarber
+    ? `https://app.getclipd.ca/book/${slug}/${myBarber.handle || myBarber.id}`
+    : `https://app.getclipd.ca/book/${slug}`;
+  const displayName = myBarber ? myBarber.name : shopName;
+  const shareMsg = `Hey! You can now book your next appointment with ${displayName} online — it only takes 30 seconds. Here's the link: ${bookingUrl}`;
 
   return (
     <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); Promise.all([api.adminSettings(), api.adminBarbers()]).then(([s, bs]) => { setSettings(s); setBarbers(bs); }).finally(() => { setRefreshing(false); }); }} tintColor={C.espresso} />}>
       {/* Main booking link */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Your Booking Page</Text>
-        <Text style={styles.shopName}>{shopName}</Text>
+        <Text style={styles.cardTitle}>{isStaff ? "My Booking Link" : "Your Booking Page"}</Text>
+        <Text style={styles.shopName}>{displayName}</Text>
         <Text style={styles.url}>{bookingUrl}</Text>
         <View style={styles.btnRow}>
-          <TouchableOpacity style={styles.btn} onPress={() => shareLink(bookingUrl, shopName)}>
+          <TouchableOpacity style={styles.btn} onPress={() => shareLink(bookingUrl, displayName)}>
             <Text style={styles.btnText}>Share Link</Text>
           </TouchableOpacity>
         </View>
@@ -75,8 +84,8 @@ export default function ShareScreen() {
         </View>
       </View>
 
-      {/* Individual barber links */}
-      {barbers.length > 0 && (
+      {/* Individual barber links — admin only */}
+      {!isStaff && barbers.length > 0 && (
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Individual Barber Links</Text>
           {barbers.map(b => {

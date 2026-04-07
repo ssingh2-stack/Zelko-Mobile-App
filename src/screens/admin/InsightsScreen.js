@@ -8,6 +8,7 @@ import { DCAL_COLORS } from "../../components/DayCalendarView";
 import { SkeletonKPI, SkeletonCard } from "../../components/Skeleton";
 import ErrorState from "../../components/ErrorState";
 import { getCached, setCache } from "../../lib/cache";
+import { useRole } from "../../lib/RoleContext";
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
 function isoToday() { return new Date().toISOString().split("T")[0]; }
@@ -151,6 +152,7 @@ function RevenueChart({ data }) {
 // ── Main Screen ───────────────────────────────────────────────────────────────
 export default function InsightsScreen() {
   const insets = useSafeAreaInsets();
+  const { role } = useRole();
   const [period, setPeriod] = useState("month");
   const [data, setData] = useState(null);
   const [chartData, setChartData] = useState([]);
@@ -279,7 +281,7 @@ export default function InsightsScreen() {
           </View>
 
           {/* Barber performance */}
-          {data.top_barbers?.length > 0 && (() => {
+          {role !== "staff" && data.top_barbers?.length > 0 && (() => {
             const maxRev = Math.max(...data.top_barbers.map(b => b.revenue || 0), 1);
             const maxBks = Math.max(...data.top_barbers.map(b => b.count || 0), 1);
             return (

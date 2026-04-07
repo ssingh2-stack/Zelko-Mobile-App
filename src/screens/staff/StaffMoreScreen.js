@@ -5,6 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { C, serif } from "../../lib/theme";
 import { clearSession } from "../../lib/auth";
+import { api } from "../../lib/api";
 
 function MenuItem({ icon, label, onPress, color }) {
   return (
@@ -32,6 +33,39 @@ export default function StaffMoreScreen() {
     ]);
   }
 
+  function handleDeleteAccount() {
+    Alert.alert(
+      "Delete Account",
+      "This will permanently delete your staff account and remove your profile. This cannot be undone.\n\nAre you sure?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: () => {
+          Alert.prompt(
+            "Confirm Deletion",
+            'Type "DELETE" to confirm permanent account deletion.',
+            [
+              { text: "Cancel", style: "cancel" },
+              { text: "Delete Forever", style: "destructive", onPress: async (text) => {
+                if (text !== "DELETE") {
+                  Alert.alert("Error", 'You must type "DELETE" to confirm.');
+                  return;
+                }
+                try {
+                  await api.deleteAccount("DELETE");
+                  await clearSession();
+                  navigation.reset({ index: 0, routes: [{ name: "Login" }] });
+                } catch (err) {
+                  Alert.alert("Error", err.message);
+                }
+              }},
+            ],
+            "plain-text"
+          );
+        }},
+      ]
+    );
+  }
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScrollView style={styles.scroll}>
@@ -47,6 +81,11 @@ export default function StaffMoreScreen() {
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={18} color="#DC2626" />
           <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.logoutBtn, { marginTop: 12, borderColor: "#E5E7EB", backgroundColor: C.white }]} onPress={handleDeleteAccount}>
+          <Ionicons name="trash-outline" size={18} color="#9CA3AF" />
+          <Text style={[styles.logoutText, { color: "#9CA3AF" }]}>Delete Account</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
