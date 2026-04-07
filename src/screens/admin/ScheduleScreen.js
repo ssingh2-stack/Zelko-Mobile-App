@@ -34,7 +34,7 @@ function getWeekDates(offset = 0) {
   const monday = getMondayOfWeek(offset);
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday); d.setDate(monday.getDate() + i);
-    return d.toISOString().split("T")[0];
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   });
 }
 function todayIndex() {
@@ -87,7 +87,8 @@ export default function ScheduleScreen() {
 
   const weekDates = getWeekDates(weekOffset);
   const selectedDate = weekDates[dayIdx];
-  const todayStr = new Date().toISOString().split("T")[0];
+  const _now = new Date();
+  const todayStr = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,"0")}-${String(_now.getDate()).padStart(2,"0")}`;
   const isToday = selectedDate === todayStr;
 
   const load = useCallback(async (quiet = false) => {

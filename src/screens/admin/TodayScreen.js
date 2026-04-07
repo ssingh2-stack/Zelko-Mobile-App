@@ -95,7 +95,9 @@ export default function TodayScreen() {
       ]);
       const barbers = (bs || []).map(b => ({ id: b.id, name: b.name }));
       const allBlocked = Array.isArray(blocked) ? blocked : (blocked?.blocked || []);
-      const todayBlocked = allBlocked.filter(b => b.date === new Date().toISOString().split("T")[0]);
+      const _n = new Date();
+      const _todayLocal = `${_n.getFullYear()}-${String(_n.getMonth()+1).padStart(2,"0")}-${String(_n.getDate()).padStart(2,"0")}`;
+      const todayBlocked = allBlocked.filter(b => b.date === _todayLocal);
       setData(res);
       setAllBarbers(barbers);
       setBlockedSlots(todayBlocked);
@@ -167,7 +169,7 @@ export default function TodayScreen() {
 
   const today = new Date();
   const dateLabel = today.toLocaleDateString("en-CA", { weekday: "long", month: "long", day: "numeric" });
-  const todayStr = today.toISOString().split("T")[0];
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
   const cancelled = bookings.filter(b => b.status === "cancelled").length;
 
   // End-of-day: show summary if past shop close or past 8pm

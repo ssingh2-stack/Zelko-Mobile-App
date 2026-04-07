@@ -100,7 +100,8 @@ export default function DayCalendarView({
   const colRef = useRef(null);
 
   const totalPx = TOTAL_H * PX_PER_HOUR;
-  const todayStr = new Date().toISOString().split("T")[0];
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
   const showNow = (date === todayStr || !date) && isNowVisible();
   const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
 
