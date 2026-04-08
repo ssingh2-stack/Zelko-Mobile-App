@@ -47,6 +47,7 @@ export const api = {
 
   adminToday: () => request("/api/admin/today"),
   adminSchedule: (weekStart) => request(`/api/admin/schedule${weekStart ? `?week=${weekStart}` : ""}`),
+  adminScheduleMonth: (month) => request(`/api/admin/schedule?month=${month}`),
   adminSlots: (date, barberId, serviceId) => request(`/api/admin/slots?date=${date}&barber_id=${barberId}&service_id=${serviceId || ""}`),
   adminCreateBooking: (data) => request("/api/admin/bookings", { method: "POST", body: JSON.stringify(data) }),
   adminCancelBooking: (code) => request(`/api/admin/bookings/${code}/cancel`, { method: "POST", body: JSON.stringify({}) }),

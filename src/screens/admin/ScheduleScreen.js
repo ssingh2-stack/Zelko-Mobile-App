@@ -23,6 +23,61 @@ import DayCalendarView, {
 } from "../../components/DayCalendarView";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+function getMonthGrid(monthOffset = 0) {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + monthOffset;
+  const first = new Date(year, month, 1);
+  const last = new Date(year, month + 1, 0);
+  // Monday = 0, Sunday = 6
+  const startDow = (first.getDay() + 6) % 7;
+  const daysInMonth = last.getDate();
+  const prevLast = new Date(year, month, 0);
+  const daysInPrev = prevLast.getDate();
+
+  const weeks = [];
+  let week = [];
+  // Fill leading days from previous month
+  for (let i = startDow - 1; i >= 0; i--) {
+    const d = new Date(year, month, -(i));
+    week.push({
+      date: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`,
+      dayNum: d.getDate(),
+      isCurrentMonth: false,
+    });
+  }
+  // Fill current month days
+  for (let day = 1; day <= daysInMonth; day++) {
+    const d = new Date(year, month, day);
+    week.push({
+      date: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`,
+      dayNum: day,
+      isCurrentMonth: true,
+    });
+    if (week.length === 7) { weeks.push(week); week = []; }
+  }
+  // Fill trailing days from next month
+  if (week.length > 0) {
+    let nextDay = 1;
+    while (week.length < 7) {
+      const d = new Date(year, month + 1, nextDay++);
+      week.push({
+        date: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`,
+        dayNum: d.getDate(),
+        isCurrentMonth: false,
+      });
+    }
+    weeks.push(week);
+  }
+
+  const monthDate = new Date(year, month, 1);
+  const monthStr = `${monthDate.getFullYear()}-${String(monthDate.getMonth()+1).padStart(2,"0")}`;
+  const monthLabel = `${MONTH_NAMES[monthDate.getMonth()]} ${monthDate.getFullYear()}`;
+
+  return { weeks, monthStr, monthLabel };
+}
 
 function getMondayOfWeek(offset = 0) {
   const now = new Date();
@@ -79,6 +134,10 @@ export default function ScheduleScreen() {
   const [barberAvail, setBarberAvail] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState(null);
+  const [scheduleMode, setScheduleMode] = useState("week");
+  const [monthOffset, setMonthOffset] = useState(0);
+  const [monthBookings, setMonthBookings] = useState({});
+  const [loadingMonth, setLoadingMonth] = useState(false);
   const [blockModal, setBlockModal] = useState(false);
   const [blockInfo, setBlockInfo] = useState({});
   const [blockDuration, setBlockDuration] = useState(30);
@@ -154,6 +213,28 @@ export default function ScheduleScreen() {
     const timer = setInterval(() => setNowTop(getNowTop()), 60000);
     return () => clearInterval(timer);
   }, []);
+
+  const loadMonth = useCallback(async () => {
+    setLoadingMonth(true);
+    try {
+      const { monthStr } = getMonthGrid(monthOffset);
+      const data = await api.adminScheduleMonth(monthStr);
+      const byDate = {};
+      for (const b of (data.bookings || [])) {
+        if (!byDate[b.date]) byDate[b.date] = [];
+        byDate[b.date].push(b);
+      }
+      setMonthBookings(byDate);
+    } catch (err) {
+      console.warn("Failed to load month", err);
+    } finally {
+      setLoadingMonth(false);
+    }
+  }, [monthOffset]);
+
+  useEffect(() => {
+    if (scheduleMode === "month") loadMonth();
+  }, [scheduleMode, monthOffset]);
 
   // Auto-scroll to now when switching to calendar on today
   useEffect(() => {
@@ -278,7 +359,24 @@ export default function ScheduleScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Day nav */}
+      {/* Schedule mode toggle */}
+      <View style={styles.modeToggleRow}>
+        <TouchableOpacity
+          style={[styles.modeToggleBtn, scheduleMode === "week" && styles.modeToggleBtnActive]}
+          onPress={() => setScheduleMode("week")}
+        >
+          <Text style={[styles.modeToggleText, scheduleMode === "week" && styles.modeToggleTextActive]}>Week</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.modeToggleBtn, scheduleMode === "month" && styles.modeToggleBtnActive]}
+          onPress={() => setScheduleMode("month")}
+        >
+          <Text style={[styles.modeToggleText, scheduleMode === "month" && styles.modeToggleTextActive]}>Month</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Day nav (week mode) */}
+      {scheduleMode === "week" && (
       <View style={styles.dayNav}>
         <TouchableOpacity style={styles.navBtn} onPress={prevDay}>
           <Text style={styles.navArrow}>‹</Text>
@@ -295,6 +393,30 @@ export default function ScheduleScreen() {
           <Text style={styles.navArrow}>›</Text>
         </TouchableOpacity>
       </View>
+      )}
+
+      {/* Month nav (month mode) */}
+      {scheduleMode === "month" && (() => {
+        const { monthLabel } = getMonthGrid(monthOffset);
+        return (
+          <View style={styles.monthNav}>
+            <TouchableOpacity style={styles.navBtn} onPress={() => setMonthOffset(o => o - 1)}>
+              <Text style={styles.navArrow}>‹</Text>
+            </TouchableOpacity>
+            <View style={styles.navCenter}>
+              <Text style={styles.navLabel}>{monthLabel}</Text>
+              {monthOffset !== 0 && (
+                <TouchableOpacity onPress={() => setMonthOffset(0)} style={styles.todayPill}>
+                  <Text style={styles.todayPillText}>← This month</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            <TouchableOpacity style={styles.navBtn} onPress={() => setMonthOffset(o => o + 1)}>
+              <Text style={styles.navArrow}>›</Text>
+            </TouchableOpacity>
+          </View>
+        );
+      })()}
 
       {/* Stats bar */}
       <View style={styles.statsBar}>
@@ -334,6 +456,7 @@ export default function ScheduleScreen() {
 
       {/* Controls: toggle + barber filter */}
       {sq.length < 2 && <View style={styles.controls}>
+        {scheduleMode === "week" && (
         <View style={styles.controlsRow}>
           <TouchableOpacity
             style={[styles.toggleBtn, view === "cal" && styles.toggleBtnActive]}
@@ -354,6 +477,7 @@ export default function ScheduleScreen() {
             <View style={styles.toggleBtnInner}><Ionicons name="grid-outline" size={14} color={view === "week" ? C.cream : C.muted} /><Text style={[styles.toggleBtnText, view === "week" && styles.toggleBtnTextActive]}> Week</Text></View>
           </TouchableOpacity>
         </View>
+        )}
 
         {allBarbersList.length > 1 && (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
@@ -381,8 +505,8 @@ export default function ScheduleScreen() {
         )}
       </View>}
 
-      {/* Service color legend */}
-      {!loading && Object.keys(serviceColorMap).length > 1 && sq.length < 2 && (
+      {/* Service color legend (week mode only) */}
+      {scheduleMode === "week" && !loading && Object.keys(serviceColorMap).length > 1 && sq.length < 2 && (
         <View style={styles.svcLegend}>
           {Object.entries(serviceColorMap).map(([name, color]) => (
             <View key={name} style={styles.svcLegendItem}>
@@ -393,8 +517,73 @@ export default function ScheduleScreen() {
         </View>
       )}
 
-      {/* Search results */}
-      {sq.length >= 2 ? (
+      {/* Month calendar grid */}
+      {scheduleMode === "month" && sq.length < 2 ? (() => {
+        const { weeks } = getMonthGrid(monthOffset);
+        return loadingMonth ? (
+          <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingTop: 60 }}>
+            <ActivityIndicator size="large" color={C.terra} />
+          </View>
+        ) : (
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 12 }}>
+            <View style={styles.monthGridHeader}>
+              {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d => (
+                <Text key={d} style={styles.monthGridHeaderText}>{d}</Text>
+              ))}
+            </View>
+            {weeks.map((week, wi) => (
+              <View key={wi} style={styles.monthGridRow}>
+                {week.map((day) => {
+                  const isT = day.date === todayStr;
+                  const dayBks = monthBookings[day.date] || [];
+                  const confirmed = dayBks.filter(b => b.status === "confirmed");
+                  const dayRev = confirmed.reduce((s, b) => s + (b.service_price ?? b.price ?? 0), 0);
+                  return (
+                    <TouchableOpacity
+                      key={day.date}
+                      style={[
+                        styles.monthCell,
+                        isT && styles.monthCellToday,
+                        !day.isCurrentMonth && styles.monthCellOutside,
+                      ]}
+                      activeOpacity={0.7}
+                      onPress={() => {
+                        // Navigate to that day in week mode
+                        const targetDate = new Date(day.date + "T12:00:00");
+                        const now = new Date();
+                        const todayMonday = getMondayOfWeek(0);
+                        const targetMonday = new Date(targetDate);
+                        targetMonday.setDate(targetDate.getDate() - ((targetDate.getDay() + 6) % 7));
+                        targetMonday.setHours(0, 0, 0, 0);
+                        const diffWeeks = Math.round((targetMonday - todayMonday) / (7 * 24 * 60 * 60 * 1000));
+                        const targetDayIdx = (targetDate.getDay() + 6) % 7;
+                        setWeekOffset(diffWeeks);
+                        setDayIdx(targetDayIdx);
+                        setScheduleMode("week");
+                      }}
+                    >
+                      <Text style={[
+                        styles.monthDayNum,
+                        isT && styles.monthDayNumToday,
+                        !day.isCurrentMonth && styles.monthDayNumOutside,
+                      ]}>{day.dayNum}</Text>
+                      {confirmed.length > 0 && (
+                        <View style={styles.monthCount}>
+                          <Text style={styles.monthCountText}>{confirmed.length}</Text>
+                        </View>
+                      )}
+                      {dayRev > 0 && (
+                        <Text style={styles.monthRevenue}>{fmtMoney(dayRev)}</Text>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ))}
+            <View style={{ height: 32 }} />
+          </ScrollView>
+        );
+      })() : sq.length >= 2 ? (
         <ScrollView style={styles.list} keyboardShouldPersistTaps="handled">
           {searchResults.length === 0 ? (
             <View style={styles.empty}>
@@ -761,6 +950,51 @@ const styles = StyleSheet.create({
   blockCancelText: { fontSize: 14, fontWeight: "700", color: C.muted },
   blockSaveBtn: { flex: 1, paddingVertical: 12, borderRadius: 9, backgroundColor: C.espresso, alignItems: "center" },
   blockSaveText: { fontSize: 14, fontWeight: "800", color: C.cream },
+
+  // Schedule mode toggle
+  modeToggleRow: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    paddingHorizontal: 16, paddingVertical: 8,
+    backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border,
+  },
+  modeToggleBtn: {
+    paddingHorizontal: 18, paddingVertical: 6, borderRadius: 999,
+    backgroundColor: C.surface, borderWidth: 1.5, borderColor: C.border,
+    marginHorizontal: -0.75,
+  },
+  modeToggleBtnActive: { backgroundColor: C.espresso, borderColor: C.espresso },
+  modeToggleText: { fontSize: 12, fontWeight: "700", color: C.muted },
+  modeToggleTextActive: { color: C.cream },
+
+  // Month nav
+  monthNav: {
+    flexDirection: "row", alignItems: "center", paddingHorizontal: 4, paddingVertical: 10,
+    borderBottomWidth: 1, borderBottomColor: C.border, backgroundColor: C.white,
+  },
+
+  // Month grid
+  monthGridHeader: { flexDirection: "row", marginBottom: 4 },
+  monthGridHeaderText: {
+    flex: 1, textAlign: "center", fontSize: 10, fontWeight: "700",
+    color: C.muted, textTransform: "uppercase", letterSpacing: 1, paddingVertical: 6,
+  },
+  monthGridRow: { flexDirection: "row" },
+  monthCell: {
+    flex: 1, minHeight: 72, padding: 6,
+    borderWidth: 0.5, borderColor: C.border, borderRadius: 6,
+    backgroundColor: C.white, margin: 1,
+  },
+  monthCellToday: { backgroundColor: C.terra + "18", borderColor: C.terra + "60" },
+  monthCellOutside: { backgroundColor: C.surface, opacity: 0.5 },
+  monthDayNum: { fontSize: 16, fontWeight: "700", color: C.espresso, marginBottom: 2 },
+  monthDayNumToday: { color: C.terra },
+  monthDayNumOutside: { color: C.muted },
+  monthCount: {
+    alignSelf: "flex-start", paddingHorizontal: 5, paddingVertical: 1,
+    borderRadius: 6, backgroundColor: C.terra + "20", marginBottom: 2,
+  },
+  monthCountText: { fontSize: 10, fontWeight: "800", color: C.terra },
+  monthRevenue: { fontSize: 9, fontWeight: "600", color: C.muted },
 
   empty: { paddingTop: 60, alignItems: "center", gap: 10 },
   emptyIcon: {},
