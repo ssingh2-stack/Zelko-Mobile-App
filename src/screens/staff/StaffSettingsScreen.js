@@ -22,6 +22,7 @@ export default function StaffSettingsScreen() {
   const [name, setName] = useState("");
   const [handle, setHandle] = useState("");
   const [phone, setPhone] = useState("");
+  const [bufferMinutes, setBufferMinutes] = useState(0);
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileMsg, setProfileMsg] = useState("");
 
@@ -50,6 +51,7 @@ export default function StaffSettingsScreen() {
       setName(s.name || "");
       setHandle(s.handle || "");
       setPhone(s.phone || "");
+      setBufferMinutes(s.buffer_minutes || 0);
       setBio(s.bio || "");
       setYearsExp(s.years_exp ? String(s.years_exp) : "");
       setInstagram(s.instagram || "");
@@ -69,7 +71,7 @@ export default function StaffSettingsScreen() {
     if (!name.trim()) { Alert.alert("Error", "Name is required"); return; }
     setSavingProfile(true); setProfileMsg("");
     try {
-      await api.staffUpdateProfile({ name: name.trim(), handle: handle.trim(), phone: phone.trim() });
+      await api.staffUpdateProfile({ name: name.trim(), handle: handle.trim(), phone: phone.trim(), buffer_minutes: bufferMinutes });
       setProfileMsg("Saved!");
       setTimeout(() => setProfileMsg(""), 2000);
     } catch (err) { Alert.alert("Error", err.message); }
@@ -145,6 +147,23 @@ export default function StaffSettingsScreen() {
 
             <Text style={styles.label}>Phone</Text>
             <TextInput style={styles.input} value={phone} onChangeText={setPhone} placeholder="416-555-0000" placeholderTextColor={C.muted} keyboardType="phone-pad" />
+
+            <Text style={styles.label}>Buffer After Each Booking</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={{ flexDirection: "row", gap: 6 }}>
+                {[0, 5, 10, 15, 20, 30].map(mins => (
+                  <TouchableOpacity
+                    key={mins}
+                    style={[styles.bufferPill, bufferMinutes === mins && styles.bufferPillActive]}
+                    onPress={() => setBufferMinutes(mins)}
+                  >
+                    <Text style={[styles.bufferPillText, bufferMinutes === mins && styles.bufferPillTextActive]}>
+                      {mins === 0 ? "None" : `${mins} min`}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
 
             <TouchableOpacity style={[styles.saveBtn, savingProfile && { opacity: 0.6 }]} onPress={saveProfile} disabled={savingProfile}>
               <Text style={styles.saveBtnText}>{savingProfile ? "Saving…" : "Save Profile"}</Text>
@@ -246,6 +265,10 @@ const styles = StyleSheet.create({
     backgroundColor: C.surface, borderRadius: 9, paddingHorizontal: 12, paddingVertical: 11,
     fontSize: 14, color: C.espresso, borderWidth: 1, borderColor: C.border,
   },
+  bufferPill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.white },
+  bufferPillActive: { backgroundColor: C.espresso, borderColor: C.espresso },
+  bufferPillText: { fontSize: 12, fontWeight: "700", color: C.muted },
+  bufferPillTextActive: { color: C.cream },
   saveBtn: { backgroundColor: C.espresso, paddingVertical: 13, borderRadius: 10, alignItems: "center", marginTop: 16 },
   saveBtnText: { color: C.cream, fontSize: 14, fontWeight: "700" },
   savedMsg: { fontSize: 12, color: "#059669", fontWeight: "600", textAlign: "center", marginTop: 8 },

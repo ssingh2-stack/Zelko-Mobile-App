@@ -90,6 +90,7 @@ export default function BarbersScreen() {
 
   const [editEmail, setEditEmail] = useState("");
   const [editPhone, setEditPhone] = useState("");
+  const [editBuffer, setEditBuffer] = useState(0);
 
   function startEditBio(b) {
     setEditingId(b.id);
@@ -98,6 +99,7 @@ export default function BarbersScreen() {
     setEditIG(b.instagram || "");
     setEditEmail(b.email || "");
     setEditPhone(b.phone || "");
+    setEditBuffer(b.buffer_minutes || 0);
     // Load barber services
     api.adminBarberServices(b.id).then(svcIds => {
       setEditBarberServices(Array.isArray(svcIds) ? svcIds.map(s => s.id || s.service_id || s) : []);
@@ -134,6 +136,7 @@ export default function BarbersScreen() {
         api.adminBarberUpdate(barberId, {
           email: editEmail.trim().toLowerCase(),
           phone: editPhone.trim(),
+          buffer_minutes: editBuffer,
         }),
       ]);
       setEditingId(null);
@@ -323,6 +326,22 @@ export default function BarbersScreen() {
                         />
                       </View>
                     </View>
+                    <Text style={styles.editLabel}>Buffer After Each Booking</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
+                      <View style={{ flexDirection: "row", gap: 6 }}>
+                        {[0, 5, 10, 15, 20, 30].map(mins => (
+                          <TouchableOpacity
+                            key={mins}
+                            style={[styles.editPill, editBuffer === mins && styles.editPillActive]}
+                            onPress={() => setEditBuffer(mins)}
+                          >
+                            <Text style={[styles.editPillText, editBuffer === mins && styles.editPillTextActive]}>
+                              {mins === 0 ? "None" : `${mins} min`}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </ScrollView>
                     <Text style={styles.editLabel}>Bio</Text>
                     <TextInput
                       style={[styles.editInput, { minHeight: 60, textAlignVertical: "top" }]}
@@ -527,6 +546,10 @@ const styles = StyleSheet.create({
   },
   editLabel: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 6, marginTop: 10 },
   editInput: { backgroundColor: C.surface, borderRadius: 9, paddingHorizontal: 12, paddingVertical: 10, fontSize: 13, color: C.espresso, borderWidth: 1, borderColor: C.border },
+  editPill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.white },
+  editPillActive: { backgroundColor: C.espresso, borderColor: C.espresso },
+  editPillText: { fontSize: 12, fontWeight: "700", color: C.muted },
+  editPillTextActive: { color: C.cream },
   saveBioBtn: { backgroundColor: C.espresso, borderRadius: 9, paddingVertical: 11, alignItems: "center", marginTop: 14 },
   saveBioBtnText: { fontSize: 13, fontWeight: "800", color: C.cream },
   // Availability
