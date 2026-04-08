@@ -288,26 +288,24 @@ export default function TodayScreen() {
 
       {/* Today strip */}
       <View style={styles.strip}>
-        <View style={styles.stripRow}>
-          <View>
-            <Text style={styles.stripLabel}>Today</Text>
-            <Text style={styles.stripDate}>{dateLabel}</Text>
+        <View style={{ marginBottom: 12 }}>
+          <Text style={styles.stripLabel}>Today</Text>
+          <Text style={styles.stripDate}>{dateLabel}</Text>
+        </View>
+        <View style={styles.statsGroup}>
+          <View style={styles.stat}>
+            <Text style={styles.statVal}>{confirmed.length}</Text>
+            <Text style={styles.statLbl}>Bookings</Text>
           </View>
-          <View style={styles.statsGroup}>
-            <View style={styles.stat}>
-              <Text style={styles.statVal}>{confirmed.length}</Text>
-              <Text style={styles.statLbl}>Bookings</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.stat}>
-              <Text style={styles.statVal}>{fmtMoney(revenue)}</Text>
-              <Text style={styles.statLbl}>Revenue</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.stat}>
-              <Text style={styles.statVal}>{noShows}</Text>
-              <Text style={styles.statLbl}>No-shows</Text>
-            </View>
+          <View style={styles.statDivider} />
+          <View style={styles.stat}>
+            <Text style={styles.statVal}>{fmtMoney(revenue)}</Text>
+            <Text style={styles.statLbl}>Revenue</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.stat}>
+            <Text style={styles.statVal}>{noShows}</Text>
+            <Text style={styles.statLbl}>No-shows</Text>
           </View>
         </View>
         {/* Payment breakdown */}
@@ -664,11 +662,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingBottom: 12, paddingTop: 6,
     borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.06)",
   },
-  stripRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 },
   stripLabel: { fontSize: 11, fontWeight: "700", color: "rgba(247,243,238,0.45)", textTransform: "uppercase", letterSpacing: 2, marginBottom: 2 },
-  stripDate: { fontFamily: serif, fontSize: 16, fontWeight: "700", color: C.cream },
-  statsGroup: { flexDirection: "row", alignItems: "center" },
-  stat: { alignItems: "flex-end" },
+  stripDate: { fontFamily: serif, fontSize: 20, fontWeight: "900", color: C.cream },
+  statsGroup: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
+  stat: { flex: 1, alignItems: "center" },
   statVal: { fontFamily: serif, fontSize: 17, fontWeight: "900", color: C.terra },
   statLbl: { fontSize: 9, fontWeight: "700", color: "rgba(247,243,238,0.4)", textTransform: "uppercase", letterSpacing: 1.2, marginTop: 1 },
   statDivider: { width: 1, height: 28, backgroundColor: "rgba(255,255,255,0.1)", marginHorizontal: 12 },
