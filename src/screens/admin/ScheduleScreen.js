@@ -261,10 +261,19 @@ export default function ScheduleScreen() {
     ? allDayBookings
     : allDayBookings.filter(b => String(b.barber_id) === barberFilter);
 
-  const confirmedCount = allDayBookings.filter(b => b.status === "confirmed").length;
-  const revenue = allDayBookings
-    .filter(b => b.status === "confirmed")
-    .reduce((s, b) => s + (b.service_price ?? b.price ?? 0), 0);
+  // Stats: show month totals in month mode, day totals in week mode
+  const confirmedCount = scheduleMode === "month"
+    ? Object.values(monthBookings).flat()
+        .filter(b => b.status === "confirmed" && (barberFilter === "all" || String(b.barber_id) === barberFilter))
+        .length
+    : allDayBookings.filter(b => b.status === "confirmed").length;
+  const revenue = scheduleMode === "month"
+    ? Object.values(monthBookings).flat()
+        .filter(b => b.status === "confirmed" && (barberFilter === "all" || String(b.barber_id) === barberFilter))
+        .reduce((s, b) => s + (b.service_price ?? b.price ?? 0), 0)
+    : allDayBookings
+        .filter(b => b.status === "confirmed")
+        .reduce((s, b) => s + (b.service_price ?? b.price ?? 0), 0);
 
   const d = new Date(selectedDate + "T12:00:00");
   const dayLabel = `${DAYS[dayIdx]}, ${d.toLocaleDateString("en-CA", { month: "short", day: "numeric" })}`;
@@ -525,7 +534,7 @@ export default function ScheduleScreen() {
             <ActivityIndicator size="large" color={C.terra} />
           </View>
         ) : (
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 12 }}>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 12, paddingTop: 16 }}>
             <View style={styles.monthGridHeader}>
               {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d => (
                 <Text key={d} style={styles.monthGridHeaderText}>{d}</Text>
@@ -535,7 +544,10 @@ export default function ScheduleScreen() {
               <View key={wi} style={styles.monthGridRow}>
                 {week.map((day) => {
                   const isT = day.date === todayStr;
-                  const dayBks = monthBookings[day.date] || [];
+                  const dayBksAll = monthBookings[day.date] || [];
+                  const dayBks = barberFilter === "all"
+                    ? dayBksAll
+                    : dayBksAll.filter(b => String(b.barber_id) === barberFilter);
                   const confirmed = dayBks.filter(b => b.status === "confirmed");
                   const dayRev = confirmed.reduce((s, b) => s + (b.service_price ?? b.price ?? 0), 0);
                   return (
@@ -878,7 +890,7 @@ const styles = StyleSheet.create({
   toggleBtnInner: { flexDirection: "row", alignItems: "center" },
   toggleBtnText: { fontSize: 12, fontWeight: "700", color: C.muted },
   toggleBtnTextActive: { color: C.cream },
-  filterScroll: { paddingBottom: 10 },
+  filterScroll: { paddingBottom: 10, marginTop: 12 },
   filterRow: { flexDirection: "row", gap: 6, paddingHorizontal: 10, paddingBottom: 8 },
   pill: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.white },
   pillActive: { backgroundColor: C.espresso, borderColor: C.espresso },

@@ -325,9 +325,15 @@ export default function DayCalendarView({
                   const blockBg = svcColor ? svcColor + "1A" : "#E8E0D8";
                   const blockBorder = svcColor || "#9B8677";
 
+                  // Buffer block positioning — starts at the booking's actual time-end
+                  const bufferMin = bk.buffer_minutes || 0;
+                  const bufferH = (bufferMin / 60) * PX_PER_HOUR;
+                  const bookingEndPx = tPx(endMin);
+                  const bufferTop = bookingEndPx;
+
                   return (
+                    <React.Fragment key={bk.confirmation_code}>
                     <TouchableOpacity
-                      key={bk.confirmation_code}
                       style={[
                         styles.appt,
                         { top: dragging?.code === bk.confirmation_code ? dragY : top,
@@ -368,6 +374,22 @@ export default function DayCalendarView({
                         <Text style={styles.apptNote} numberOfLines={1}>{clientNotes[bk.customer_email]}</Text>
                       ) : null}
                     </TouchableOpacity>
+                    {bufferMin > 0 && !cancelled && (
+                      <View
+                        style={[
+                          styles.bufferBlock,
+                          {
+                            top: bufferTop,
+                            height: bufferH,
+                            borderLeftColor: blockBorder,
+                          },
+                        ]}
+                        pointerEvents="none"
+                      >
+                        <Text style={styles.bufferText}>Buffer</Text>
+                      </View>
+                    )}
+                    </React.Fragment>
                   );
                 })}
               </TouchableOpacity>
@@ -485,19 +507,19 @@ const styles = StyleSheet.create({
   // Blocked time
   blockedAll: {
     position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: "rgba(155,134,119,0.18)",
+    backgroundColor: "rgba(44,24,16,0.08)",
     alignItems: "center", justifyContent: "center",
     zIndex: 4,
   },
   blockedSlot: {
     position: "absolute", left: 2, right: 2,
-    backgroundColor: "rgba(155,134,119,0.22)",
+    backgroundColor: "rgba(44,24,16,0.08)",
     borderLeftWidth: 3, borderLeftColor: C.muted,
     borderRadius: 6, paddingHorizontal: 6, paddingVertical: 4,
     zIndex: 4, justifyContent: "center",
   },
   blockedText: {
-    fontSize: 9, fontWeight: "700", color: C.muted,
+    fontSize: 9, fontWeight: "700", color: "#6B5C52",
     textTransform: "uppercase", letterSpacing: 0.5,
   },
 
@@ -557,4 +579,18 @@ const styles = StyleSheet.create({
   apptNote: { fontSize: 9, color: "#92400E", fontStyle: "italic", marginTop: 1 },
   paidIcon: { fontSize: 8, fontWeight: "900", color: "#065F46", backgroundColor: "#D1FAE5", borderRadius: 3, paddingHorizontal: 3, paddingVertical: 1, overflow: "hidden" },
   depositIcon: { fontSize: 8, fontWeight: "900", color: "#92400E", backgroundColor: "#FEF3C7", borderRadius: 3, paddingHorizontal: 3, paddingVertical: 1, overflow: "hidden" },
+
+  // Buffer blocks
+  bufferBlock: {
+    position: "absolute", left: 4, right: 4,
+    backgroundColor: "rgba(44,24,16,0.12)",
+    borderLeftWidth: 4, borderLeftStyle: "dashed",
+    borderRadius: 4, paddingHorizontal: 6,
+    justifyContent: "center",
+    zIndex: 4,
+  },
+  bufferText: {
+    fontSize: 9, fontWeight: "600", color: "rgba(44,24,16,0.4)",
+    textTransform: "uppercase", letterSpacing: 0.5,
+  },
 });
