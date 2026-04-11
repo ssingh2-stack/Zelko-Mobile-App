@@ -31,6 +31,8 @@ export default function BrandedSiteScreen() {
   const [instagram, setInstagram] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
   const [siteUrl, setSiteUrl] = useState("");
+  const [photos, setPhotos] = useState([]);
+  const [photoUploading, setPhotoUploading] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -44,7 +46,8 @@ export default function BrandedSiteScreen() {
       setBrandColor(data.site_brand_color || "#C4683E");
       setInstagram(data.site_instagram || "");
       setPreviewUrl(data.preview_url || "");
-      setSiteUrl(`app.getclipd.ca${data.preview_url || ""}`);
+      setSiteUrl(data.site_url_display || data.preview_url || "");
+      loadPhotos();
     } catch (err) {
       Alert.alert("Error", err.message);
     } finally {
@@ -91,6 +94,51 @@ export default function BrandedSiteScreen() {
     ]);
   }
 
+  async function loadPhotos() {
+    try {
+      const data = await api.adminGetPhotos();
+      setPhotos(Array.isArray(data) ? data : []);
+    } catch (err) { /* silent */ }
+  }
+
+  async function addGalleryPhoto() {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert("Permission needed", "Please grant photo access to upload gallery photos.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      selectionLimit: 6,
+      quality: 0.85,
+    });
+    if (result.canceled || !result.assets?.length) return;
+    setPhotoUploading(true);
+    try {
+      for (const asset of result.assets) {
+        await api.adminUpload(asset.uri, "gallery");
+      }
+      await loadPhotos();
+    } catch (err) {
+      Alert.alert("Upload failed", err.message);
+    } finally {
+      setPhotoUploading(false);
+    }
+  }
+
+  function deleteGalleryPhoto(id) {
+    Alert.alert("Remove this photo?", null, [
+      { text: "Cancel", style: "cancel" },
+      { text: "Remove", style: "destructive", onPress: async () => {
+        try {
+          await api.adminDeletePhoto(id);
+          await loadPhotos();
+        } catch (err) { Alert.alert("Error", err.message); }
+      }},
+    ]);
+  }
+
   async function save() {
     setSaving(true);
     try {
@@ -109,7 +157,12 @@ export default function BrandedSiteScreen() {
   }
 
   function openPreview() {
-    if (previewUrl) Linking.openURL(`https://app.getclipd.ca${previewUrl}`);
+    if (previewUrl) {
+      // previewUrl is now a full URL like https://slug.getclipd.ca/
+      // Append cache-buster so the latest content is always fetched
+      const sep = previewUrl.includes('?') ? '&' : '?';
+      Linking.openURL(`${previewUrl}${sep}_v=${Date.now()}`);
+    }
   }
 
   if (loading) {
@@ -179,21 +232,7 @@ export default function BrandedSiteScreen() {
         />
       </View>
 
-      {/* About */}
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>ABOUT / DESCRIPTION</Text>
-        <Text style={styles.helperText}>Tell visitors about your shop, your style, your story.</Text>
-        <TextInput
-          style={[styles.input, styles.textarea]}
-          value={about}
-          onChangeText={setAbout}
-          placeholder="We're a tight-knit crew of barbers obsessed with the craft..."
-          placeholderTextColor={C.muted}
-          multiline
-          numberOfLines={6}
-          maxLength={2000}
-        />
-      </View>
+      {/* About section removed — didn't drive conversions. Field still in DB. */}
 
       {/* Brand Color */}
       <View style={styles.section}>
@@ -226,6 +265,35 @@ export default function BrandedSiteScreen() {
           placeholderTextColor={C.muted}
           autoCapitalize="none"
         />
+      </View>
+
+      {/* Photo Gallery */}
+      <View style={styles.section}>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+          <Text style={styles.sectionLabel}>PHOTO GALLERY</Text>
+          <TouchableOpacity onPress={addGalleryPhoto} disabled={photoUploading} style={styles.galleryAddBtn}>
+            <Ionicons name="add" size={14} color={C.cream} />
+            <Text style={styles.galleryAddText}>{photoUploading ? "Uploading…" : "Add"}</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.helperText}>Show off your best work. Up to 6 at a time.</Text>
+        {photos.length === 0 ? (
+          <View style={styles.galleryEmpty}>
+            <Ionicons name="images-outline" size={28} color={C.muted} />
+            <Text style={{ fontSize: 12, color: C.muted, marginTop: 6 }}>No photos yet</Text>
+          </View>
+        ) : (
+          <View style={styles.galleryGrid}>
+            {photos.map((p) => (
+              <View key={p.id} style={styles.galleryItem}>
+                <Image source={{ uri: p.url }} style={styles.galleryImg} />
+                <TouchableOpacity style={styles.galleryDelete} onPress={() => deleteGalleryPhoto(p.id)}>
+                  <Ionicons name="close" size={14} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
 
       {/* Save */}
@@ -307,6 +375,14 @@ const styles = StyleSheet.create({
     borderWidth: 2, borderColor: "transparent",
   },
   colorSwatchActive: { borderColor: C.espresso, transform: [{ scale: 1.1 }] },
+
+  galleryAddBtn: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: C.terra, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999 },
+  galleryAddText: { fontSize: 12, fontWeight: "800", color: C.cream },
+  galleryEmpty: { alignItems: "center", paddingVertical: 24, borderWidth: 1.5, borderColor: C.border, borderStyle: "dashed", borderRadius: 10 },
+  galleryGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  galleryItem: { width: "31.5%", aspectRatio: 1, borderRadius: 8, overflow: "hidden", position: "relative", backgroundColor: C.surface, borderWidth: 1, borderColor: C.border },
+  galleryImg: { width: "100%", height: "100%" },
+  galleryDelete: { position: "absolute", top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: "rgba(0,0,0,0.65)", alignItems: "center", justifyContent: "center" },
 
   saveBtn: {
     backgroundColor: C.espresso, marginHorizontal: 16, marginTop: 24,
