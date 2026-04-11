@@ -2,7 +2,7 @@
   "expo": {
     "name": "Clipd",
     "slug": "clipd-app",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -18,9 +18,10 @@
       "bundleIdentifier": "ca.getclipd.app",
       "infoPlist": {
         "CFBundleDisplayName": "Clipd",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": ["remote-notification"]
       },
-      "buildNumber": "8"
+      "buildNumber": "9"
     },
     "android": {
       "package": "ca.getclipd.app",
@@ -33,7 +34,14 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#C4683E"
+        }
+      ]
     ],
     "extra": {
       "googlePlacesKey": "AIzaSyCoqU_MEKty87QSJC8ES_yd-TodMlRdRSQ",

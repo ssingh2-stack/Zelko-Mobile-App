@@ -74,6 +74,8 @@ export default function StaffMoreScreen() {
         <View style={styles.group}>
           <MenuItem icon="person-outline" label="My Profile" color="#6366F1"
             onPress={() => navigation.navigate("StaffSettings")} />
+          <MenuItem icon="notifications-outline" label="Notifications" color="#C4683E"
+            onPress={() => navigation.navigate("Notifications")} />
           <MenuItem icon="share-social-outline" label="Share Booking Link" color="#059669"
             onPress={() => navigation.navigate("Share")} />
         </View>
