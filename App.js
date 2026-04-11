@@ -25,6 +25,7 @@ import PaymentsScreen from "./src/screens/admin/more/PaymentsScreen";
 import SettingsScreen from "./src/screens/admin/more/SettingsScreen";
 import BarbersScreen from "./src/screens/admin/more/BarbersScreen";
 import CompensationScreen from "./src/screens/admin/more/CompensationScreen";
+import BrandedSiteScreen from "./src/screens/admin/more/BrandedSiteScreen";
 import OnboardingScreen from "./src/screens/admin/OnboardingScreen";
 
 const Stack = createNativeStackNavigator();
@@ -61,6 +62,7 @@ function MoreHomeScreen({ navigation }) {
   const items = [
     { icon: "cut-outline",       label: "Services", screen: "Services" },
     { icon: "person-add-outline", label: "Team",    screen: "Barbers" },
+    { icon: "globe-outline",     label: "Branded Site", screen: "BrandedSite", badge: "NEW" },
     { icon: "wallet-outline",    label: "Compensation", screen: "Compensation" },
     { icon: "share-outline",     label: "Share",    screen: "Share" },
     { icon: "card-outline",      label: "Payments", screen: "Payments" },
@@ -110,6 +112,11 @@ function MoreHomeScreen({ navigation }) {
         <TouchableOpacity key={item.screen} style={moreStyles.row} onPress={() => navigation.navigate(item.screen)}>
           <Ionicons name={item.icon} size={20} color={C.espresso} style={{ width: 28, textAlign: "center" }} />
           <Text style={moreStyles.rowLabel}>{item.label}</Text>
+          {item.badge && (
+            <View style={moreStyles.newBadge}>
+              <Text style={moreStyles.newBadgeText}>{item.badge}</Text>
+            </View>
+          )}
           <Ionicons name="chevron-forward" size={18} color={C.muted} />
         </TouchableOpacity>
       ))}
@@ -137,6 +144,8 @@ const moreStyles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: C.border,
   },
   rowLabel: { flex: 1, fontSize: 15, fontWeight: "600", color: C.espresso },
+  newBadge: { backgroundColor: C.terra, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, marginRight: 6 },
+  newBadgeText: { color: C.cream, fontSize: 9, fontWeight: "900", letterSpacing: 0.6 },
   deleteRow: {
     flexDirection: "row", alignItems: "center", gap: 16,
     paddingHorizontal: 20, paddingVertical: 16,
@@ -168,6 +177,7 @@ function MoreNavigator() {
       <MoreStack.Screen name="Settings"     component={SettingsScreen}  options={subScreenOptions("Settings")} />
       <MoreStack.Screen name="Barbers"      component={BarbersScreen}   options={subScreenOptions("Team")} />
       <MoreStack.Screen name="Compensation" component={CompensationScreen} options={subScreenOptions("Compensation")} />
+      <MoreStack.Screen name="BrandedSite"  component={BrandedSiteScreen} options={subScreenOptions("Branded Site")} />
       {/* Clients_More reuses the same ClientsScreen */}
       <MoreStack.Screen name="Clients_More" component={ClientsScreen}   options={subScreenOptions("Clients")} />
     </MoreStack.Navigator>
