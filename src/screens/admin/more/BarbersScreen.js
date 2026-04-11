@@ -86,7 +86,8 @@ export default function BarbersScreen() {
   }
 
   const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-  const DAY_MAP = { Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6, Sunday: 0 };
+  // DB stores day_of_week as Python weekday(): Mon=0..Sun=6
+  const DAY_MAP = { Monday: 0, Tuesday: 1, Wednesday: 2, Thursday: 3, Friday: 4, Saturday: 5, Sunday: 6 };
 
   const [editEmail, setEditEmail] = useState("");
   const [editPhone, setEditPhone] = useState("");

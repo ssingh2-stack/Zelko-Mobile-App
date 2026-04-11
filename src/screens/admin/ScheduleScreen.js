@@ -19,7 +19,7 @@ import { SkeletonCalendar, SkeletonList } from "../../components/Skeleton";
 import ErrorState from "../../components/ErrorState";
 import { getCached, setCache } from "../../lib/cache";
 import DayCalendarView, {
-  DCAL_COLORS, tMin, fmtTime, pxToTimeStr, getNowTop, isNowVisible, PX_PER_HOUR, buildServiceColorMap,
+  DCAL_COLORS, tMin, fmtTime, pxToTimeStr, getNowTop, isNowVisible, PX_PER_HOUR,
 } from "../../components/DayCalendarView";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -256,7 +256,10 @@ export default function ScheduleScreen() {
   function goToToday() { setWeekOffset(0); setDayIdx(todayIndex()); }
 
   const allDayBookings = schedule[selectedDate] || [];
-  const serviceColorMap = buildServiceColorMap(allDayBookings);
+  // Barber legend: stable color per barber by index in allBarbersList
+  const barberLegend = (allBarbersList || []).map((b, i) => ({
+    id: b.id, name: b.name, color: DCAL_COLORS[i % DCAL_COLORS.length].bd,
+  }));
   const filteredBookings = barberFilter === "all"
     ? allDayBookings
     : allDayBookings.filter(b => String(b.barber_id) === barberFilter);
@@ -274,6 +277,11 @@ export default function ScheduleScreen() {
     : allDayBookings
         .filter(b => b.status === "confirmed")
         .reduce((s, b) => s + (b.service_price ?? b.price ?? 0), 0);
+  const noShowCount = scheduleMode === "month"
+    ? Object.values(monthBookings).flat()
+        .filter(b => b.status === "no_show" && (barberFilter === "all" || String(b.barber_id) === barberFilter))
+        .length
+    : allDayBookings.filter(b => b.status === "no_show").length;
 
   const d = new Date(selectedDate + "T12:00:00");
   const dayLabel = `${DAYS[dayIdx]}, ${d.toLocaleDateString("en-CA", { month: "short", day: "numeric" })}`;
@@ -328,6 +336,56 @@ export default function ScheduleScreen() {
       prefillEmail: booking.customer_email,
     });
     setShowNewBooking(true);
+  }
+
+  function handleBlockPress(bl) {
+    const reason = bl.reason || "Blocked";
+    const range = bl.all_day ? "all day" : `${fmtTime(bl.start_time)}–${fmtTime(bl.end_time)}`;
+    const shiftEnd = (deltaMin) => {
+      const [h, m] = bl.end_time.split(":").map(Number);
+      const total = Math.max(tMin(bl.start_time) + 15, h * 60 + m + deltaMin);
+      return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+    };
+    const buttons = [];
+    if (!bl.all_day) {
+      buttons.push({ text: "Extend +15 min", onPress: async () => {
+        try { await api.adminUpdateBlock(bl.id, { end_time: shiftEnd(15) }); showToast("Block extended"); load(true); }
+        catch (err) { Alert.alert("Error", err.message); }
+      }});
+      buttons.push({ text: "Shorten −15 min", onPress: async () => {
+        try { await api.adminUpdateBlock(bl.id, { end_time: shiftEnd(-15) }); showToast("Block shortened"); load(true); }
+        catch (err) { Alert.alert("Error", err.message); }
+      }});
+    }
+    buttons.push({ text: "Remove block", style: "destructive", onPress: async () => {
+      try { await api.adminDeleteBlock(bl.id); showToast("Block removed"); load(true); }
+      catch (err) { Alert.alert("Error", err.message); }
+    }});
+    buttons.push({ text: "Cancel", style: "cancel" });
+    Alert.alert(`Block · ${reason}`, range, buttons);
+  }
+
+  function handleBufferPress(bk) {
+    const cur = bk.buffer_minutes || 0;
+    Alert.alert(
+      `Buffer · ${bk.customer_name}`,
+      `Currently ${cur} min after this booking.`,
+      [
+        { text: "Remove buffer", style: "destructive", onPress: async () => {
+          try { await api.adminUpdateBooking(bk.confirmation_code, { buffer_override: 0 }); showToast("Buffer removed"); load(true); }
+          catch (err) { Alert.alert("Error", err.message); }
+        }},
+        { text: `Extend +15 min`, onPress: async () => {
+          try { await api.adminUpdateBooking(bk.confirmation_code, { buffer_override: cur + 15 }); showToast("Buffer extended"); load(true); }
+          catch (err) { Alert.alert("Error", err.message); }
+        }},
+        { text: "Reset to default", onPress: async () => {
+          try { await api.adminUpdateBooking(bk.confirmation_code, { buffer_override: null }); showToast("Buffer reset"); load(true); }
+          catch (err) { Alert.alert("Error", err.message); }
+        }},
+        { text: "Cancel", style: "cancel" },
+      ]
+    );
   }
 
   function handleSlotTap({ barberId, barberName, time }) {
@@ -439,9 +497,15 @@ export default function ScheduleScreen() {
             <Text style={styles.statVal}>{fmtMoney(revenue)}</Text>
             <Text style={styles.statLbl}>Revenue</Text>
           </View>
+          <View style={styles.statDivider} />
+          <View style={styles.stat}>
+            <Text style={styles.statVal}>{noShowCount}</Text>
+            <Text style={styles.statLbl}>No-shows</Text>
+          </View>
         </View>
         <TouchableOpacity style={styles.newBtn} onPress={() => { setNewBookingPrefill({}); setShowNewBooking(true); }}>
-          <Text style={styles.newBtnText}>+ New Booking</Text>
+          <Ionicons name="add" size={18} color={C.cream} />
+          <Text style={styles.newBtnText}>New</Text>
         </TouchableOpacity>
       </View>
 
@@ -514,13 +578,13 @@ export default function ScheduleScreen() {
         )}
       </View>}
 
-      {/* Service color legend (week mode only) */}
-      {scheduleMode === "week" && !loading && Object.keys(serviceColorMap).length > 1 && sq.length < 2 && (
+      {/* Barber color legend (week mode only) */}
+      {scheduleMode === "week" && !loading && barberLegend.length > 1 && sq.length < 2 && (
         <View style={styles.svcLegend}>
-          {Object.entries(serviceColorMap).map(([name, color]) => (
-            <View key={name} style={styles.svcLegendItem}>
-              <View style={[styles.svcLegendDot, { backgroundColor: color }]} />
-              <Text style={styles.svcLegendText} numberOfLines={1}>{name}</Text>
+          {barberLegend.map((b) => (
+            <View key={b.id} style={styles.svcLegendItem}>
+              <View style={[styles.svcLegendDot, { backgroundColor: b.color }]} />
+              <Text style={styles.svcLegendText} numberOfLines={1}>{b.name}</Text>
             </View>
           ))}
         </View>
@@ -643,13 +707,13 @@ export default function ScheduleScreen() {
           scrollRef={calScrollRef}
           onBookingPress={openDetail}
           onSlotPress={handleSlotTap}
+          onBufferPress={handleBufferPress}
+          onBlockPress={handleBlockPress}
           onRefresh={() => { setRefreshing(true); load(true); }}
           refreshing={refreshing}
           date={selectedDate}
           blockedSlots={blockedSlots.filter(b => b.date === selectedDate)}
           shopHours={shopHours}
-          serviceColors={serviceColorMap}
-          showBarberName={barberFilter === "all" && allBarbersList.length > 1}
           onSwipeLeft={nextDay}
           onSwipeRight={prevDay}
           barberAvailability={barberAvail}
@@ -872,15 +936,15 @@ const styles = StyleSheet.create({
 
   statsBar: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 16, paddingVertical: 10,
+    paddingHorizontal: 14, paddingVertical: 10, gap: 10,
     backgroundColor: C.espresso, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.06)",
   },
-  statsLeft: { flexDirection: "row", alignItems: "center" },
+  statsLeft: { flexDirection: "row", alignItems: "center", flexShrink: 1 },
   stat: {},
-  statVal: { fontFamily: serif, fontSize: 17, fontWeight: "900", color: C.terra },
-  statLbl: { fontSize: 9, fontWeight: "700", color: "rgba(247,243,238,0.4)", textTransform: "uppercase", letterSpacing: 1.5, marginTop: 1 },
-  statDivider: { width: 1, height: 28, backgroundColor: "rgba(255,255,255,0.1)", marginHorizontal: 14 },
-  newBtn: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 8, backgroundColor: C.terra },
+  statVal: { fontFamily: serif, fontSize: 16, fontWeight: "900", color: C.terra },
+  statLbl: { fontSize: 9, fontWeight: "700", color: "rgba(247,243,238,0.4)", textTransform: "uppercase", letterSpacing: 1.2, marginTop: 1 },
+  statDivider: { width: 1, height: 26, backgroundColor: "rgba(255,255,255,0.1)", marginHorizontal: 10 },
+  newBtn: { flexDirection: "row", alignItems: "center", gap: 2, paddingHorizontal: 10, paddingVertical: 7, borderRadius: 8, backgroundColor: C.terra },
   newBtnText: { fontSize: 12, fontWeight: "800", color: C.cream },
 
   controls: { backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border },
@@ -966,13 +1030,12 @@ const styles = StyleSheet.create({
   // Schedule mode toggle
   modeToggleRow: {
     flexDirection: "row", alignItems: "center", justifyContent: "center",
-    paddingHorizontal: 16, paddingVertical: 8,
+    paddingHorizontal: 16, paddingVertical: 8, gap: 10,
     backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border,
   },
   modeToggleBtn: {
-    paddingHorizontal: 18, paddingVertical: 6, borderRadius: 999,
+    paddingHorizontal: 22, paddingVertical: 7, borderRadius: 999,
     backgroundColor: C.surface, borderWidth: 1.5, borderColor: C.border,
-    marginHorizontal: -0.75,
   },
   modeToggleBtnActive: { backgroundColor: C.espresso, borderColor: C.espresso },
   modeToggleText: { fontSize: 12, fontWeight: "700", color: C.muted },

@@ -117,6 +117,7 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
   const autoAdvanceRef = useRef(false);
 
   useEffect(() => {
+    if (!visible) return;
     if (!barberId || !serviceId || !date) return;
     setLoadingSlots(true);
     setSlot("");
@@ -139,7 +140,7 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
         setDate(next.toISOString().split("T")[0]);
       }
     }).catch(() => setSlots([])).finally(() => setLoadingSlots(false));
-  }, [barberId, serviceId, date]);
+  }, [barberId, serviceId, date, visible]);
 
   function todayISO() {
     return new Date().toISOString().split("T")[0];

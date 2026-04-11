@@ -2,7 +2,7 @@
   "expo": {
     "name": "Clipd",
     "slug": "clipd-app",
-    "version": "1.0.0",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -20,7 +20,7 @@
         "CFBundleDisplayName": "Clipd",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "2"
+      "buildNumber": "8"
     },
     "android": {
       "package": "ca.getclipd.app",
@@ -42,6 +42,12 @@
         "projectId": "0dae66a6-5feb-46b5-baa5-0abaab88fe12"
       }
     },
-    "owner": "sukhpreetsinghv"
+    "owner": "sukhpreetsinghv",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/0dae66a6-5feb-46b5-baa5-0abaab88fe12"
+    }
   }
 }

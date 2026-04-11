@@ -21,7 +21,11 @@
     "production": {
       "distribution": "store",
       "autoIncrement": true,
-      "credentialsSource": "local"
+      "channel": "production",
+      "credentialsSource": "remote",
+      "ios": {
+        "credentialsSource": "remote"
+      }
     }
   },
   "submit": {

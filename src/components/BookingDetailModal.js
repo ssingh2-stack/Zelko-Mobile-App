@@ -127,6 +127,48 @@ export default function BookingDetailModal({ booking, visible, onClose, onAction
     onReschedule?.(booking);
   }
 
+  async function handleRebook(weeksAhead) {
+    // Compute new date = booking.date + N weeks (same weekday + same time)
+    const [y, mo, d] = booking.date.split("-").map(Number);
+    const dt = new Date(y, mo - 1, d);
+    dt.setDate(dt.getDate() + weeksAhead * 7);
+    const newDate = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;
+    try {
+      await api.adminCreateBooking({
+        barber_id: booking.barber_id,
+        service_id: booking.service_id,
+        date: newDate,
+        start_time: booking.start_time,
+        customer_name: booking.customer_name,
+        customer_email: booking.customer_email,
+        customer_phone: booking.customer_phone || "",
+      });
+      hapticSuccess();
+      Alert.alert("Rebooked", `${booking.customer_name} is booked for ${fmtDate(newDate)} at ${fmt(booking.start_time)}.`);
+      onAction();
+      onClose();
+    } catch (err) {
+      // If the slot is taken, fall back to the reschedule flow with prefill
+      Alert.alert(
+        "That slot is taken",
+        "The same time on that day isn't available. Pick another time?",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Pick a time", onPress: () => {
+            onClose();
+            onReschedule?.({
+              ...booking,
+              date: newDate,
+              customer_name: booking.customer_name,
+              customer_phone: booking.customer_phone,
+              customer_email: booking.customer_email,
+            });
+          }},
+        ]
+      );
+    }
+  }
+
   async function handleReconfirm() {
     Alert.alert("Reconfirm Booking", "Restore this booking to confirmed?", [
       { text: "Cancel", style: "cancel" },
@@ -268,6 +310,18 @@ export default function BookingDetailModal({ booking, visible, onClose, onAction
           </View>
 
           <ScrollView style={styles.body} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            {/* Rebook quick row — high-frequency action pinned at the top */}
+            {!isCancelled && !editing && (
+              <View style={styles.rebookRow}>
+                <Text style={styles.rebookLabel}>Rebook in</Text>
+                <TouchableOpacity style={styles.rebookBtn} onPress={() => handleRebook(2)}><Text style={styles.rebookBtnText}>2 wks</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.rebookBtn} onPress={() => handleRebook(3)}><Text style={styles.rebookBtnText}>3 wks</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.rebookBtn} onPress={() => handleRebook(4)}><Text style={styles.rebookBtnText}>4 wks</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.rebookBtnAlt} onPress={() => { onClose(); onReschedule?.({ ...booking, date: undefined }); }}>
+                  <Ionicons name="calendar-outline" size={14} color={C.terra} />
+                </TouchableOpacity>
+              </View>
+            )}
             {/* Edit mode */}
             {editing ? (
               <View style={styles.section}>
@@ -567,6 +621,11 @@ const styles = StyleSheet.create({
   editSaveBtnText: { fontSize: 13, fontWeight: "800", color: C.cream },
   rescheduleBtn: { flex: 1.3, paddingVertical: 12, borderRadius: 10, backgroundColor: "rgba(59,130,246,0.1)", alignItems: "center" },
   rescheduleBtnText: { fontSize: 12, fontWeight: "700", color: "#1D4ED8" },
+  rebookRow: { flexDirection: "row", alignItems: "center", gap: 6, padding: 12, marginTop: 12, marginBottom: 4, marginHorizontal: -4, borderRadius: 10, backgroundColor: "rgba(196,104,62,0.12)", borderWidth: 1, borderColor: "rgba(196,104,62,0.25)" },
+  rebookBtnAlt: { width: 36, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: "rgba(196,104,62,0.4)", backgroundColor: "rgba(196,104,62,0.05)", alignItems: "center", justifyContent: "center" },
+  rebookLabel: { fontSize: 11, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 0.6, marginRight: 4 },
+  rebookBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, backgroundColor: "rgba(196,104,62,0.1)", borderWidth: 1, borderColor: "rgba(196,104,62,0.25)", alignItems: "center" },
+  rebookBtnText: { fontSize: 12, fontWeight: "800", color: C.terra },
   warnBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, backgroundColor: "#FEF3C7", alignItems: "center" },
   warnBtnText: { fontSize: 12, fontWeight: "700", color: "#92400E" },
   dangerBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, backgroundColor: "rgba(196,104,62,0.12)", alignItems: "center" },

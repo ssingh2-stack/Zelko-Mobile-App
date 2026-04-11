@@ -87,11 +87,11 @@ export default function DayCalendarView({
   blockedSlots = [],
   shopHours,
   clientNotes = {},
-  serviceColors = {},
-  showBarberName = false,
   onSwipeLeft,
   onSwipeRight,
   barberAvailability = {},
+  onBufferPress,
+  onBlockPress,
 }) {
   const touchStart = useRef({ x: 0, y: 0, t: 0 });
   const bookingTapped = useRef(false);
@@ -237,7 +237,9 @@ export default function DayCalendarView({
             const bks = bookings.filter(b => b.barber_id === barber.id);
 
             // Check barber availability for this day
-            const dayNum = date ? new Date(date + "T12:00:00").getDay() : new Date().getDay();
+            // JS getDay(): Sun=0..Sat=6. DB stores Python weekday(): Mon=0..Sun=6. Convert.
+            const jsDow = date ? new Date(date + "T12:00:00").getDay() : new Date().getDay();
+            const dayNum = (jsDow + 6) % 7;
             const avail = barberAvailability[barber.id];
             const todayAvail = avail?.find(a => a.day_of_week === dayNum);
             const barberOff = avail && avail.length > 0 && !todayAvail;
@@ -286,15 +288,20 @@ export default function DayCalendarView({
                   </View>
                 )}
 
-                {/* Blocked time slots */}
+                {/* Blocked time slots — uniform style regardless of reason */}
                 {blockedSlots
                   .filter(bl => bl.barber_id === barber.id)
                   .map((bl, bi) => {
+                    const onPress = (e) => {
+                      if (touchStart.current.swiped || dragging) return;
+                      bookingTapped.current = true;
+                      onBlockPress?.(bl);
+                    };
                     if (bl.all_day) {
                       return (
-                        <View key={`bl${bi}`} style={styles.blockedAll}>
-                          <Text style={styles.blockedText}>Blocked</Text>
-                        </View>
+                        <TouchableOpacity key={`bl${bi}`} style={styles.blockedAll} activeOpacity={0.7} onPress={onPress}>
+                          <Ionicons name="remove-outline" size={20} color="rgba(44,24,16,0.5)" />
+                        </TouchableOpacity>
                       );
                     }
                     if (!bl.start_time || !bl.end_time) return null;
@@ -302,11 +309,16 @@ export default function DayCalendarView({
                     const blEnd = tMin(bl.end_time);
                     if (blStart < OPEN_HOUR * 60 || blStart >= CLOSE_HOUR * 60) return null;
                     const blTop = tPx(blStart);
-                    const blH = Math.max((blEnd - blStart) / 60 * PX_PER_HOUR, 24);
+                    const blH = Math.max((blEnd - blStart) / 60 * PX_PER_HOUR, 16);
                     return (
-                      <View key={`bl${bi}`} style={[styles.blockedSlot, { top: blTop, height: blH }]}>
-                        <Text style={styles.blockedText} numberOfLines={1}>{bl.reason || "Blocked"}</Text>
-                      </View>
+                      <TouchableOpacity
+                        key={`bl${bi}`}
+                        style={[styles.blockedSlot, { top: blTop, height: blH }]}
+                        activeOpacity={0.7}
+                        onPress={onPress}
+                      >
+                        <Ionicons name="remove-outline" size={Math.min(20, Math.max(14, blH - 4))} color="rgba(44,24,16,0.5)" />
+                      </TouchableOpacity>
                     );
                   })
                 }
@@ -315,21 +327,51 @@ export default function DayCalendarView({
                   const startMin = tMin(bk.start_time);
                   if (startMin < OPEN_HOUR * 60 || startMin >= CLOSE_HOUR * 60) return null;
                   const top  = tPx(startMin);
-                  const bkH  = Math.max((bk.duration_min || 30) / 60 * PX_PER_HOUR - 6, 28);
+                  // Full duration height (no visual gap) so buffer attaches directly
+                  const bkH  = Math.max((bk.duration_min || 30) / 60 * PX_PER_HOUR - 1, 28);
                   const cancelled = bk.status === "cancelled" || bk.status === "no_show";
                   const endMin = bk.end_time ? tMin(bk.end_time) : startMin + (bk.duration_min || 30);
                   const isPast = showNow && endMin < nowMin;
 
-                  const svcColor = serviceColors[bk.service_name];
-                  // Service = color, barber = column position
-                  const blockBg = svcColor ? svcColor + "1A" : "#E8E0D8";
-                  const blockBorder = svcColor || "#9B8677";
+                  // Color = barber (consistent per column). Use the barber's palette entry.
+                  const barberColor = DCAL_COLORS[bIdx % DCAL_COLORS.length];
+                  const blockBg = barberColor.bg;
+                  const blockBorder = barberColor.bd;
 
-                  // Buffer block positioning — starts at the booking's actual time-end
+                  // Buffer block — anchored directly to the booking's visual bottom (no gap)
                   const bufferMin = bk.buffer_minutes || 0;
-                  const bufferH = (bufferMin / 60) * PX_PER_HOUR;
-                  const bookingEndPx = tPx(endMin);
-                  const bufferTop = bookingEndPx;
+                  const bufferTop = top + bkH;
+                  let bufferH = (bufferMin / 60) * PX_PER_HOUR;
+
+                  // Clip buffer if it would overlap the next booking or blocked time on this barber
+                  if (bufferMin > 0) {
+                    let earliestNextPx = Infinity;
+                    bks.forEach(other => {
+                      if (other === bk) return;
+                      const oStart = tMin(other.start_time);
+                      if (oStart > startMin) {
+                        const oPx = tPx(oStart);
+                        if (oPx < earliestNextPx) earliestNextPx = oPx;
+                      }
+                    });
+                    blockedSlots
+                      .filter(bl => bl.barber_id === barber.id && bl.start_time)
+                      .forEach(bl => {
+                        const bs = tMin(bl.start_time);
+                        if (bs > startMin) {
+                          const bp = tPx(bs);
+                          if (bp < earliestNextPx) earliestNextPx = bp;
+                        }
+                      });
+                    // Also clip at shop close
+                    if (shopCloseMin !== null) {
+                      const closePx = tPx(shopCloseMin);
+                      if (closePx < earliestNextPx) earliestNextPx = closePx;
+                    }
+                    if (isFinite(earliestNextPx)) {
+                      bufferH = Math.max(0, Math.min(bufferH, earliestNextPx - bufferTop));
+                    }
+                  }
 
                   return (
                     <React.Fragment key={bk.confirmation_code}>
@@ -337,8 +379,7 @@ export default function DayCalendarView({
                       style={[
                         styles.appt,
                         { top: dragging?.code === bk.confirmation_code ? dragY : top,
-                          height: bkH, backgroundColor: blockBg, borderLeftColor: blockBorder,
-                          justifyContent: bkH > 60 ? "center" : "flex-start" },
+                          height: bkH, backgroundColor: blockBg },
                         cancelled && styles.apptCancelled,
                         isPast && !cancelled && styles.apptPast,
                         dragging?.code === bk.confirmation_code && styles.apptDragging,
@@ -353,7 +394,9 @@ export default function DayCalendarView({
                       activeOpacity={dragging?.code === bk.confirmation_code ? 1 : 0.8}
                     >
                       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                        <Text style={[styles.apptTime, { color: blockBorder }]}>{fmtTime(bk.start_time)}</Text>
+                        <Text style={[styles.apptTime, { color: blockBorder }]} numberOfLines={1}>
+                          {fmtTime(bk.start_time)} · {bk.customer_name}
+                        </Text>
                         {(bk.payment_status === "paid" || bk.payment_status === "cash_paid" || bk.payment_status === "card_paid") && (
                           <Text style={styles.paidIcon}>$</Text>
                         )}
@@ -361,34 +404,35 @@ export default function DayCalendarView({
                           <Text style={styles.depositIcon}>$</Text>
                         )}
                       </View>
-                      <Text style={[styles.apptName, (cancelled || isPast) && styles.apptNameMuted]} numberOfLines={1}>
-                        {bk.customer_name}
-                      </Text>
-                      {bkH > 32 && bk.barber_name && showBarberName && (
-                        <Text style={styles.apptBarber} numberOfLines={1}>{bk.barber_name}</Text>
-                      )}
-                      {bkH > 56 && !svcColor && (
+                      {bk.service_name && (
                         <Text style={styles.apptSvc} numberOfLines={1}>{bk.service_name}</Text>
                       )}
-                      {bkH > 72 && clientNotes[bk.customer_email] ? (
+                      {bkH > 56 && clientNotes[bk.customer_email] ? (
                         <Text style={styles.apptNote} numberOfLines={1}>{clientNotes[bk.customer_email]}</Text>
                       ) : null}
                     </TouchableOpacity>
-                    {bufferMin > 0 && !cancelled && (
-                      <View
-                        style={[
-                          styles.bufferBlock,
-                          {
-                            top: bufferTop,
-                            height: bufferH,
-                            borderLeftColor: blockBorder,
-                          },
-                        ]}
-                        pointerEvents="none"
-                      >
-                        <Text style={styles.bufferText}>Buffer</Text>
-                      </View>
-                    )}
+                    {bufferMin > 0 && bufferH > 2 && !cancelled && (() => {
+                      const iconSize = Math.max(8, Math.min(14, bufferH - 6));
+                      const showIcon = bufferH >= 14;
+                      return (
+                        <TouchableOpacity
+                          style={[
+                            styles.bufferBlock,
+                            { top: bufferTop, height: bufferH },
+                          ]}
+                          activeOpacity={0.7}
+                          onPress={(e) => {
+                            if (touchStart.current.swiped || dragging) return;
+                            bookingTapped.current = true;
+                            onBufferPress?.(bk);
+                          }}
+                        >
+                          {showIcon && (
+                            <Ionicons name="time-outline" size={iconSize} color="rgba(44,24,16,0.5)" />
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })()}
                     </React.Fragment>
                   );
                 })}
@@ -504,23 +548,20 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
 
-  // Blocked time
+  // Blocked time — uniform "off limits" look regardless of reason
   blockedAll: {
     position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: "rgba(44,24,16,0.08)",
+    backgroundColor: "rgba(44,24,16,0.14)",
     alignItems: "center", justifyContent: "center",
     zIndex: 4,
   },
   blockedSlot: {
-    position: "absolute", left: 2, right: 2,
-    backgroundColor: "rgba(44,24,16,0.08)",
-    borderLeftWidth: 3, borderLeftColor: C.muted,
-    borderRadius: 6, paddingHorizontal: 6, paddingVertical: 4,
-    zIndex: 4, justifyContent: "center",
-  },
-  blockedText: {
-    fontSize: 9, fontWeight: "700", color: "#6B5C52",
-    textTransform: "uppercase", letterSpacing: 0.5,
+    position: "absolute", left: 4, right: 4,
+    backgroundColor: "rgba(44,24,16,0.14)",
+    borderLeftWidth: 3, borderLeftColor: "rgba(44,24,16,0.45)",
+    borderRadius: 6,
+    alignItems: "center", justifyContent: "center",
+    zIndex: 4,
   },
 
   // Closed day
@@ -563,34 +604,32 @@ const styles = StyleSheet.create({
   // Booking blocks
   appt: {
     position: "absolute", left: 4, right: 4,
-    borderRadius: 7, padding: 4, paddingLeft: 7,
-    borderLeftWidth: 4, overflow: "hidden", zIndex: 5,
+    borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2,
+    overflow: "hidden", zIndex: 5,
   },
   apptDragging: { opacity: 0.85, zIndex: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 8 },
   apptCancelled: { opacity: 0.25 },
   apptPast:      { opacity: 0.45 },
-  apptTime: { fontSize: 9, fontWeight: "700", lineHeight: 11 },
+  apptTime: { flex: 1, fontSize: 10, fontWeight: "800", color: C.espresso, lineHeight: 12 },
   apptName: { fontSize: 11, fontWeight: "700", color: C.espresso, lineHeight: 13 },
   apptBarber: { fontSize: 8, fontWeight: "600", color: C.muted, lineHeight: 10 },
   apptNameMuted: { color: C.muted },
-  apptSvcRow: { flexDirection: "row", alignItems: "center", gap: 3, marginTop: 1 },
-  svcDot: { width: 6, height: 6, borderRadius: 3 },
-  apptSvc:  { fontSize: 10, color: C.muted },
+  apptSvc:  { fontSize: 9, color: "rgba(44,24,16,0.65)", lineHeight: 11, marginTop: 1 },
   apptNote: { fontSize: 9, color: "#92400E", fontStyle: "italic", marginTop: 1 },
   paidIcon: { fontSize: 8, fontWeight: "900", color: "#065F46", backgroundColor: "#D1FAE5", borderRadius: 3, paddingHorizontal: 3, paddingVertical: 1, overflow: "hidden" },
   depositIcon: { fontSize: 8, fontWeight: "900", color: "#92400E", backgroundColor: "#FEF3C7", borderRadius: 3, paddingHorizontal: 3, paddingVertical: 1, overflow: "hidden" },
 
-  // Buffer blocks
+  // Buffer blocks — uniform "cushion" look (icon-only, no text)
   bufferBlock: {
     position: "absolute", left: 4, right: 4,
-    backgroundColor: "rgba(44,24,16,0.12)",
-    borderLeftWidth: 4, borderLeftStyle: "dashed",
-    borderRadius: 4, paddingHorizontal: 6,
-    justifyContent: "center",
-    zIndex: 4,
+    backgroundColor: "rgba(155,134,119,0.18)",
+    borderWidth: 1, borderColor: "rgba(44,24,16,0.18)",
+    borderStyle: "dashed",
+    borderRadius: 4,
+    alignItems: "center", justifyContent: "center",
+    zIndex: 6,
   },
-  bufferText: {
-    fontSize: 9, fontWeight: "600", color: "rgba(44,24,16,0.4)",
-    textTransform: "uppercase", letterSpacing: 0.5,
+  bufferIconWrap: {
+    alignItems: "center", justifyContent: "center",
   },
 });

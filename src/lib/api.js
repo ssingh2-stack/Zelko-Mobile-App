@@ -76,6 +76,7 @@ export const api = {
   adminBlocked: () => request("/api/admin/blocked"),
   adminBlockTime: (data) => request("/api/admin/blocked", { method: "POST", body: JSON.stringify(data) }),
   adminDeleteBlock: (id) => request(`/api/admin/blocked/${id}`, { method: "DELETE" }),
+  adminUpdateBlock: (id, data) => request(`/api/admin/blocked/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
   adminClients: () => request("/api/admin/clients"),
   adminClientBookings: (email) => request(`/api/admin/clients/${encodeURIComponent(email)}/bookings`),
   adminClientNotes: (email) => request(`/api/admin/clients/${encodeURIComponent(email)}/notes`),

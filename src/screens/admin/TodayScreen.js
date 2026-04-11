@@ -17,7 +17,7 @@ import NewBookingModal from "../../components/NewBookingModal";
 import { useRole } from "../../lib/RoleContext";
 import DayCalendarView, {
   DCAL_COLORS, PX_PER_HOUR, OPEN_HOUR, CLOSE_HOUR, TOTAL_H,
-  tMin, fmtTime, pxToTimeStr, getNowTop, isNowVisible, buildServiceColorMap,
+  tMin, fmtTime, pxToTimeStr, getNowTop, isNowVisible,
 } from "../../components/DayCalendarView";
 import NextUpCard from "../../components/NextUpCard";
 import SwipeableCard from "../../components/SwipeableCard";
@@ -158,7 +158,10 @@ export default function TodayScreen() {
   }, [data, view]);
 
   const bookings = data?.bookings || [];
-  const serviceColorMap = buildServiceColorMap(bookings);
+  // Barber legend: stable color per barber by index in allBarbers list
+  const barberLegend = (allBarbers || []).map((b, i) => ({
+    id: b.id, name: b.name, color: DCAL_COLORS[i % DCAL_COLORS.length].bd,
+  }));
   const confirmed = bookings.filter(b => b.status === "confirmed");
   const revenue = confirmed.reduce((sum, b) => sum + (b.service_price ?? b.price ?? 0), 0);
   const noShows = bookings.filter(b => b.status === "no_show").length;
@@ -216,6 +219,93 @@ export default function TodayScreen() {
       prefillEmail: booking.customer_email,
     });
     setShowNewBooking(true);
+  }
+
+  async function handleQuickWalkIn() {
+    // 1-tap walk-in: pick the first barber (or current filter), default service, next 15-min slot from now
+    if (!allBarbers || allBarbers.length === 0) {
+      Alert.alert("No barbers", "Add a barber before creating a walk-in.");
+      return;
+    }
+    const barber = barberFilter !== "all"
+      ? allBarbers.find(b => String(b.id) === barberFilter) || allBarbers[0]
+      : allBarbers[0];
+    try {
+      const services = await api.adminServices();
+      if (!services || services.length === 0) {
+        Alert.alert("No services", "Add a service before creating a walk-in.");
+        return;
+      }
+      const service = services[0];
+      const now = new Date();
+      const mins = Math.ceil(now.getMinutes() / 15) * 15;
+      now.setMinutes(mins, 0, 0);
+      const time = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
+      await api.adminCreateBooking({
+        barber_id: barber.id,
+        service_id: service.id,
+        date: todayStr,
+        start_time: time,
+        customer_name: "Walk-in",
+        customer_email: "walkin@clipd.local",
+        customer_phone: "",
+      });
+      hapticSuccess();
+      showToast(`Walk-in added for ${barber.name} at ${time}`);
+      load(true);
+    } catch (err) {
+      Alert.alert("Couldn't create walk-in", err.message || "That slot may be taken — try the + New flow.");
+    }
+  }
+
+  function handleBlockPress(bl) {
+    const reason = bl.reason || "Blocked";
+    const range = bl.all_day ? "all day" : `${fmtTime(bl.start_time)}–${fmtTime(bl.end_time)}`;
+    const shiftEnd = (deltaMin) => {
+      const [h, m] = bl.end_time.split(":").map(Number);
+      const total = Math.max(tMin(bl.start_time) + 15, h * 60 + m + deltaMin);
+      return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+    };
+    const buttons = [];
+    if (!bl.all_day) {
+      buttons.push({ text: "Extend +15 min", onPress: async () => {
+        try { await api.adminUpdateBlock(bl.id, { end_time: shiftEnd(15) }); showToast("Block extended"); load(true); }
+        catch (err) { Alert.alert("Error", err.message); }
+      }});
+      buttons.push({ text: "Shorten −15 min", onPress: async () => {
+        try { await api.adminUpdateBlock(bl.id, { end_time: shiftEnd(-15) }); showToast("Block shortened"); load(true); }
+        catch (err) { Alert.alert("Error", err.message); }
+      }});
+    }
+    buttons.push({ text: "Remove block", style: "destructive", onPress: async () => {
+      try { await api.adminDeleteBlock(bl.id); showToast("Block removed"); load(true); }
+      catch (err) { Alert.alert("Error", err.message); }
+    }});
+    buttons.push({ text: "Cancel", style: "cancel" });
+    Alert.alert(`Block · ${reason}`, range, buttons);
+  }
+
+  function handleBufferPress(bk) {
+    const cur = bk.buffer_minutes || 0;
+    Alert.alert(
+      `Buffer · ${bk.customer_name}`,
+      `Currently ${cur} min after this booking.`,
+      [
+        { text: "Remove buffer", style: "destructive", onPress: async () => {
+          try { await api.adminUpdateBooking(bk.confirmation_code, { buffer_override: 0 }); showToast("Buffer removed"); load(true); }
+          catch (err) { Alert.alert("Error", err.message); }
+        }},
+        { text: "Extend +15 min", onPress: async () => {
+          try { await api.adminUpdateBooking(bk.confirmation_code, { buffer_override: cur + 15 }); showToast("Buffer extended"); load(true); }
+          catch (err) { Alert.alert("Error", err.message); }
+        }},
+        { text: "Reset to default", onPress: async () => {
+          try { await api.adminUpdateBooking(bk.confirmation_code, { buffer_override: null }); showToast("Buffer reset"); load(true); }
+          catch (err) { Alert.alert("Error", err.message); }
+        }},
+        { text: "Cancel", style: "cancel" },
+      ]
+    );
   }
 
   function handleSlotTap({ barberId, barberName, time }) {
@@ -357,7 +447,7 @@ export default function TodayScreen() {
               <Text style={styles.eodStatLbl}>Revenue</Text>
             </View>
             <View style={styles.eodStat}>
-              <Text style={[styles.eodStatVal, noShows > 0 && { color: "#F59E0B" }]}>{noShows}</Text>
+              <Text style={styles.eodStatVal}>{noShows}</Text>
               <Text style={styles.eodStatLbl}>No-shows</Text>
             </View>
             <View style={styles.eodStat}>
@@ -408,9 +498,11 @@ export default function TodayScreen() {
           <View style={{ flex: 1 }} />
           <TouchableOpacity
             style={styles.walkInBtn}
-            onPress={() => { setNewBookingPrefill({ walkin: true }); setShowNewBooking(true); }}
+            onPress={handleQuickWalkIn}
+            onLongPress={() => { setNewBookingPrefill({ walkin: true }); setShowNewBooking(true); }}
+            delayLongPress={400}
           >
-            <Text style={styles.walkInBtnText}>Walk-in</Text>
+            <Text style={styles.walkInBtnText}>+ Walk-in</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.newBtn} onPress={() => { setNewBookingPrefill({}); setShowNewBooking(true); }}>
             <Text style={styles.newBtnText}>+ New</Text>
@@ -444,13 +536,13 @@ export default function TodayScreen() {
         )}
       </View>
 
-      {/* Service color legend */}
-      {!loading && Object.keys(serviceColorMap).length > 1 && (
+      {/* Barber color legend */}
+      {!loading && barberLegend.length > 1 && (
         <View style={styles.svcLegend}>
-          {Object.entries(serviceColorMap).map(([name, color]) => (
-            <View key={name} style={styles.svcLegendItem}>
-              <View style={[styles.svcLegendDot, { backgroundColor: color }]} />
-              <Text style={styles.svcLegendText} numberOfLines={1}>{name}</Text>
+          {barberLegend.map((b) => (
+            <View key={b.id} style={styles.svcLegendItem}>
+              <View style={[styles.svcLegendDot, { backgroundColor: b.color }]} />
+              <Text style={styles.svcLegendText} numberOfLines={1}>{b.name}</Text>
             </View>
           ))}
         </View>
@@ -469,14 +561,14 @@ export default function TodayScreen() {
           scrollRef={calScrollRef}
           onBookingPress={openDetail}
           onSlotPress={handleSlotTap}
+          onBufferPress={handleBufferPress}
+          onBlockPress={handleBlockPress}
           onRefresh={() => { setRefreshing(true); load(true); }}
           refreshing={refreshing}
           date={todayStr}
           blockedSlots={blockedSlots}
           shopHours={shopHours}
           clientNotes={clientNotes}
-          serviceColors={serviceColorMap}
-          showBarberName={barberFilter === "all" && allBarbers.length > 1}
           barberAvailability={barberAvail}
         />
       ) : (
