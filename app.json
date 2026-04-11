@@ -20,7 +20,7 @@
         "CFBundleDisplayName": "Clipd",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "10"
+      "buildNumber": "11"
     },
     "android": {
       "package": "ca.getclipd.app",
