@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { api } from "./api";
+import { unregisterPushToken } from "./pushNotifications";
 
 export async function saveSession(token, profile) {
   await AsyncStorage.setItem("mobile_token", token);
@@ -14,6 +15,16 @@ export async function getSession() {
 }
 
 export async function clearSession() {
+  // Unregister push token from backend BEFORE we drop the auth token,
+  // otherwise the unregister API call has no auth and silently fails.
+  // Wrapped so push cleanup never blocks logout.
+  try {
+    const profileStr = await AsyncStorage.getItem("mobile_profile");
+    const profile = profileStr ? JSON.parse(profileStr) : null;
+    if (profile?.role) {
+      await unregisterPushToken({ role: profile.role });
+    }
+  } catch (_) {}
   try { await api.logout(); } catch (_) {}
   await AsyncStorage.removeItem("mobile_token");
   await AsyncStorage.removeItem("mobile_profile");
