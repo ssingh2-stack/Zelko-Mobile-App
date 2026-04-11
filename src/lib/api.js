@@ -81,22 +81,6 @@ export const api = {
   adminUpdateSite: (data) => request("/api/admin/site", { method: "PATCH", body: JSON.stringify(data) }),
   adminGetPhotos: () => request("/api/admin/photos"),
   adminDeletePhoto: (id) => request(`/api/admin/photos/${id}`, { method: "DELETE" }),
-
-  // Push notifications (mobile)
-  adminRegisterPushToken: (token, barberId) =>
-    request("/api/admin/push-token", { method: "POST", body: JSON.stringify({ token, barber_id: barberId }) }),
-  adminUnregisterPushToken: (token) =>
-    request("/api/admin/push-token", { method: "DELETE", body: JSON.stringify({ token }) }),
-  adminGetNotifications: () => request("/api/admin/notifications"),
-  adminUpdateNotifications: (barberId, on) =>
-    request("/api/admin/notifications", { method: "PATCH", body: JSON.stringify({ barber_id: barberId, notify_new_bookings: on }) }),
-  staffRegisterPushToken: (token) =>
-    request("/api/staff/push-token", { method: "POST", body: JSON.stringify({ token }) }),
-  staffUnregisterPushToken: (token) =>
-    request("/api/staff/push-token", { method: "DELETE", body: JSON.stringify({ token }) }),
-  staffGetNotifications: () => request("/api/staff/notifications"),
-  staffUpdateNotifications: (on) =>
-    request("/api/staff/notifications", { method: "PATCH", body: JSON.stringify({ notify_new_bookings: on }) }),
   adminClients: () => request("/api/admin/clients"),
   adminClientBookings: (email) => request(`/api/admin/clients/${encodeURIComponent(email)}/bookings`),
   adminClientNotes: (email) => request(`/api/admin/clients/${encodeURIComponent(email)}/notes`),

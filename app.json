@@ -18,10 +18,7 @@
       "bundleIdentifier": "ca.getclipd.app",
       "infoPlist": {
         "CFBundleDisplayName": "Clipd",
-        "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": [
-          "remote-notification"
-        ]
+        "ITSAppUsesNonExemptEncryption": false
       },
       "buildNumber": "10"
     },
@@ -36,14 +33,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-asset",
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/icon.png",
-          "color": "#C4683E"
-        }
-      ]
+      "expo-asset"
     ],
     "extra": {
       "googlePlacesKey": "AIzaSyCoqU_MEKty87QSJC8ES_yd-TodMlRdRSQ",

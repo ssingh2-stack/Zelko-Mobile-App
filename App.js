@@ -26,7 +26,6 @@ import SettingsScreen from "./src/screens/admin/more/SettingsScreen";
 import BarbersScreen from "./src/screens/admin/more/BarbersScreen";
 import CompensationScreen from "./src/screens/admin/more/CompensationScreen";
 import BrandedSiteScreen from "./src/screens/admin/more/BrandedSiteScreen";
-import NotificationsScreen from "./src/screens/admin/more/NotificationsScreen";
 import OnboardingScreen from "./src/screens/admin/OnboardingScreen";
 
 const Stack = createNativeStackNavigator();
@@ -64,7 +63,6 @@ function MoreHomeScreen({ navigation }) {
     { icon: "cut-outline",       label: "Services", screen: "Services" },
     { icon: "person-add-outline", label: "Team",    screen: "Barbers" },
     { icon: "globe-outline",     label: "Branded Site", screen: "BrandedSite", badge: "NEW" },
-    { icon: "notifications-outline", label: "Notifications", screen: "Notifications", badge: "NEW" },
     { icon: "wallet-outline",    label: "Compensation", screen: "Compensation" },
     { icon: "share-outline",     label: "Share",    screen: "Share" },
     { icon: "card-outline",      label: "Payments", screen: "Payments" },
@@ -180,9 +178,6 @@ function MoreNavigator() {
       <MoreStack.Screen name="Barbers"      component={BarbersScreen}   options={subScreenOptions("Team")} />
       <MoreStack.Screen name="Compensation" component={CompensationScreen} options={subScreenOptions("Compensation")} />
       <MoreStack.Screen name="BrandedSite"  component={BrandedSiteScreen} options={subScreenOptions("Branded Site")} />
-      <MoreStack.Screen name="Notifications" options={subScreenOptions("Notifications")}>
-        {(props) => <NotificationsScreen {...props} mode="admin" />}
-      </MoreStack.Screen>
       {/* Clients_More reuses the same ClientsScreen */}
       <MoreStack.Screen name="Clients_More" component={ClientsScreen}   options={subScreenOptions("Clients")} />
     </MoreStack.Navigator>
@@ -228,9 +223,6 @@ function StaffMoreNavigator() {
       <StaffMoreStack.Screen name="MoreHome" component={StaffMoreScreen} options={{ headerShown: false, title: "More" }} />
       <StaffMoreStack.Screen name="StaffSettings" component={StaffSettingsScreen} options={subScreenOptions("My Profile")} />
       <StaffMoreStack.Screen name="Share" component={ShareScreen} options={subScreenOptions("Share")} />
-      <StaffMoreStack.Screen name="Notifications" options={subScreenOptions("Notifications")}>
-        {(props) => <NotificationsScreen {...props} mode="staff" />}
-      </StaffMoreStack.Screen>
     </StaffMoreStack.Navigator>
   );
 }
