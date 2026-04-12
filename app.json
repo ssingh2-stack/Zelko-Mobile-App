@@ -36,7 +36,7 @@
       "expo-asset"
     ],
     "extra": {
-      "googlePlacesKey": "AIzaSyCoqU_MEKty87QSJC8ES_yd-TodMlRdRSQ",
+      "googlePlacesKey": "AIzaSyBd8jDYTcmlx9Zg32LZPc6PyQIhCBbq5i0",
       "stripePublishableKey": "pk_test_51TEerz1BRIdhub0G0wQ8cCnfQEQ2nOnyUHShHeOXux8yMgccucWBTCKnLnb8Pq1i5CqDDFUBHp8Ui6ZEyhom8vG5004za7oVhJ",
       "eas": {
         "projectId": "0dae66a6-5feb-46b5-baa5-0abaab88fe12"
