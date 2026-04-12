@@ -33,7 +33,8 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-asset"
+      "expo-asset",
+      "expo-secure-store"
     ],
     "extra": {
       "googlePlacesKey": "AIzaSyBd8jDYTcmlx9Zg32LZPc6PyQIhCBbq5i0",
