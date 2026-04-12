@@ -19,9 +19,11 @@
       "infoPlist": {
         "CFBundleDisplayName": "Clipd",
         "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       },
-      "buildNumber": "11"
+      "buildNumber": "12"
     },
     "android": {
       "package": "ca.getclipd.app",
