@@ -226,7 +226,7 @@ export default function ScheduleScreen() {
       }
       setMonthBookings(byDate);
     } catch (err) {
-      console.warn("Failed to load month", err);
+      // silently ignore month load failure
     } finally {
       setLoadingMonth(false);
     }

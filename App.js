@@ -3,6 +3,32 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Text, ActivityIndicator, View, TouchableOpacity, StyleSheet, Alert } from "react-native";
+
+// ── Error Boundary ───────────────────────────────────────────────────────────
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error, info) {
+    console.error("App crash caught:", error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={{ flex: 1, backgroundColor: '#F7F3EE', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+          <Text style={{ fontFamily: 'serif', fontSize: 24, fontWeight: '900', color: '#2C1810', marginBottom: 12 }}>Something went wrong</Text>
+          <Text style={{ fontSize: 14, color: '#9B8677', textAlign: 'center', marginBottom: 24, lineHeight: 20 }}>The app ran into an unexpected error. Tap below to try again.</Text>
+          <TouchableOpacity onPress={() => this.setState({ hasError: false })} style={{ backgroundColor: '#C4683E', paddingHorizontal: 28, paddingVertical: 14, borderRadius: 10 }}>
+            <Text style={{ color: '#F7F3EE', fontSize: 15, fontWeight: '700' }}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { getSession, clearSession } from "./src/lib/auth";
@@ -302,8 +328,8 @@ export default function App() {
           <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
             <Stack.Screen name="Login"      component={LoginScreen} />
             <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-            <Stack.Screen name="AdminTabs"  component={AdminTabs} />
-            <Stack.Screen name="StaffTabs"  component={StaffTabs} />
+            <Stack.Screen name="AdminTabs">{(props) => <ErrorBoundary><AdminTabs {...props} /></ErrorBoundary>}</Stack.Screen>
+            <Stack.Screen name="StaffTabs">{(props) => <ErrorBoundary><StaffTabs {...props} /></ErrorBoundary>}</Stack.Screen>
           </Stack.Navigator>
         </NavigationContainer>
       )}

@@ -142,7 +142,7 @@ export default function TodayScreen() {
   useEffect(() => { load(); }, []);
 
   // Refresh when tab comes into focus
-  useFocusEffect(useCallback(() => { load(true); }, []));
+  useFocusEffect(useCallback(() => { load(true); }, [load]));
 
   useEffect(() => {
     const timer = setInterval(() => setNowTop(getNowTop()), 60000);
