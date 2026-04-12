@@ -7,7 +7,7 @@ import { api } from "./api";
 // non-sensitive and SecureStore has a 2KB value limit.
 
 export async function saveSession(token, profile) {
-  await SecureStore.setItemAsync("mobile_token", token);
+  try { await SecureStore.setItemAsync("mobile_token", token); } catch (_) {}
   await AsyncStorage.setItem("mobile_profile", JSON.stringify(profile));
   // Keep a copy in AsyncStorage for backwards compat during migration.
   // Users on 1.0.4 have their token in AsyncStorage only. On first
@@ -17,7 +17,8 @@ export async function saveSession(token, profile) {
 
 export async function getSession() {
   // Try SecureStore first (1.0.5+), fall back to AsyncStorage (1.0.4)
-  let token = await SecureStore.getItemAsync("mobile_token");
+  let token = null;
+  try { token = await SecureStore.getItemAsync("mobile_token"); } catch (_) {}
   if (!token) {
     token = await AsyncStorage.getItem("mobile_token");
     // Migrate: move token from AsyncStorage to SecureStore
