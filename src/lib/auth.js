@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 import { api } from "./api";
+import { unregisterPushToken } from "./pushNotifications";
 
 // Auth token goes in SecureStore (encrypted keychain on iOS).
 // Profile metadata (name, role) stays in AsyncStorage since it's
@@ -32,6 +33,14 @@ export async function getSession() {
 }
 
 export async function clearSession() {
+  // Unregister push token BEFORE dropping auth (needs the token to authenticate)
+  try {
+    const profileStr = await AsyncStorage.getItem("mobile_profile");
+    const profile = profileStr ? JSON.parse(profileStr) : null;
+    if (profile?.role) {
+      await unregisterPushToken({ role: profile.role });
+    }
+  } catch (_) {}
   try { await api.logout(); } catch (_) {}
   try { await SecureStore.deleteItemAsync("mobile_token"); } catch (_) {}
   await AsyncStorage.removeItem("mobile_token");

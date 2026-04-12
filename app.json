@@ -2,7 +2,7 @@
   "expo": {
     "name": "Clipd",
     "slug": "clipd-app",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -18,7 +18,8 @@
       "bundleIdentifier": "ca.getclipd.app",
       "infoPlist": {
         "CFBundleDisplayName": "Clipd",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": ["remote-notification"]
       },
       "buildNumber": "11"
     },
@@ -34,7 +35,14 @@
     },
     "plugins": [
       "expo-asset",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#C4683E"
+        }
+      ]
     ],
     "extra": {
       "googlePlacesKey": "AIzaSyBd8jDYTcmlx9Zg32LZPc6PyQIhCBbq5i0",
