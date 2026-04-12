@@ -237,10 +237,10 @@ export default function BrandedSiteScreen() {
       {/* Brand Color */}
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>BRAND COLOR</Text>
-        <Text style={styles.helperText}>Used for buttons and accents on your site.</Text>
+        <Text style={styles.helperText}>Used for buttons and accents on your site. Pick a preset or enter any hex code.</Text>
         <View style={styles.colorRow}>
           {PRESET_COLORS.map((color) => {
-            const active = brandColor === color;
+            const active = brandColor.toLowerCase() === color.toLowerCase();
             return (
               <TouchableOpacity
                 key={color}
@@ -251,6 +251,22 @@ export default function BrandedSiteScreen() {
               </TouchableOpacity>
             );
           })}
+        </View>
+        <View style={styles.customColorRow}>
+          <View style={[styles.customColorPreview, { backgroundColor: /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(brandColor) ? brandColor : "#C4683E" }]} />
+          <TextInput
+            style={styles.customColorInput}
+            value={brandColor}
+            onChangeText={(val) => {
+              let v = val.trim();
+              if (v && !v.startsWith("#")) v = "#" + v;
+              if (v.length <= 7) setBrandColor(v);
+            }}
+            placeholder="#C4683E"
+            placeholderTextColor={C.muted}
+            autoCapitalize="characters"
+            maxLength={7}
+          />
         </View>
       </View>
 
@@ -375,6 +391,18 @@ const styles = StyleSheet.create({
     borderWidth: 2, borderColor: "transparent",
   },
   colorSwatchActive: { borderColor: C.espresso, transform: [{ scale: 1.1 }] },
+  customColorRow: {
+    flexDirection: "row", alignItems: "center", gap: 10, marginTop: 14,
+    backgroundColor: C.surface, borderRadius: 8, borderWidth: 1, borderColor: C.border,
+    padding: 8,
+  },
+  customColorPreview: {
+    width: 36, height: 36, borderRadius: 8, borderWidth: 1, borderColor: C.border,
+  },
+  customColorInput: {
+    flex: 1, fontSize: 15, fontWeight: "700", color: C.espresso,
+    fontFamily: "Courier", letterSpacing: 1,
+  },
 
   galleryAddBtn: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: C.terra, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999 },
   galleryAddText: { fontSize: 12, fontWeight: "800", color: C.cream },
