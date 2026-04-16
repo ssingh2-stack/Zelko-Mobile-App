@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, Text, ScrollView, StyleSheet, RefreshControl, Alert, ActivityIndicator, TouchableOpacity, Linking } from "react-native";
+import { View, Text, ScrollView, StyleSheet, RefreshControl, Alert, ActivityIndicator, TouchableOpacity, Share } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../../lib/api";
@@ -248,8 +248,8 @@ export default function InsightsScreen() {
               const fromDate = from || "2020-01-01";
               const toDate = to || isoToday();
               try {
-                const url = await api.adminExportUrl(fromDate, toDate);
-                Linking.openURL(url);
+                const csv = await api.adminExportCsv(fromDate, toDate);
+                await Share.share({ message: csv, title: `clipd-export-${fromDate}-${toDate}.csv` });
               } catch (err) { Alert.alert("Error", err.message); }
             }}
           >

@@ -1,9 +1,14 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 
 import Constants from "expo-constants";
 const BASE_URL = Constants.expoConfig?.extra?.apiUrl || "https://app.getclipd.ca";
 
 async function getToken() {
+  try {
+    const token = await SecureStore.getItemAsync("mobile_token");
+    if (token) return token;
+  } catch (_) {}
   return await AsyncStorage.getItem("mobile_token");
 }
 
@@ -172,9 +177,12 @@ export const api = {
   adminBarberInvite: (id) => request(`/api/admin/barbers/${id}/invite`, { method: "POST", body: JSON.stringify({}) }),
   adminClientVip: (email, isVip) => request(`/api/admin/clients/${encodeURIComponent(email)}/vip`, { method: "POST", body: JSON.stringify({ is_vip: isVip }) }),
 
-  adminExportUrl: async (from, to) => {
+  adminExportCsv: async (from, to) => {
     const token = await getToken();
-    return `${BASE_URL}/api/admin/export/transactions?from=${from}&to=${to}&token=${token}`;
+    const headers = { "X-Mobile-Token": token };
+    const res = await fetch(`${BASE_URL}/api/admin/export/transactions?from=${from}&to=${to}`, { headers });
+    if (!res.ok) throw new Error("Export failed");
+    return await res.text();
   },
 
   staffSchedule: () => request("/api/staff/schedule"),

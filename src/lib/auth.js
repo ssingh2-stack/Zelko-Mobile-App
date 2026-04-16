@@ -11,10 +11,8 @@ import { clearAllCache } from "./cache";
 export async function saveSession(token, profile) {
   try { await SecureStore.setItemAsync("mobile_token", token); } catch (_) {}
   await AsyncStorage.setItem("mobile_profile", JSON.stringify(profile));
-  // Keep a copy in AsyncStorage for backwards compat during migration.
-  // Users on 1.0.4 have their token in AsyncStorage only. On first
-  // login after updating to 1.0.5, the token moves to SecureStore.
-  await AsyncStorage.setItem("mobile_token", token);
+  // Clean up any legacy AsyncStorage token from pre-1.0.5
+  try { await AsyncStorage.removeItem("mobile_token"); } catch (_) {}
 }
 
 export async function getSession() {

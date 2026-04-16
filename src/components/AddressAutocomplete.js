@@ -1,9 +1,8 @@
 import React, { useState, useRef, useCallback } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
-import Constants from "expo-constants";
 import { C } from "../lib/theme";
 
-const GOOGLE_PLACES_KEY = Constants.expoConfig?.extra?.googlePlacesKey || "";
+const GOOGLE_PLACES_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_KEY || "";
 
 const PLACES_URL = "https://maps.googleapis.com/maps/api/place";
 
