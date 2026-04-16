@@ -124,7 +124,8 @@ export default function SettingsScreen() {
     });
     if (result.canceled) return;
     try {
-      const res = await api.adminUpload(result.assets[0].uri, "logo");
+      const asset = result.assets[0];
+      const res = await api.adminUpload(asset.uri, "logo", undefined, asset.mimeType);
       setLogoUrl(res.url);
       hapticSuccess();
     } catch (err) { Alert.alert("Upload failed", err.message); }

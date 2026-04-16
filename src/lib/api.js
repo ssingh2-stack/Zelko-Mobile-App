@@ -51,7 +51,10 @@ async function request(path, options = {}) {
   } catch (err) {
     clearTimeout(timeout);
     if (err.name === "AbortError") throw new Error("Request timed out — check your connection");
-    throw err;
+    if (err.trialExpired) throw err;
+    const msg = err.message || "Something went wrong";
+    if (__DEV__) throw err;
+    throw new Error(msg.length > 120 || msg.includes("<!") || msg.includes("Traceback") ? "Something went wrong. Please try again." : msg);
   }
 }
 
@@ -141,10 +144,11 @@ export const api = {
   adminPaymentSettings: () => request("/api/admin/payment-settings"),
   adminSavePaymentSettings: (data) => request("/api/admin/payment-settings", { method: "POST", body: JSON.stringify(data) }),
 
-  adminUpload: async (uri, type, barberId) => {
+  adminUpload: async (uri, type, barberId, mimeType) => {
     const token = await getToken();
+    const ext = (mimeType || "image/jpeg").split("/")[1] || "jpg";
     const form = new FormData();
-    form.append("file", { uri, type: "image/jpeg", name: "photo.jpg" });
+    form.append("file", { uri, type: mimeType || "image/jpeg", name: `photo.${ext}` });
     form.append("type", type);
     if (barberId) form.append("barber_id", String(barberId));
     const controller = new AbortController();

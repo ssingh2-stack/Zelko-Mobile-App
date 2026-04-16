@@ -70,7 +70,8 @@ export default function BrandedSiteScreen() {
     if (result.canceled || !result.assets?.[0]) return;
     setUploading(true);
     try {
-      const res = await api.adminUpload(result.assets[0].uri, "hero");
+      const asset = result.assets[0];
+      const res = await api.adminUpload(asset.uri, "hero", undefined, asset.mimeType);
       if (res.url) {
         setHeroImage(res.url);
         Alert.alert("Uploaded", "Hero image saved.");
@@ -117,7 +118,7 @@ export default function BrandedSiteScreen() {
     setPhotoUploading(true);
     try {
       for (const asset of result.assets) {
-        await api.adminUpload(asset.uri, "gallery");
+        await api.adminUpload(asset.uri, "gallery", undefined, asset.mimeType);
       }
       await loadPhotos();
     } catch (err) {

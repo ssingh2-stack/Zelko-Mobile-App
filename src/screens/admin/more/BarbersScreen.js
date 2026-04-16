@@ -212,7 +212,8 @@ export default function BarbersScreen() {
     });
     if (result.canceled) return;
     try {
-      await api.adminUpload(result.assets[0].uri, "barber", barberId);
+      const asset = result.assets[0];
+      await api.adminUpload(asset.uri, "barber", barberId, asset.mimeType);
       hapticSuccess(); showToast("Photo uploaded");
       load(true);
     } catch (err) {
