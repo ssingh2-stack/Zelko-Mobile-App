@@ -25,3 +25,11 @@ export async function clearCache(key) {
     await AsyncStorage.removeItem(PREFIX + key);
   } catch {}
 }
+
+export async function clearAllCache() {
+  try {
+    const keys = await AsyncStorage.getAllKeys();
+    const cacheKeys = keys.filter(k => k.startsWith(PREFIX));
+    if (cacheKeys.length) await AsyncStorage.multiRemove(cacheKeys);
+  } catch {}
+}

@@ -25,8 +25,9 @@ export async function requestPushPermission() {
     if (settings.canAskAgain === false) return false;
     const req = await Notifications.requestPermissionsAsync({
       ios: { allowAlert: true, allowBadge: false, allowSound: true },
+      android: {},
     });
-    return !!req.granted;
+    return !!(req.granted || req.status === "granted" || req.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL);
   } catch (err) {
     console.warn("[push] requestPermission failed:", err?.message);
     return false;

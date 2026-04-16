@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import React, { useEffect, useState, useRef } from "react";
+import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Text, ActivityIndicator, View, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import * as Notifications from "expo-notifications";
+
+const navigationRef = createNavigationContainerRef();
 
 // ── Error Boundary ───────────────────────────────────────────────────────────
 class ErrorBoundary extends React.Component {
@@ -298,6 +301,26 @@ function StaffTabs() {
 export default function App() {
   const [initialRoute, setInitialRoute] = useState(null);
 
+  // Deep-link from push notification taps to the relevant screen
+  useEffect(() => {
+    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
+      try {
+        const data = response?.notification?.request?.content?.data || {};
+        if (!navigationRef.isReady()) return;
+        // Supported payload keys: screen ("Today" | "Schedule" | "Clients"), bookingCode
+        const screen = data.screen || "Today";
+        if (data.bookingCode) {
+          navigationRef.navigate("AdminTabs", { screen: "Schedule", params: { focusBookingCode: data.bookingCode } });
+        } else {
+          navigationRef.navigate("AdminTabs", { screen });
+        }
+      } catch (e) {
+        console.warn("[push] navigation from notification failed:", e?.message);
+      }
+    });
+    return () => sub.remove();
+  }, []);
+
   useEffect(() => {
     getSession().then(async (session) => {
       if (session?.profile?.role === "admin") {
@@ -332,7 +355,7 @@ export default function App() {
           <ActivityIndicator color={C.espresso} size="large" />
         </View>
       ) : (
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
           <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
             <Stack.Screen name="Login"      component={LoginScreen} />
             <Stack.Screen name="Onboarding" component={OnboardingScreen} />

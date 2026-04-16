@@ -7,10 +7,24 @@ async function getToken() {
   return await AsyncStorage.getItem("mobile_token");
 }
 
+function _randKey() {
+  // RFC4122-ish UUID v4 (not cryptographically critical for idempotency)
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 async function request(path, options = {}) {
   const token = await getToken();
   const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
   if (token) headers["X-Mobile-Token"] = token;
+  // Attach an idempotency key to every non-GET so double-taps / retries don't duplicate work server-side
+  const method = (options.method || "GET").toUpperCase();
+  if (method !== "GET" && !headers["Idempotency-Key"]) {
+    headers["Idempotency-Key"] = _randKey();
+  }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);

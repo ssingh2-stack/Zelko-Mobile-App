@@ -38,3 +38,4 @@ credentials/
 # typescript
 *.tsbuildinfo
 credentials-production.json
+credentials.json

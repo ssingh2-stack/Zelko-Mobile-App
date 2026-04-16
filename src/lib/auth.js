@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 import { api } from "./api";
 import { unregisterPushToken } from "./pushNotifications";
+import { clearAllCache } from "./cache";
 
 // Auth token goes in SecureStore (encrypted keychain on iOS).
 // Profile metadata (name, role) stays in AsyncStorage since it's
@@ -45,4 +46,6 @@ export async function clearSession() {
   try { await SecureStore.deleteItemAsync("mobile_token"); } catch (_) {}
   await AsyncStorage.removeItem("mobile_token");
   await AsyncStorage.removeItem("mobile_profile");
+  // Clear cached data so next user on this device doesn't see stale bookings/clients
+  await clearAllCache();
 }
