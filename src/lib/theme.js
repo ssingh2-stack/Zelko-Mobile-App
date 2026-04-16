@@ -36,10 +36,10 @@ export const T = {
   hero: 28,
 };
 
-// Format a number as currency: 1234.5 → "$1,235"
+// Format a number as currency: 1234.5 → "$1,234.50"
 export function fmtMoney(n) {
   const num = parseFloat(n) || 0;
-  return "$" + Math.round(num).toLocaleString("en-CA");
+  return "$" + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 // Format a number with commas: 1234 → "1,234"
