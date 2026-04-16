@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   View, Text, FlatList, StyleSheet, TouchableOpacity,
   TextInput, RefreshControl, Alert, ActivityIndicator,
@@ -44,21 +44,23 @@ export default function ClientsScreen() {
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState("name");
 
+  const hasDataRef = useRef(false);
   const load = useCallback(async (quiet = false) => {
     if (!quiet) setLoading(true);
     setError(null);
-    if (!quiet && clients.length === 0) {
+    if (!quiet && !hasDataRef.current) {
       const cached = await getCached("clients");
-      if (cached?.data) setClients(cached.data);
+      if (cached?.data) { setClients(cached.data); hasDataRef.current = true; }
     }
     try {
       const data = await api.adminClients();
       const list = data.clients || data || [];
       setClients(list);
+      hasDataRef.current = list.length > 0;
       setError(null);
       setCache("clients", list);
     } catch (err) {
-      if (clients.length === 0) setError(err.message);
+      if (!hasDataRef.current) setError(err.message);
     } finally {
       setLoading(false);
       setRefreshing(false);

@@ -247,7 +247,7 @@ export default function TodayScreen() {
         date: todayStr,
         start_time: time,
         customer_name: "Walk-in",
-        customer_email: "walkin@clipd.local",
+        customer_email: "walk-in@getclipd.ca",
         customer_phone: "",
       });
       hapticSuccess();

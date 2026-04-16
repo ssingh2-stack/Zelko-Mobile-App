@@ -141,7 +141,7 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
         setDate(next.toISOString().split("T")[0]);
       }
     }).catch(() => setSlots([])).finally(() => setLoadingSlots(false));
-  }, [barberId, serviceId, date, visible]);
+  }, [barberId, serviceId, date, visible, staffMode, prefillTime]);
 
   function todayISO() {
     return new Date().toISOString().split("T")[0];

@@ -295,7 +295,7 @@ export default function InsightsScreen() {
                       <View style={styles.perfHeader}>
                         <View style={[styles.perfAvatar, { backgroundColor: DCAL_COLORS[i % DCAL_COLORS.length].bg, borderColor: DCAL_COLORS[i % DCAL_COLORS.length].bd }]}>
                           <Text style={[styles.perfInitials, { color: DCAL_COLORS[i % DCAL_COLORS.length].tx }]}>
-                            {b.name?.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase()}
+                            {(b.name || "?").trim().split(" ").filter(Boolean).map(w => w[0]).slice(0, 2).join("").toUpperCase() || "?"}
                           </Text>
                         </View>
                         <Text style={styles.perfName}>{b.name}</Text>
