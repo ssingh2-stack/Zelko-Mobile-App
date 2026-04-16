@@ -21,11 +21,12 @@ const TAG_STYLES = {
 };
 
 function initials(name) {
-  if (!name) return "?";
-  const parts = name.trim().split(" ");
+  if (!name || !name.trim()) return "?";
+  const parts = name.trim().split(" ").filter(Boolean);
+  if (parts.length === 0) return "?";
   return parts.length >= 2
-    ? (parts[0][0] + parts[parts.length-1][0]).toUpperCase()
-    : name[0].toUpperCase();
+    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    : parts[0][0].toUpperCase();
 }
 
 export default function ClientsScreen() {

@@ -404,8 +404,8 @@ export default function TodayScreen() {
           const cardPaid = confirmed.filter(b => b.payment_status === "paid" || b.payment_status === "card_paid");
           const depositPaid = confirmed.filter(b => b.payment_status === "deposit_paid");
           const unpaid = confirmed.filter(b => !b.payment_status || b.payment_status === "unpaid");
-          const cashTotal = cashPaid.reduce((s, b) => s + (b.amount_paid || b.service_price || 0), 0);
-          const cardTotal = cardPaid.reduce((s, b) => s + (b.amount_paid || b.service_price || 0), 0);
+          const cashTotal = cashPaid.reduce((s, b) => s + (b.amount_paid ? b.amount_paid / 100 : (b.service_price || 0)), 0);
+          const cardTotal = cardPaid.reduce((s, b) => s + (b.amount_paid ? b.amount_paid / 100 : (b.service_price || 0)), 0);
           return (
             <Text style={styles.paymentBreakdown}>
               {cashPaid.length > 0 ? `Cash: ${fmtMoney(cashTotal)}` : ""}
@@ -459,8 +459,8 @@ export default function TodayScreen() {
           {(() => {
             const cashBookings = confirmed.filter(b => b.payment_status === "cash_paid");
             const cardBookings = confirmed.filter(b => b.payment_status === "paid" || b.payment_status === "card_paid");
-            const cashTotal = cashBookings.reduce((s, b) => s + ((b.amount_paid || 0) / 100 || b.service_price || b.price || 0), 0);
-            const cardTotal = cardBookings.reduce((s, b) => s + ((b.amount_paid || 0) / 100 || b.service_price || b.price || 0), 0);
+            const cashTotal = cashBookings.reduce((s, b) => s + (b.amount_paid ? b.amount_paid / 100 : (b.service_price || b.price || 0)), 0);
+            const cardTotal = cardBookings.reduce((s, b) => s + (b.amount_paid ? b.amount_paid / 100 : (b.service_price || b.price || 0)), 0);
             return (cashBookings.length > 0 || cardBookings.length > 0) ? (
               <View style={styles.eodCashRow}>
                 {cashBookings.length > 0 && (
