@@ -102,7 +102,7 @@ export default function SettingsScreen() {
     if (newPw !== confirmPw) { Alert.alert("Error", "Passwords don't match."); return; }
     setSavingPw(true); setPwMsg("");
     try {
-      await api.adminSavePassword(currentPw, newPw);
+      await api.adminSavePassword(currentPw, newPw, confirmPw);
       setPwMsg("Password updated!");
       setCurrentPw(""); setNewPw(""); setConfirmPw("");
       setTimeout(() => setPwMsg(""), 3000);

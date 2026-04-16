@@ -117,8 +117,8 @@ export const api = {
   adminCheckoutUrl: (plan) => request("/api/create-checkout-session", { method: "POST", body: JSON.stringify({ plan }) }),
   adminSaveInfo: (data) => request("/api/admin/settings/info", { method: "POST", body: JSON.stringify(data) }),
   adminSaveHours: (hours) => request("/api/admin/settings/hours", { method: "POST", body: JSON.stringify({ hours }) }),
-  adminSavePassword: (current, newPw) =>
-    request("/api/admin/settings/password", { method: "POST", body: JSON.stringify({ current, new: newPw }) }),
+  adminSavePassword: (current, newPw, confirm) =>
+    request("/api/admin/settings/password", { method: "POST", body: JSON.stringify({ current, new_password: newPw, confirm }) }),
   adminPaymentSettings: () => request("/api/admin/payment-settings"),
   adminSavePaymentSettings: (data) => request("/api/admin/payment-settings", { method: "POST", body: JSON.stringify(data) }),
 
