@@ -29,7 +29,7 @@ export async function requestPushPermission() {
     });
     return !!(req.granted || req.status === "granted" || req.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL);
   } catch (err) {
-    console.warn("[push] requestPermission failed:", err?.message);
+    if (__DEV__) console.warn("[push] requestPermission failed:", err?.message);
     return false;
   }
 }
@@ -47,7 +47,7 @@ export async function getExpoPushToken() {
     const result = await Notifications.getExpoPushTokenAsync({ projectId: PROJECT_ID });
     return result?.data || null;
   } catch (err) {
-    console.warn("[push] getExpoPushToken failed:", err?.message);
+    if (__DEV__) console.warn("[push] getExpoPushToken failed:", err?.message);
     return null;
   }
 }
@@ -69,7 +69,7 @@ export async function registerForPushNotifications({ role, barberId } = {}) {
     }
     return { ok: true, token };
   } catch (err) {
-    console.warn("[push] register failed:", err?.message);
+    if (__DEV__) console.warn("[push] register failed:", err?.message);
     return { ok: false, token: null, reason: err?.message || "unknown_error" };
   }
 }
@@ -85,7 +85,7 @@ export async function unregisterPushToken({ role } = {}) {
     }
     await AsyncStorage.removeItem(TOKEN_STORAGE_KEY);
   } catch (err) {
-    console.warn("[push] unregister failed:", err?.message);
+    if (__DEV__) console.warn("[push] unregister failed:", err?.message);
   }
 }
 

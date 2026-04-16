@@ -15,7 +15,7 @@ class ErrorBoundary extends React.Component {
   }
   static getDerivedStateFromError() { return { hasError: true }; }
   componentDidCatch(error, info) {
-    console.error("App crash caught:", error, info);
+    if (__DEV__) console.error("App crash caught:", error, info);
   }
   render() {
     if (this.state.hasError) {
@@ -307,15 +307,16 @@ export default function App() {
       try {
         const data = response?.notification?.request?.content?.data || {};
         if (!navigationRef.isReady()) return;
-        // Supported payload keys: screen ("Today" | "Schedule" | "Clients"), bookingCode
-        const screen = data.screen || "Today";
-        if (data.bookingCode) {
-          navigationRef.navigate("AdminTabs", { screen: "Schedule", params: { focusBookingCode: data.bookingCode } });
+        const VALID_SCREENS = ["Today", "Schedule", "Clients", "Insights"];
+        const screen = VALID_SCREENS.includes(data.screen) ? data.screen : "Today";
+        const bookingCode = typeof data.bookingCode === "string" ? data.bookingCode.replace(/[^A-Za-z0-9\-]/g, "") : null;
+        if (bookingCode) {
+          navigationRef.navigate("AdminTabs", { screen: "Schedule", params: { focusBookingCode: bookingCode } });
         } else {
           navigationRef.navigate("AdminTabs", { screen });
         }
       } catch (e) {
-        console.warn("[push] navigation from notification failed:", e?.message);
+        if (__DEV__) console.warn("[push] navigation from notification failed:", e?.message);
       }
     });
     return () => sub.remove();

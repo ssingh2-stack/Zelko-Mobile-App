@@ -40,7 +40,11 @@ export async function clearSession() {
       await unregisterPushToken({ role: profile.role });
     }
   } catch (_) {}
-  try { await api.logout(); } catch (_) {}
+  try { await api.logout(); } catch (_) {
+    // Server revocation failed (network error) — clear local token anyway
+    // since re-login will issue a fresh token. The old token will expire
+    // server-side within 14 days.
+  }
   try { await SecureStore.deleteItemAsync("mobile_token"); } catch (_) {}
   await AsyncStorage.removeItem("mobile_token");
   await AsyncStorage.removeItem("mobile_profile");
