@@ -236,7 +236,7 @@ export default function SettingsScreen() {
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Change Password</Text>
         <Field label="Current Password" value={currentPw} onChange={setCurrentPw} placeholder="••••••••" secureTextEntry />
-        <Field label="New Password" value={newPw} onChange={setNewPw} placeholder="Min. 6 characters" secureTextEntry />
+        <Field label="New Password" value={newPw} onChange={setNewPw} placeholder="Min. 8 characters" secureTextEntry />
         <Field label="Confirm New Password" value={confirmPw} onChange={setConfirmPw} placeholder="Repeat new password" secureTextEntry />
         <View style={styles.saveRow}>
           <TouchableOpacity style={[styles.saveBtn, savingPw && { opacity: 0.6 }]} onPress={savePassword} disabled={savingPw}>

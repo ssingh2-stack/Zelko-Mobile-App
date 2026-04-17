@@ -121,7 +121,7 @@ export default function LoginScreen({ navigation }) {
           />
           <TextInput
             style={styles.input}
-            placeholder="Password (min. 6 characters)"
+            placeholder="Password (min. 8 characters)"
             placeholderTextColor={C.muted}
             secureTextEntry
             value={signupPassword}

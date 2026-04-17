@@ -273,7 +273,7 @@ export default function StaffScheduleScreen() {
                     <Text style={[styles.clientName, isCancelled && styles.clientNameMuted]}>{b.customer_name}</Text>
                     <Text style={styles.serviceName}>{b.service_name}</Text>
                     <View style={styles.cardMeta}>
-                      <Text style={styles.cardPrice}>${b.service_price ?? b.price ?? 0}</Text>
+                      <Text style={styles.cardPrice}>{fmtMoney(b.service_price ?? b.price ?? 0)}</Text>
                       {b.duration_min ? <Text style={styles.cardMetaText}> · {b.duration_min}min</Text> : null}
                       {b.customer_phone ? <Text style={styles.cardMetaText}> · {b.customer_phone}</Text> : null}
                     </View>

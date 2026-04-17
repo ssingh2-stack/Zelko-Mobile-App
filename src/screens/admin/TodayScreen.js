@@ -633,7 +633,7 @@ export default function TodayScreen() {
                       </View>
                     ) : null}
                     <View style={styles.listFooter}>
-                      <Text style={styles.listPrice}>${b.service_price ?? b.price ?? 0}</Text>
+                      <Text style={styles.listPrice}>{fmtMoney(b.service_price ?? b.price ?? 0)}</Text>
                       {b.duration_min ? <Text style={styles.listMeta}> · {b.duration_min}min</Text> : null}
                       {b.barber_name ? <Text style={styles.listMeta}> · {b.barber_name}</Text> : null}
                     </View>

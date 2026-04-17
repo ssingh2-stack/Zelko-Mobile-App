@@ -818,7 +818,7 @@ export default function ScheduleScreen() {
                     <Text style={[styles.listName, isCancelled && styles.listNameMuted]}>{b.customer_name}</Text>
                     <Text style={styles.listSvc} numberOfLines={1}>{b.service_name}</Text>
                     <View style={styles.listFooter}>
-                      <Text style={styles.listPrice}>${b.service_price ?? b.price ?? 0}</Text>
+                      <Text style={styles.listPrice}>{fmtMoney(b.service_price ?? b.price ?? 0)}</Text>
                       {b.duration_min ? <Text style={styles.listMeta}> · {b.duration_min}min</Text> : null}
                       <Text style={styles.listMeta}> · {b.barber_name}</Text>
                     </View>
