@@ -255,7 +255,7 @@ export default function SettingsScreen() {
             <Text style={styles.billingPlanMeta}>
               {plan.key === "trial"
                 ? `Trial${plan.trialEnds ? ` · Ends ${plan.trialEnds}` : ""}`
-                : `$${plan.price}/mo · ${plan.maxBarbers ? `Up to ${plan.maxBarbers} barbers` : "Unlimited barbers"}`}
+                : `${fmtMoney(plan.price)}/mo · ${plan.maxBarbers ? `Up to ${plan.maxBarbers} barbers` : "Unlimited barbers"}`}
             </Text>
             <Text style={styles.billingPlanMeta}>{plan.barberCount || 0} barber{plan.barberCount !== 1 ? "s" : ""} active</Text>
           </View>
