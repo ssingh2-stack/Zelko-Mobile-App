@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { C, BARBER_PALETTES } from "../lib/theme";
+import { C, BARBER_PALETTES, fmtMoney } from "../lib/theme";
 
 export default function BookingCard({ booking, paletteIndex, onNoShow, onCancel }) {
   const palette = BARBER_PALETTES[paletteIndex % BARBER_PALETTES.length];
@@ -23,7 +23,7 @@ export default function BookingCard({ booking, paletteIndex, onNoShow, onCancel 
       </Text>
       <View style={styles.footer}>
         <View style={styles.footerLeft}>
-          <Text style={styles.price}>${booking.service_price ?? booking.price ?? 0}</Text>
+          <Text style={styles.price}>{fmtMoney(booking.service_price ?? booking.price ?? 0)}</Text>
           {booking.duration_min ? <Text style={styles.dur}> · {booking.duration_min}min</Text> : null}
         </View>
         {isCancelled ? (

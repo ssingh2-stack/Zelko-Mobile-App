@@ -5,7 +5,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "../lib/api";
-import { C, serif } from "../lib/theme";
+import { C, serif, fmtMoney } from "../lib/theme";
 
 function Picker({ label, value, onChange, options, loading }) {
   return (
@@ -218,7 +218,7 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
   }
 
   const barberOptions = barbers.map(b => ({ value: String(b.id), label: b.name }));
-  const serviceOptions = services.map(s => ({ value: String(s.id), label: `${s.name} — $${s.price}` }));
+  const serviceOptions = services.map(s => ({ value: String(s.id), label: `${s.name} — ${fmtMoney(s.price)}` }));
   const slotOptions = slots.map(s => ({ value: s.time, label: s.display || s.time }));
 
   function changeDate(delta) {
