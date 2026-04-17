@@ -33,6 +33,10 @@ export default function BrandedSiteScreen() {
   const [siteUrl, setSiteUrl] = useState("");
   const [photos, setPhotos] = useState([]);
   const [photoUploading, setPhotoUploading] = useState(false);
+  const [teamTitle, setTeamTitle] = useState("");
+  const [teamSubtitle, setTeamSubtitle] = useState("");
+  const [servicesTitle, setServicesTitle] = useState("");
+  const [servicesSubtitle, setServicesSubtitle] = useState("");
 
   useEffect(() => { load(); }, []);
 
@@ -47,6 +51,10 @@ export default function BrandedSiteScreen() {
       setInstagram(data.site_instagram || "");
       setPreviewUrl(data.preview_url || "");
       setSiteUrl(data.site_url_display || data.preview_url || "");
+      setTeamTitle(data.site_team_title || "");
+      setTeamSubtitle(data.site_team_subtitle || "");
+      setServicesTitle(data.site_services_title || "");
+      setServicesSubtitle(data.site_services_subtitle || "");
       loadPhotos();
     } catch (err) {
       Alert.alert("Error", err.message);
@@ -148,6 +156,10 @@ export default function BrandedSiteScreen() {
         site_about: about,
         site_brand_color: brandColor,
         site_instagram: instagram,
+        site_team_title: teamTitle,
+        site_team_subtitle: teamSubtitle,
+        site_services_title: servicesTitle,
+        site_services_subtitle: servicesSubtitle,
       });
       Alert.alert("Saved", "Your branded site is updated.");
     } catch (err) {
@@ -284,6 +296,20 @@ export default function BrandedSiteScreen() {
         />
       </View>
 
+      {/* Section Headings */}
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>SECTION HEADINGS</Text>
+        <Text style={styles.helperText}>Customize the text visitors see on your branded site.</Text>
+        <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Team Section Title</Text>
+        <TextInput style={styles.input} value={teamTitle} onChangeText={setTeamTitle} placeholder="Meet your barber" placeholderTextColor={C.muted} maxLength={200} />
+        <Text style={styles.fieldLabel}>Team Section Subtitle</Text>
+        <TextInput style={styles.input} value={teamSubtitle} onChangeText={setTeamSubtitle} placeholder="Hand-picked craft. Years of experience." placeholderTextColor={C.muted} maxLength={200} />
+        <Text style={styles.fieldLabel}>Services Section Title</Text>
+        <TextInput style={styles.input} value={servicesTitle} onChangeText={setServicesTitle} placeholder="Crafted for the chair" placeholderTextColor={C.muted} maxLength={200} />
+        <Text style={styles.fieldLabel}>Services Section Subtitle</Text>
+        <TextInput style={styles.input} value={servicesSubtitle} onChangeText={setServicesSubtitle} placeholder="Professional cuts, fades, and grooming." placeholderTextColor={C.muted} maxLength={200} />
+      </View>
+
       {/* Photo Gallery */}
       <View style={styles.section}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
@@ -357,6 +383,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: { fontSize: 11, fontWeight: "800", color: C.muted, letterSpacing: 1.2, marginBottom: 4 },
   helperText: { fontSize: 11, color: C.muted, lineHeight: 14, marginBottom: 10 },
+  fieldLabel: { fontSize: 12, fontWeight: "600", color: C.espresso, marginBottom: 4, marginTop: 8 },
   input: {
     backgroundColor: C.surface,
     borderWidth: 1, borderColor: C.border,
