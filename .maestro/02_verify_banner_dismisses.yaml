@@ -1,0 +1,24 @@
+# AC-3-001 mobile UX: when the shop is unverified, VerifyEmailBanner
+# should be visible on TodayScreen. After the owner taps "I've verified"
+# (which re-polls /api/admin/settings) the banner should disappear if the
+# server has already flipped email_verified=1.
+#
+# Run this only against a test shop you've toggled unverified via
+# /clipd-admin/shops/<id>/expire-trial etc. — see .maestro/README.md.
+appId: ca.getclipd.app
+env:
+  TEST_SHOP_SLUG: ${MAESTRO_TEST_SHOP_SLUG}
+  TEST_SHOP_PASSWORD: ${MAESTRO_TEST_SHOP_PASSWORD}
+---
+- runFlow: 00_login.yaml
+# Banner headline is distinctive enough to not collide with other copy.
+- assertVisible:
+    text: "Check your email to activate bookings"
+- tapOn:
+    text: "I've verified"
+# Refresh re-polls /api/admin/settings; if the shop was verified server-
+# side in the meantime, the banner component returns null on next render.
+- extendedWaitUntil:
+    notVisible:
+      text: "Check your email to activate bookings"
+    timeout: 10000

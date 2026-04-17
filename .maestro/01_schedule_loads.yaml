@@ -1,0 +1,22 @@
+# After login, the Schedule tab renders without crashing. Catches broken
+# DayCalendarView imports or API shape mismatches on /api/admin/schedule.
+appId: ca.getclipd.app
+env:
+  TEST_SHOP_SLUG: ${MAESTRO_TEST_SHOP_SLUG}
+  TEST_SHOP_PASSWORD: ${MAESTRO_TEST_SHOP_PASSWORD}
+---
+- runFlow: 00_login.yaml
+
+# Tab bar uses unique emoji — most reliable selector across RN versions.
+- tapOn:
+    text: "Schedule"
+- extendedWaitUntil:
+    visible:
+      text: "Schedule"
+    timeout: 10000
+# Calendar/List toggle is a fixed UI element; if it's missing the screen
+# didn't finish rendering (broken DayCalendarView import, etc).
+- assertVisible:
+    text: "Calendar"
+- assertVisible:
+    text: "List"

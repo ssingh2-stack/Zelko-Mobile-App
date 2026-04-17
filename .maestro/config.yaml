@@ -1,0 +1,14 @@
+# Maestro project config — applies to every flow in this directory.
+# Run a flow with: `npm run maestro:test -- .maestro/00_login.yaml`
+# Run the whole suite: `npm run maestro:test`
+#
+# Test shop credentials live in env vars so they don't get committed:
+#   MAESTRO_TEST_SHOP_SLUG=clipd-smoke
+#   MAESTRO_TEST_SHOP_PASSWORD=…
+# See .maestro/README.md for how to create the test shop on staging.
+appId: ca.getclipd.app
+
+# Log on every flow so failures in CI have enough context to reproduce.
+env:
+  TEST_SHOP_SLUG: ${MAESTRO_TEST_SHOP_SLUG}
+  TEST_SHOP_PASSWORD: ${MAESTRO_TEST_SHOP_PASSWORD}

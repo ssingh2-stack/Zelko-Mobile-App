@@ -1,0 +1,24 @@
+# Logout path: More tab → Log out → LoginScreen. Catches crashes in
+# clearSession / the RoleProvider unmount path.
+appId: ca.getclipd.app
+env:
+  TEST_SHOP_SLUG: ${MAESTRO_TEST_SHOP_SLUG}
+  TEST_SHOP_PASSWORD: ${MAESTRO_TEST_SHOP_PASSWORD}
+---
+- runFlow: 00_login.yaml
+- tapOn:
+    text: "More"
+- tapOn:
+    text: "Settings"
+- scrollUntilVisible:
+    element:
+      text: "Log out"
+    direction: DOWN
+- tapOn:
+    text: "Log out"
+- tapOn:
+    text: "Log out"    # confirm dialog
+- extendedWaitUntil:
+    visible:
+      text: "Sign In"
+    timeout: 10000
