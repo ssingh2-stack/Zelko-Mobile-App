@@ -135,6 +135,7 @@ export const api = {
     return request(`/api/admin/insights/heatmap${qs}`);
   },
   adminSettings: () => request("/api/admin/settings"),
+  resendVerification: () => request("/api/admin/resend-verification", { method: "POST", body: JSON.stringify({}) }),
   adminBillingPortal: () => request("/api/admin/billing/portal", { method: "POST", body: JSON.stringify({}) }),
   adminCheckoutUrl: (plan) => request("/api/create-checkout-session", { method: "POST", body: JSON.stringify({ plan }) }),
   adminSaveInfo: (data) => request("/api/admin/settings/info", { method: "POST", body: JSON.stringify(data) }),

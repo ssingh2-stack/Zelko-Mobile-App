@@ -11,6 +11,7 @@ import { C, serif, fmtMoney } from "../../lib/theme";
 import { light as hapticLight, success as hapticSuccess, warn as hapticWarn } from "../../lib/haptics";
 import { useToast, Toast } from "../../components/Toast";
 import Header from "../../components/Header";
+import VerifyEmailBanner from "../../components/VerifyEmailBanner";
 import BookingDetailModal from "../../components/BookingDetailModal";
 import CollectPaymentModal from "../../components/CollectPaymentModal";
 import NewBookingModal from "../../components/NewBookingModal";
@@ -375,6 +376,7 @@ export default function TodayScreen() {
   return (
     <View style={styles.container}>
       <Header />
+      <VerifyEmailBanner />
 
       {/* Today strip */}
       <View style={styles.strip}>
