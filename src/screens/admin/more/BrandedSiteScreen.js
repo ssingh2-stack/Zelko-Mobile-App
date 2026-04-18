@@ -12,16 +12,26 @@ import { C, serif } from "../../../lib/theme";
 // preset-name copy tweaks happen in one place. Web uses the same labels via
 // the data returned from GET /api/admin/site, so the two stay in sync
 // through the shared resolver in services/theme_presets.py.
-const PRESET_LABELS = {
-  classic: "Classic", monochrome: "Monochrome",
-  dark: "Dark", luxe: "Luxe",
+// Preset cards show the heading font in a small mockup so each preset feels
+// visually distinct. System-font approximations only; the rendered site
+// still uses the real Google Fonts via CSS.
+const PRESET_META = {
+  classic:    { label: "Classic",    font: "Georgia" },
+  monochrome: { label: "Monochrome", font: "Helvetica Neue" },
+  dark:       { label: "Dark",       font: "Menlo" },
+  luxe:       { label: "Luxe",       font: "Palatino" },
 };
-const FONT_LABELS = {
-  playfair_inter: "Editorial",
-  cormorant_inter: "Elegant",
-  archivo_inter: "Clean",
-  space_grotesk: "Modern",
-  dm_serif_inter: "Warm",
+// Font previews use iOS/Android system fonts that approximate each pair's
+// feel. We can't load Google Fonts at runtime in React Native without
+// bundling them as assets (which requires a native rebuild), so these are
+// the closest cross-platform substitutes for a quick preview only. The
+// RENDERED shop site uses the real Google Fonts served via CSS.
+const FONT_META = {
+  playfair_inter:  { label: "Editorial", family: "Georgia",        weight: "700" },
+  cormorant_inter: { label: "Elegant",   family: "Didot",          weight: "700" },
+  archivo_inter:   { label: "Clean",     family: "Helvetica Neue", weight: "900" },
+  space_grotesk:   { label: "Modern",    family: "Menlo",          weight: "700" },
+  dm_serif_inter:  { label: "Warm",      family: "Palatino",       weight: "700" },
 };
 const SECTION_META = {
   team:         { label: "Team",         icon: "people-outline" },
@@ -362,22 +372,48 @@ export default function BrandedSiteScreen() {
           {Object.keys(themePresets).map((key) => {
             const p = themePresets[key];
             const active = preset === key;
+            const meta = PRESET_META[key] || { label: key, font: "Georgia" };
+            const brandIsLight = lightBrand(p.brand);
             return (
               <TouchableOpacity
                 key={key}
                 style={[styles.presetCard, active && styles.presetCardActive]}
                 onPress={() => selectPreset(key)}
               >
-                <View style={[styles.presetSwatch, { backgroundColor: p.bg, borderColor: p.border || C.border }]}>
-                  <View style={[styles.presetDot, { backgroundColor: p.brand, borderColor: p.surface }]} />
+                <View style={[styles.presetMock, { backgroundColor: p.bg, borderBottomColor: p.border || C.border }]}>
+                  <Text style={{ fontFamily: meta.font, fontSize: 18, fontWeight: "700", color: p.text, marginBottom: 6 }}>Aa</Text>
+                  <View style={{ alignSelf: "flex-start", backgroundColor: p.brand, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 }}>
+                    <Text style={{ fontSize: 9, fontWeight: "800", color: brandIsLight ? "#000" : "#fff" }}>Book now</Text>
+                  </View>
                 </View>
-                <Text style={styles.presetLabel}>{PRESET_LABELS[key] || key}</Text>
-                {active && <Text style={styles.presetSelected}>✓ Selected</Text>}
+                <View style={styles.presetFooter}>
+                  <Text style={styles.presetLabel}>{meta.label}</Text>
+                  <Text style={[styles.presetSelected, { opacity: active ? 1 : 0 }]}>✓ Selected</Text>
+                </View>
               </TouchableOpacity>
             );
           })}
         </ScrollView>
       </View>
+
+      {/* Customize colors (disclosure) — right under Theme for easy discovery */}
+      <TouchableOpacity
+        style={[styles.section, styles.disclosureHeader]}
+        onPress={() => setShowCustomColors(!showCustomColors)}
+      >
+        <Ionicons name="color-palette-outline" size={20} color={C.espresso} />
+        <Text style={styles.disclosureText}>Customize colors</Text>
+        <Ionicons name={showCustomColors ? "chevron-up" : "chevron-down"} size={18} color={C.muted} />
+      </TouchableOpacity>
+      {showCustomColors && (
+        <View style={[styles.section, { marginTop: -12, paddingTop: 12 }]}>
+          <HexInput label="Primary / brand" value={brandColor} onChange={setBrandColor} defaultHex="#C4683E" />
+          <HexInput label="Accent"          value={accentColor} onChange={setAccentColor} defaultHex="" placeholder="Use preset" />
+          <HexInput label="Background"      value={bgColor}     onChange={setBgColor}     defaultHex="" placeholder="Use preset" />
+          <HexInput label="Text"            value={textColor}   onChange={setTextColor}   defaultHex="" placeholder="Use preset" />
+          <Text style={styles.helperText}>Leave blank to use the theme's preset value.</Text>
+        </View>
+      )}
 
       {/* Font pair */}
       <View style={styles.section}>
@@ -386,14 +422,15 @@ export default function BrandedSiteScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.fontRow}>
           {Object.keys(fontPairs).map((key) => {
             const active = fontPair === key;
+            const meta = FONT_META[key] || { label: key, family: serif, weight: "700" };
             return (
               <TouchableOpacity
                 key={key}
                 style={[styles.fontCard, active && styles.fontCardActive]}
                 onPress={() => selectFontPair(key)}
               >
-                <Text style={[styles.fontPreview, { fontFamily: serif }]}>Aa</Text>
-                <Text style={[styles.fontLabel, active && { color: C.terra, fontWeight: "700" }]}>{FONT_LABELS[key] || key}</Text>
+                <Text style={[styles.fontPreview, { fontFamily: meta.family, fontWeight: meta.weight }]}>Aa</Text>
+                <Text style={[styles.fontLabel, active && { color: C.terra, fontWeight: "700" }]}>{meta.label}</Text>
               </TouchableOpacity>
             );
           })}
@@ -484,30 +521,51 @@ export default function BrandedSiteScreen() {
         </View>
       </View>
 
-      {/* Hero Image (separate section, still editable regardless of hero mode) */}
+      {/* Section Headings — sits right after Layout for logical grouping */}
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>HERO IMAGE</Text>
-        <Text style={styles.helperText}>Used in Image mode, and as a poster fallback for Video mode.</Text>
-        {heroImage ? (
-          <Image source={{ uri: heroImage }} style={styles.heroPreview} />
-        ) : (
-          <View style={[styles.heroPreview, styles.heroPlaceholder]}>
-            <Ionicons name="image-outline" size={32} color={C.muted} />
-            <Text style={{ fontSize: 12, color: C.muted, marginTop: 6 }}>No hero image yet</Text>
-          </View>
-        )}
-        <View style={styles.heroBtnRow}>
-          <TouchableOpacity style={styles.heroBtn} onPress={pickHeroImage} disabled={uploading}>
-            <Ionicons name="camera-outline" size={16} color={C.cream} />
-            <Text style={styles.heroBtnText}>{uploading ? "Uploading..." : (heroImage ? "Change Image" : "Choose Image")}</Text>
-          </TouchableOpacity>
-          {heroImage && (
-            <TouchableOpacity style={styles.heroBtnGhost} onPress={clearHero}>
-              <Text style={styles.heroBtnGhostText}>Remove</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        <Text style={styles.sectionLabel}>SECTION HEADINGS</Text>
+        <Text style={styles.helperText}>Customize the text above Team and Services.</Text>
+        <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Team title</Text>
+        <TextInput style={styles.input} value={teamTitle} onChangeText={setTeamTitle} placeholder="Meet your barber" placeholderTextColor={C.muted} maxLength={200} />
+        <Text style={styles.fieldLabel}>Team subtitle</Text>
+        <TextInput style={styles.input} value={teamSubtitle} onChangeText={setTeamSubtitle} placeholder="Hand-picked craft. Years of experience." placeholderTextColor={C.muted} maxLength={200} />
+        <Text style={styles.fieldLabel}>Services title</Text>
+        <TextInput style={styles.input} value={servicesTitle} onChangeText={setServicesTitle} placeholder="Crafted for the chair" placeholderTextColor={C.muted} maxLength={200} />
+        <Text style={styles.fieldLabel}>Services subtitle</Text>
+        <TextInput style={styles.input} value={servicesSubtitle} onChangeText={setServicesSubtitle} placeholder="Professional cuts, fades, and grooming." placeholderTextColor={C.muted} maxLength={200} />
       </View>
+
+      {/* Hero Image — hidden in Solid mode (no image is shown on the site);
+          relabeled as "Poster image" in Video mode since that's its role */}
+      {heroMode !== "solid" && (
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>{heroMode === "video" ? "POSTER IMAGE" : "HERO IMAGE"}</Text>
+          <Text style={styles.helperText}>
+            {heroMode === "video"
+              ? "Shown while the video loads, and on devices that can't autoplay."
+              : "Full-width image behind your shop name in the hero."}
+          </Text>
+          {heroImage ? (
+            <Image source={{ uri: heroImage }} style={styles.heroPreview} />
+          ) : (
+            <View style={[styles.heroPreview, styles.heroPlaceholder]}>
+              <Ionicons name="image-outline" size={32} color={C.muted} />
+              <Text style={{ fontSize: 12, color: C.muted, marginTop: 6 }}>No hero image yet</Text>
+            </View>
+          )}
+          <View style={styles.heroBtnRow}>
+            <TouchableOpacity style={styles.heroBtn} onPress={pickHeroImage} disabled={uploading}>
+              <Ionicons name="camera-outline" size={16} color={C.cream} />
+              <Text style={styles.heroBtnText}>{uploading ? "Uploading..." : (heroImage ? "Change Image" : "Choose Image")}</Text>
+            </TouchableOpacity>
+            {heroImage && (
+              <TouchableOpacity style={styles.heroBtnGhost} onPress={clearHero}>
+                <Text style={styles.heroBtnGhostText}>Remove</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      )}
 
       {/* Tagline */}
       <View style={styles.section}>
@@ -523,25 +581,6 @@ export default function BrandedSiteScreen() {
         />
       </View>
 
-      {/* Customize colors (disclosure) */}
-      <TouchableOpacity
-        style={[styles.section, styles.disclosureHeader]}
-        onPress={() => setShowCustomColors(!showCustomColors)}
-      >
-        <Ionicons name="color-palette-outline" size={20} color={C.espresso} />
-        <Text style={styles.disclosureText}>Customize colors</Text>
-        <Ionicons name={showCustomColors ? "chevron-up" : "chevron-down"} size={18} color={C.muted} />
-      </TouchableOpacity>
-      {showCustomColors && (
-        <View style={[styles.section, { marginTop: -12, paddingTop: 12 }]}>
-          <HexInput label="Primary / brand" value={brandColor} onChange={setBrandColor} defaultHex="#C4683E" />
-          <HexInput label="Accent"          value={accentColor} onChange={setAccentColor} defaultHex="" placeholder="Use preset" />
-          <HexInput label="Background"      value={bgColor}     onChange={setBgColor}     defaultHex="" placeholder="Use preset" />
-          <HexInput label="Text"            value={textColor}   onChange={setTextColor}   defaultHex="" placeholder="Use preset" />
-          <Text style={styles.helperText}>Leave blank to use the theme's preset value.</Text>
-        </View>
-      )}
-
       {/* Instagram */}
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>INSTAGRAM (OPTIONAL)</Text>
@@ -553,20 +592,6 @@ export default function BrandedSiteScreen() {
           placeholderTextColor={C.muted}
           autoCapitalize="none"
         />
-      </View>
-
-      {/* Section Headings */}
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>SECTION HEADINGS</Text>
-        <Text style={styles.helperText}>Customize the text visitors see on your branded site.</Text>
-        <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Team Section Title</Text>
-        <TextInput style={styles.input} value={teamTitle} onChangeText={setTeamTitle} placeholder="Meet your barber" placeholderTextColor={C.muted} maxLength={200} />
-        <Text style={styles.fieldLabel}>Team Section Subtitle</Text>
-        <TextInput style={styles.input} value={teamSubtitle} onChangeText={setTeamSubtitle} placeholder="Hand-picked craft. Years of experience." placeholderTextColor={C.muted} maxLength={200} />
-        <Text style={styles.fieldLabel}>Services Section Title</Text>
-        <TextInput style={styles.input} value={servicesTitle} onChangeText={setServicesTitle} placeholder="Crafted for the chair" placeholderTextColor={C.muted} maxLength={200} />
-        <Text style={styles.fieldLabel}>Services Section Subtitle</Text>
-        <TextInput style={styles.input} value={servicesSubtitle} onChangeText={setServicesSubtitle} placeholder="Professional cuts, fades, and grooming." placeholderTextColor={C.muted} maxLength={200} />
       </View>
 
       {/* Photo Gallery */}
@@ -609,6 +634,17 @@ export default function BrandedSiteScreen() {
       </TouchableOpacity>
     </ScrollView>
   );
+}
+
+function lightBrand(hex) {
+  try {
+    let h = (hex || "").replace("#", "");
+    if (h.length === 3) h = h.split("").map(c => c + c).join("");
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    return (0.299 * r + 0.587 * g + 0.114 * b) > 160;
+  } catch (e) { return false; }
 }
 
 function HexInput({ label, value, onChange, defaultHex, placeholder }) {
@@ -677,17 +713,14 @@ const styles = StyleSheet.create({
 
   presetRow: { gap: 10, paddingVertical: 4, paddingRight: 4 },
   presetCard: {
-    width: 120, padding: 10, borderRadius: 10,
+    width: 138, borderRadius: 12,
     backgroundColor: C.surface, borderWidth: 2, borderColor: C.border,
+    overflow: "hidden",
   },
   presetCardActive: { borderColor: C.terra },
-  presetSwatch: {
-    height: 46, borderRadius: 7, borderWidth: 1,
-    alignItems: "flex-end", justifyContent: "flex-end",
-    paddingBottom: 5, paddingLeft: 5,
-  },
-  presetDot: { width: 14, height: 14, borderRadius: 7, borderWidth: 2 },
-  presetLabel: { fontSize: 13, fontWeight: "700", color: C.espresso, marginTop: 8 },
+  presetMock: { padding: 12, minHeight: 70, borderBottomWidth: 1 },
+  presetFooter: { padding: 10 },
+  presetLabel: { fontSize: 13, fontWeight: "700", color: C.espresso },
   presetSelected: { fontSize: 11, color: C.terra, fontWeight: "700", marginTop: 2 },
 
   fontRow: { gap: 8, paddingVertical: 4, paddingRight: 4 },
