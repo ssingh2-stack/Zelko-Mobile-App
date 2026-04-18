@@ -8,22 +8,36 @@ import * as ImagePicker from "expo-image-picker";
 import { api } from "../../../lib/api";
 import { C, serif } from "../../../lib/theme";
 
-const PRESET_COLORS = [
-  "#C4683E", // terra (default)
-  "#2C1810", // espresso
-  "#1A1A1A", // black
-  "#0F4C5C", // teal
-  "#4A6B8A", // steel blue
-  "#7B4B94", // plum
-  "#8C6B2C", // gold
-  "#994D3A", // brick
-];
+// Labels and section-layout metadata — kept alongside the screen so any
+// preset-name copy tweaks happen in one place. Web uses the same labels via
+// the data returned from GET /api/admin/site, so the two stay in sync
+// through the shared resolver in services/theme_presets.py.
+const PRESET_LABELS = {
+  classic: "Classic", monochrome: "Monochrome",
+  dark: "Dark", luxe: "Luxe",
+};
+const FONT_LABELS = {
+  playfair_inter: "Editorial",
+  cormorant_inter: "Elegant",
+  archivo_inter: "Clean",
+  space_grotesk: "Modern",
+  dm_serif_inter: "Warm",
+};
+const SECTION_META = {
+  team:         { label: "Team",         icon: "people-outline" },
+  services:     { label: "Services",     icon: "cut-outline" },
+  gallery:      { label: "Gallery",      icon: "images-outline" },
+  testimonials: { label: "Testimonials", icon: "chatbubbles-outline" },
+};
+const DEFAULT_ORDER = ["team", "services", "gallery", "testimonials"];
 
 export default function BrandedSiteScreen() {
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  // Legacy fields
   const [tagline, setTagline] = useState("");
   const [about, setAbout] = useState("");
   const [heroImage, setHeroImage] = useState("");
@@ -37,6 +51,21 @@ export default function BrandedSiteScreen() {
   const [teamSubtitle, setTeamSubtitle] = useState("");
   const [servicesTitle, setServicesTitle] = useState("");
   const [servicesSubtitle, setServicesSubtitle] = useState("");
+
+  // Theme fields (Tier 1)
+  const [preset, setPreset] = useState("classic");
+  const [fontPair, setFontPair] = useState("playfair_inter");
+  const [heroMode, setHeroMode] = useState("image");
+  const [heroVideo, setHeroVideo] = useState("");
+  const [videoUploading, setVideoUploading] = useState(false);
+  const [accentColor, setAccentColor] = useState("");
+  const [bgColor, setBgColor] = useState("");
+  const [textColor, setTextColor] = useState("");
+  const [sectionOrder, setSectionOrder] = useState(DEFAULT_ORDER);
+  const [sectionsHidden, setSectionsHidden] = useState([]);
+  const [showCustomColors, setShowCustomColors] = useState(false);
+  const [themePresets, setThemePresets] = useState({});
+  const [fontPairs, setFontPairs] = useState({});
 
   useEffect(() => { load(); }, []);
 
@@ -55,12 +84,64 @@ export default function BrandedSiteScreen() {
       setTeamSubtitle(data.site_team_subtitle || "");
       setServicesTitle(data.site_services_title || "");
       setServicesSubtitle(data.site_services_subtitle || "");
+
+      setPreset(data.site_theme_preset || "classic");
+      setFontPair(data.site_font_pair || "playfair_inter");
+      setHeroMode(data.site_hero_mode || "image");
+      setHeroVideo(data.site_hero_video || "");
+      setAccentColor(data.site_accent_color || "");
+      setBgColor(data.site_bg_color || "");
+      setTextColor(data.site_text_color || "");
+
+      const defOrd = data._default_section_order || DEFAULT_ORDER;
+      let parsedOrder = null;
+      try { parsedOrder = data.site_section_order ? JSON.parse(data.site_section_order) : null; } catch (e) {}
+      let order = Array.isArray(parsedOrder) && parsedOrder.length ? parsedOrder : defOrd;
+      // Append missing sections, drop unknowns
+      defOrd.forEach((s) => { if (order.indexOf(s) === -1) order.push(s); });
+      order = order.filter((s) => defOrd.indexOf(s) !== -1);
+      setSectionOrder(order);
+
+      let parsedHidden = [];
+      try { parsedHidden = data.site_sections_hidden ? JSON.parse(data.site_sections_hidden) : []; } catch (e) {}
+      setSectionsHidden(Array.isArray(parsedHidden) ? parsedHidden : []);
+
+      setThemePresets(data._theme_presets || {});
+      setFontPairs(data._font_pairs || {});
+
       loadPhotos();
     } catch (err) {
       Alert.alert("Error", err.message);
     } finally {
       setLoading(false);
     }
+  }
+
+  async function selectPreset(key) {
+    setPreset(key);
+    // Clear overrides so the preset values take effect
+    setAccentColor(""); setBgColor(""); setTextColor("");
+    try {
+      await api.adminUpdateSite({
+        site_theme_preset: key,
+        site_bg_color: "", site_surface_color: "",
+        site_text_color: "", site_accent_color: "",
+      });
+    } catch (err) { Alert.alert("Save failed", err.message); }
+  }
+
+  async function selectFontPair(key) {
+    setFontPair(key);
+    try {
+      await api.adminUpdateSite({ site_font_pair: key });
+    } catch (err) { Alert.alert("Save failed", err.message); }
+  }
+
+  async function selectHeroMode(mode) {
+    setHeroMode(mode);
+    try {
+      await api.adminUpdateSite({ site_hero_mode: mode });
+    } catch (err) { Alert.alert("Save failed", err.message); }
   }
 
   async function pickHeroImage() {
@@ -91,6 +172,36 @@ export default function BrandedSiteScreen() {
     }
   }
 
+  async function pickHeroVideo() {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert("Permission needed", "Please grant photo access to upload a video.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['videos'],
+      allowsEditing: false,
+      quality: 0.85,
+      videoMaxDuration: 20,
+    });
+    if (result.canceled || !result.assets?.[0]) return;
+    setVideoUploading(true);
+    try {
+      const asset = result.assets[0];
+      const mime = asset.mimeType || "video/mp4";
+      const res = await api.adminUpload(asset.uri, "hero_video", undefined, mime);
+      if (res.url) {
+        setHeroVideo(res.url);
+        await api.adminUpdateSite({ site_hero_video: res.url });
+        Alert.alert("Uploaded", "Hero video saved. Your site will use it in Video mode.");
+      }
+    } catch (err) {
+      Alert.alert("Upload failed", err.message);
+    } finally {
+      setVideoUploading(false);
+    }
+  }
+
   async function clearHero() {
     Alert.alert("Remove hero image?", null, [
       { text: "Cancel", style: "cancel" },
@@ -98,6 +209,18 @@ export default function BrandedSiteScreen() {
         try {
           await api.adminUpdateSite({ site_hero_image: "" });
           setHeroImage("");
+        } catch (err) { Alert.alert("Error", err.message); }
+      }},
+    ]);
+  }
+
+  async function clearHeroVideo() {
+    Alert.alert("Remove hero video?", null, [
+      { text: "Cancel", style: "cancel" },
+      { text: "Remove", style: "destructive", onPress: async () => {
+        try {
+          await api.adminUpdateSite({ site_hero_video: "" });
+          setHeroVideo("");
         } catch (err) { Alert.alert("Error", err.message); }
       }},
     ]);
@@ -148,6 +271,30 @@ export default function BrandedSiteScreen() {
     ]);
   }
 
+  async function moveSection(sid, delta) {
+    const next = sectionOrder.slice();
+    const idx = next.indexOf(sid);
+    if (idx === -1) return;
+    const target = idx + delta;
+    if (target < 0 || target >= next.length) return;
+    next.splice(idx, 1);
+    next.splice(target, 0, sid);
+    setSectionOrder(next);
+    try {
+      await api.adminUpdateSite({ site_section_order: next });
+    } catch (err) { Alert.alert("Save failed", err.message); }
+  }
+
+  async function toggleSectionVisibility(sid) {
+    const next = sectionsHidden.slice();
+    const idx = next.indexOf(sid);
+    if (idx === -1) next.push(sid); else next.splice(idx, 1);
+    setSectionsHidden(next);
+    try {
+      await api.adminUpdateSite({ site_sections_hidden: next });
+    } catch (err) { Alert.alert("Save failed", err.message); }
+  }
+
   async function save() {
     setSaving(true);
     try {
@@ -155,6 +302,9 @@ export default function BrandedSiteScreen() {
         site_tagline: tagline,
         site_about: about,
         site_brand_color: brandColor,
+        site_accent_color: accentColor,
+        site_bg_color: bgColor,
+        site_text_color: textColor,
         site_instagram: instagram,
         site_team_title: teamTitle,
         site_team_subtitle: teamSubtitle,
@@ -171,8 +321,6 @@ export default function BrandedSiteScreen() {
 
   function openPreview() {
     if (previewUrl) {
-      // previewUrl is now a full URL like https://slug.getclipd.ca/
-      // Append cache-buster so the latest content is always fetched
       const sep = previewUrl.includes('?') ? '&' : '?';
       Linking.openURL(`${previewUrl}${sep}_v=${Date.now()}`);
     }
@@ -193,7 +341,7 @@ export default function BrandedSiteScreen() {
         <View style={styles.headerIcon}><Ionicons name="globe-outline" size={22} color={C.terra} /></View>
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle}>Your Branded Site</Text>
-          <Text style={styles.headerSub}>A beautiful public landing page that pulls from your bookings, services, team, and reviews.</Text>
+          <Text style={styles.headerSub}>Pick a theme that fits your shop, or customize every detail.</Text>
         </View>
       </View>
 
@@ -206,9 +354,140 @@ export default function BrandedSiteScreen() {
         <Ionicons name="open-outline" size={18} color={C.terra} />
       </TouchableOpacity>
 
-      {/* Hero Image */}
+      {/* Theme presets */}
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>HERO BACKGROUND IMAGE</Text>
+        <Text style={styles.sectionLabel}>THEME</Text>
+        <Text style={styles.helperText}>Sets colors + font pair in one tap.</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.presetRow}>
+          {Object.keys(themePresets).map((key) => {
+            const p = themePresets[key];
+            const active = preset === key;
+            return (
+              <TouchableOpacity
+                key={key}
+                style={[styles.presetCard, active && styles.presetCardActive]}
+                onPress={() => selectPreset(key)}
+              >
+                <View style={[styles.presetSwatch, { backgroundColor: p.bg, borderColor: p.border || C.border }]}>
+                  <View style={[styles.presetDot, { backgroundColor: p.brand, borderColor: p.surface }]} />
+                </View>
+                <Text style={styles.presetLabel}>{PRESET_LABELS[key] || key}</Text>
+                {active && <Text style={styles.presetSelected}>✓ Selected</Text>}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+
+      {/* Font pair */}
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>FONTS</Text>
+        <Text style={styles.helperText}>Headings &amp; body text.</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.fontRow}>
+          {Object.keys(fontPairs).map((key) => {
+            const active = fontPair === key;
+            return (
+              <TouchableOpacity
+                key={key}
+                style={[styles.fontCard, active && styles.fontCardActive]}
+                onPress={() => selectFontPair(key)}
+              >
+                <Text style={[styles.fontPreview, { fontFamily: serif }]}>Aa</Text>
+                <Text style={[styles.fontLabel, active && { color: C.terra, fontWeight: "700" }]}>{FONT_LABELS[key] || key}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+
+      {/* Hero style */}
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>HERO STYLE</Text>
+        <Text style={styles.helperText}>The big section at the top of your site.</Text>
+        <View style={styles.heroTabs}>
+          {["image", "video", "solid"].map((mode) => {
+            const active = heroMode === mode;
+            return (
+              <TouchableOpacity
+                key={mode}
+                style={[styles.heroTab, active && styles.heroTabActive]}
+                onPress={() => selectHeroMode(mode)}
+              >
+                <Text style={[styles.heroTabText, active && styles.heroTabTextActive]}>
+                  {mode[0].toUpperCase() + mode.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {heroMode === "video" && (
+          <View style={{ marginTop: 14 }}>
+            <View style={styles.videoPreview}>
+              <Ionicons name={heroVideo ? "checkmark-circle" : "videocam-outline"} size={30} color={heroVideo ? "#4ade80" : "#fff"} />
+              <Text style={{ color: "#fff", fontSize: 12, marginTop: 4 }}>
+                {heroVideo ? "Video uploaded" : "No video"}
+              </Text>
+            </View>
+            <View style={styles.heroBtnRow}>
+              <TouchableOpacity style={styles.heroBtn} onPress={pickHeroVideo} disabled={videoUploading}>
+                <Ionicons name="cloud-upload-outline" size={16} color={C.cream} />
+                <Text style={styles.heroBtnText}>{videoUploading ? "Uploading..." : (heroVideo ? "Change video" : "Choose video")}</Text>
+              </TouchableOpacity>
+              {heroVideo && (
+                <TouchableOpacity style={styles.heroBtnGhost} onPress={clearHeroVideo}>
+                  <Text style={styles.heroBtnGhostText}>Remove</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            <Text style={styles.helperText}>MP4, max 20MB, ~10s loops best. Uses your hero image as a poster fallback.</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Layout / section reorder */}
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>LAYOUT</Text>
+        <Text style={styles.helperText}>Reorder or hide sections on your page.</Text>
+        <View style={{ gap: 6 }}>
+          {sectionOrder.map((sid, idx) => {
+            const meta = SECTION_META[sid];
+            if (!meta) return null;
+            const isHidden = sectionsHidden.indexOf(sid) !== -1;
+            return (
+              <View key={sid} style={[styles.sectionRow, isHidden && styles.sectionRowHidden]}>
+                <TouchableOpacity
+                  disabled={idx === 0}
+                  onPress={() => moveSection(sid, -1)}
+                  style={styles.sectionIconBtn}
+                >
+                  <Ionicons name="chevron-up" size={20} color={idx === 0 ? C.border : C.espresso} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  disabled={idx === sectionOrder.length - 1}
+                  onPress={() => moveSection(sid, +1)}
+                  style={styles.sectionIconBtn}
+                >
+                  <Ionicons name="chevron-down" size={20} color={idx === sectionOrder.length - 1 ? C.border : C.espresso} />
+                </TouchableOpacity>
+                <Ionicons name={meta.icon} size={18} color={C.muted} style={{ marginLeft: 4 }} />
+                <Text style={styles.sectionRowLabel}>{meta.label}</Text>
+                <TouchableOpacity
+                  onPress={() => toggleSectionVisibility(sid)}
+                  style={styles.sectionIconBtn}
+                >
+                  <Ionicons name={isHidden ? "eye-off-outline" : "eye-outline"} size={18} color={isHidden ? C.muted : C.espresso} />
+                </TouchableOpacity>
+              </View>
+            );
+          })}
+        </View>
+      </View>
+
+      {/* Hero Image (separate section, still editable regardless of hero mode) */}
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>HERO IMAGE</Text>
+        <Text style={styles.helperText}>Used in Image mode, and as a poster fallback for Video mode.</Text>
         {heroImage ? (
           <Image source={{ uri: heroImage }} style={styles.heroPreview} />
         ) : (
@@ -228,7 +507,6 @@ export default function BrandedSiteScreen() {
             </TouchableOpacity>
           )}
         </View>
-        <Text style={styles.helperText}>Recommended 1920×1200 · Max 5MB · JPG/PNG/WebP</Text>
       </View>
 
       {/* Tagline */}
@@ -245,43 +523,24 @@ export default function BrandedSiteScreen() {
         />
       </View>
 
-      {/* About section removed — didn't drive conversions. Field still in DB. */}
-
-      {/* Brand Color */}
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>BRAND COLOR</Text>
-        <Text style={styles.helperText}>Used for buttons and accents on your site. Pick a preset or enter any hex code.</Text>
-        <View style={styles.colorRow}>
-          {PRESET_COLORS.map((color) => {
-            const active = brandColor.toLowerCase() === color.toLowerCase();
-            return (
-              <TouchableOpacity
-                key={color}
-                style={[styles.colorSwatch, { backgroundColor: color }, active && styles.colorSwatchActive]}
-                onPress={() => setBrandColor(color)}
-              >
-                {active && <Ionicons name="checkmark" size={18} color="#fff" />}
-              </TouchableOpacity>
-            );
-          })}
+      {/* Customize colors (disclosure) */}
+      <TouchableOpacity
+        style={[styles.section, styles.disclosureHeader]}
+        onPress={() => setShowCustomColors(!showCustomColors)}
+      >
+        <Ionicons name="color-palette-outline" size={20} color={C.espresso} />
+        <Text style={styles.disclosureText}>Customize colors</Text>
+        <Ionicons name={showCustomColors ? "chevron-up" : "chevron-down"} size={18} color={C.muted} />
+      </TouchableOpacity>
+      {showCustomColors && (
+        <View style={[styles.section, { marginTop: -12, paddingTop: 12 }]}>
+          <HexInput label="Primary / brand" value={brandColor} onChange={setBrandColor} defaultHex="#C4683E" />
+          <HexInput label="Accent"          value={accentColor} onChange={setAccentColor} defaultHex="" placeholder="Use preset" />
+          <HexInput label="Background"      value={bgColor}     onChange={setBgColor}     defaultHex="" placeholder="Use preset" />
+          <HexInput label="Text"            value={textColor}   onChange={setTextColor}   defaultHex="" placeholder="Use preset" />
+          <Text style={styles.helperText}>Leave blank to use the theme's preset value.</Text>
         </View>
-        <View style={styles.customColorRow}>
-          <View style={[styles.customColorPreview, { backgroundColor: /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(brandColor) ? brandColor : "#C4683E" }]} />
-          <TextInput
-            style={styles.customColorInput}
-            value={brandColor}
-            onChangeText={(val) => {
-              let v = val.trim();
-              if (v && !v.startsWith("#")) v = "#" + v;
-              if (v.length <= 7) setBrandColor(v);
-            }}
-            placeholder="#C4683E"
-            placeholderTextColor={C.muted}
-            autoCapitalize="characters"
-            maxLength={7}
-          />
-        </View>
-      </View>
+      )}
 
       {/* Instagram */}
       <View style={styles.section}>
@@ -352,6 +611,31 @@ export default function BrandedSiteScreen() {
   );
 }
 
+function HexInput({ label, value, onChange, defaultHex, placeholder }) {
+  const validHex = /^#([0-9A-Fa-f]{6})$/.test(value);
+  return (
+    <View style={{ marginBottom: 12 }}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <View style={styles.hexRow}>
+        <View style={[styles.hexSwatch, { backgroundColor: validHex ? value : (defaultHex || "#E0E0E0") }]} />
+        <TextInput
+          style={styles.hexInput}
+          value={value}
+          onChangeText={(v) => {
+            let val = v.trim();
+            if (val && !val.startsWith("#")) val = "#" + val;
+            if (val.length <= 7) onChange(val);
+          }}
+          placeholder={placeholder || defaultHex || "#RRGGBB"}
+          placeholderTextColor={C.muted}
+          autoCapitalize="characters"
+          maxLength={7}
+        />
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.cream },
   center: { alignItems: "center", justifyContent: "center" },
@@ -390,7 +674,69 @@ const styles = StyleSheet.create({
     borderRadius: 8, padding: 12,
     fontSize: 14, color: C.espresso,
   },
-  textarea: { minHeight: 100, textAlignVertical: "top" },
+
+  presetRow: { gap: 10, paddingVertical: 4, paddingRight: 4 },
+  presetCard: {
+    width: 120, padding: 10, borderRadius: 10,
+    backgroundColor: C.surface, borderWidth: 2, borderColor: C.border,
+  },
+  presetCardActive: { borderColor: C.terra },
+  presetSwatch: {
+    height: 46, borderRadius: 7, borderWidth: 1,
+    alignItems: "flex-end", justifyContent: "flex-end",
+    paddingBottom: 5, paddingLeft: 5,
+  },
+  presetDot: { width: 14, height: 14, borderRadius: 7, borderWidth: 2 },
+  presetLabel: { fontSize: 13, fontWeight: "700", color: C.espresso, marginTop: 8 },
+  presetSelected: { fontSize: 11, color: C.terra, fontWeight: "700", marginTop: 2 },
+
+  fontRow: { gap: 8, paddingVertical: 4, paddingRight: 4 },
+  fontCard: {
+    width: 100, padding: 10, borderRadius: 8,
+    backgroundColor: C.surface, borderWidth: 1.5, borderColor: C.border,
+  },
+  fontCardActive: { borderColor: C.terra },
+  fontPreview: { fontSize: 22, fontWeight: "700", color: C.espresso, lineHeight: 24 },
+  fontLabel: { fontSize: 11, fontWeight: "500", color: C.muted, marginTop: 4 },
+
+  heroTabs: {
+    flexDirection: "row", alignSelf: "flex-start",
+    padding: 3, borderWidth: 1, borderColor: C.border, borderRadius: 10,
+    backgroundColor: C.surface, gap: 2,
+  },
+  heroTab: { paddingVertical: 7, paddingHorizontal: 16, borderRadius: 7 },
+  heroTabActive: { backgroundColor: C.terra },
+  heroTabText: { fontSize: 13, fontWeight: "700", color: C.espresso },
+  heroTabTextActive: { color: C.cream },
+
+  videoPreview: {
+    width: 140, height: 84, borderRadius: 10,
+    backgroundColor: "#000", alignItems: "center", justifyContent: "center",
+    borderWidth: 2, borderColor: C.border, marginBottom: 10,
+  },
+
+  sectionRow: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+    paddingHorizontal: 10, paddingVertical: 10,
+    backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 8,
+  },
+  sectionRowHidden: { opacity: 0.55, backgroundColor: "rgba(0,0,0,0.02)" },
+  sectionRowLabel: { flex: 1, fontSize: 14, fontWeight: "600", color: C.espresso, marginLeft: 6 },
+  sectionIconBtn: { padding: 4 },
+
+  hexRow: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    backgroundColor: C.surface, borderWidth: 1, borderColor: C.border,
+    borderRadius: 8, padding: 8,
+  },
+  hexSwatch: { width: 30, height: 30, borderRadius: 6, borderWidth: 1, borderColor: C.border },
+  hexInput: { flex: 1, fontSize: 14, fontFamily: "Courier", letterSpacing: 1, color: C.espresso, fontWeight: "600" },
+
+  disclosureHeader: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    paddingVertical: 14,
+  },
+  disclosureText: { flex: 1, fontSize: 15, fontWeight: "700", color: C.espresso },
 
   heroPreview: {
     width: "100%", aspectRatio: 16 / 10,
@@ -411,26 +757,6 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: C.border, backgroundColor: C.white,
   },
   heroBtnGhostText: { fontSize: 13, fontWeight: "700", color: C.muted },
-
-  colorRow: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 6 },
-  colorSwatch: {
-    width: 44, height: 44, borderRadius: 22,
-    alignItems: "center", justifyContent: "center",
-    borderWidth: 2, borderColor: "transparent",
-  },
-  colorSwatchActive: { borderColor: C.espresso, transform: [{ scale: 1.1 }] },
-  customColorRow: {
-    flexDirection: "row", alignItems: "center", gap: 10, marginTop: 14,
-    backgroundColor: C.surface, borderRadius: 8, borderWidth: 1, borderColor: C.border,
-    padding: 8,
-  },
-  customColorPreview: {
-    width: 36, height: 36, borderRadius: 8, borderWidth: 1, borderColor: C.border,
-  },
-  customColorInput: {
-    flex: 1, fontSize: 15, fontWeight: "700", color: C.espresso,
-    fontFamily: "Courier", letterSpacing: 1,
-  },
 
   galleryAddBtn: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: C.terra, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999 },
   galleryAddText: { fontSize: 12, fontWeight: "800", color: C.cream },
