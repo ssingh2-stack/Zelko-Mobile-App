@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  View, Text, ScrollView, StyleSheet, TextInput, TouchableOpacity, Image, Alert, Linking, ActivityIndicator,
+  View, Text, ScrollView, StyleSheet, TextInput, TouchableOpacity, Image, Alert, Linking, ActivityIndicator, Modal, Pressable,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -407,11 +407,11 @@ export default function BrandedSiteScreen() {
       </TouchableOpacity>
       {showCustomColors && (
         <View style={[styles.section, { marginTop: -12, paddingTop: 12 }]}>
-          <HexInput label="Primary / brand" value={brandColor} onChange={setBrandColor} defaultHex="#C4683E" />
-          <HexInput label="Accent"          value={accentColor} onChange={setAccentColor} defaultHex="" placeholder="Use preset" />
-          <HexInput label="Background"      value={bgColor}     onChange={setBgColor}     defaultHex="" placeholder="Use preset" />
-          <HexInput label="Text"            value={textColor}   onChange={setTextColor}   defaultHex="" placeholder="Use preset" />
-          <Text style={styles.helperText}>Leave blank to use the theme's preset value.</Text>
+          <ColorField label="Primary / brand" value={brandColor} onChange={setBrandColor} defaultHex="#C4683E" />
+          <ColorField label="Accent"          value={accentColor} onChange={setAccentColor} allowClear />
+          <ColorField label="Background"      value={bgColor}     onChange={setBgColor}     allowClear />
+          <ColorField label="Text"            value={textColor}   onChange={setTextColor}   allowClear />
+          <Text style={styles.helperText}>Any color you leave as "preset default" uses whatever the theme sets. Tap to pick or enter a custom hex.</Text>
         </View>
       )}
 
@@ -437,7 +437,7 @@ export default function BrandedSiteScreen() {
         </ScrollView>
       </View>
 
-      {/* Hero style */}
+      {/* Hero style — image / video / solid, with the relevant upload inline */}
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>HERO STYLE</Text>
         <Text style={styles.helperText}>The big section at the top of your site.</Text>
@@ -458,6 +458,31 @@ export default function BrandedSiteScreen() {
           })}
         </View>
 
+        {heroMode === "image" && (
+          <View style={{ marginTop: 14 }}>
+            {heroImage ? (
+              <Image source={{ uri: heroImage }} style={styles.heroPreview} />
+            ) : (
+              <View style={[styles.heroPreview, styles.heroPlaceholder]}>
+                <Ionicons name="image-outline" size={32} color={C.muted} />
+                <Text style={{ fontSize: 12, color: C.muted, marginTop: 6 }}>No hero image yet</Text>
+              </View>
+            )}
+            <View style={styles.heroBtnRow}>
+              <TouchableOpacity style={styles.heroBtn} onPress={pickHeroImage} disabled={uploading}>
+                <Ionicons name="camera-outline" size={16} color={C.cream} />
+                <Text style={styles.heroBtnText}>{uploading ? "Uploading..." : (heroImage ? "Change Image" : "Choose Image")}</Text>
+              </TouchableOpacity>
+              {heroImage && (
+                <TouchableOpacity style={styles.heroBtnGhost} onPress={clearHero}>
+                  <Text style={styles.heroBtnGhostText}>Remove</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            <Text style={styles.helperText}>JPG/PNG/WebP · Recommended 1920×1200 · Max 5MB</Text>
+          </View>
+        )}
+
         {heroMode === "video" && (
           <View style={{ marginTop: 14 }}>
             <View style={styles.videoPreview}>
@@ -477,8 +502,36 @@ export default function BrandedSiteScreen() {
                 </TouchableOpacity>
               )}
             </View>
-            <Text style={styles.helperText}>MP4, max 20MB, ~10s loops best. Uses your hero image as a poster fallback.</Text>
+            <Text style={styles.helperText}>MP4, max 20MB, ~10s loops best.</Text>
+
+            {/* Poster (existing hero image used as fallback while video loads) */}
+            <Text style={[styles.fieldLabel, { marginTop: 12 }]}>Poster image <Text style={{ color: C.muted, fontWeight: "400" }}>— shown while the video loads</Text></Text>
+            {heroImage ? (
+              <Image source={{ uri: heroImage }} style={[styles.heroPreview, { marginTop: 6 }]} />
+            ) : (
+              <View style={[styles.heroPreview, styles.heroPlaceholder, { marginTop: 6 }]}>
+                <Ionicons name="image-outline" size={24} color={C.muted} />
+                <Text style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>Optional — falls back to brand color</Text>
+              </View>
+            )}
+            <View style={styles.heroBtnRow}>
+              <TouchableOpacity style={styles.heroBtn} onPress={pickHeroImage} disabled={uploading}>
+                <Ionicons name="camera-outline" size={16} color={C.cream} />
+                <Text style={styles.heroBtnText}>{uploading ? "Uploading..." : (heroImage ? "Change poster" : "Choose poster")}</Text>
+              </TouchableOpacity>
+              {heroImage && (
+                <TouchableOpacity style={styles.heroBtnGhost} onPress={clearHero}>
+                  <Text style={styles.heroBtnGhostText}>Remove</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
+        )}
+
+        {heroMode === "solid" && (
+          <Text style={[styles.helperText, { marginTop: 10 }]}>
+            The hero will use your brand color with the shop's initial — no image or video.
+          </Text>
         )}
       </View>
 
@@ -534,38 +587,6 @@ export default function BrandedSiteScreen() {
         <Text style={styles.fieldLabel}>Services subtitle</Text>
         <TextInput style={styles.input} value={servicesSubtitle} onChangeText={setServicesSubtitle} placeholder="Professional cuts, fades, and grooming." placeholderTextColor={C.muted} maxLength={200} />
       </View>
-
-      {/* Hero Image — hidden in Solid mode (no image is shown on the site);
-          relabeled as "Poster image" in Video mode since that's its role */}
-      {heroMode !== "solid" && (
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>{heroMode === "video" ? "POSTER IMAGE" : "HERO IMAGE"}</Text>
-          <Text style={styles.helperText}>
-            {heroMode === "video"
-              ? "Shown while the video loads, and on devices that can't autoplay."
-              : "Full-width image behind your shop name in the hero."}
-          </Text>
-          {heroImage ? (
-            <Image source={{ uri: heroImage }} style={styles.heroPreview} />
-          ) : (
-            <View style={[styles.heroPreview, styles.heroPlaceholder]}>
-              <Ionicons name="image-outline" size={32} color={C.muted} />
-              <Text style={{ fontSize: 12, color: C.muted, marginTop: 6 }}>No hero image yet</Text>
-            </View>
-          )}
-          <View style={styles.heroBtnRow}>
-            <TouchableOpacity style={styles.heroBtn} onPress={pickHeroImage} disabled={uploading}>
-              <Ionicons name="camera-outline" size={16} color={C.cream} />
-              <Text style={styles.heroBtnText}>{uploading ? "Uploading..." : (heroImage ? "Change Image" : "Choose Image")}</Text>
-            </TouchableOpacity>
-            {heroImage && (
-              <TouchableOpacity style={styles.heroBtnGhost} onPress={clearHero}>
-                <Text style={styles.heroBtnGhostText}>Remove</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-      )}
 
       {/* Tagline */}
       <View style={styles.section}>
@@ -647,27 +668,130 @@ function lightBrand(hex) {
   } catch (e) { return false; }
 }
 
-function HexInput({ label, value, onChange, defaultHex, placeholder }) {
-  const validHex = /^#([0-9A-Fa-f]{6})$/.test(value);
+// Curated palette shown in the color picker modal. Word-style: a grid of
+// greyscale on the left, then warm → cool → accent colors. Designed to cover
+// 90% of barbershop brand choices; "Custom hex" at the bottom covers the rest.
+const PALETTE = [
+  // Row 1 — neutrals (white → black)
+  "#FFFFFF", "#F5F5F5", "#E5E5E5", "#C7C7C7", "#9B8677", "#6B6B6B", "#2A2A2A", "#0F0F0F",
+  // Row 2 — creams / warm neutrals
+  "#F7F3EE", "#F5F1E8", "#F8F3E6", "#EBE3D7", "#E0D5CB", "#D9D0C5", "#B8A98F", "#8A7654",
+  // Row 3 — warm / barber tones
+  "#C4683E", "#994D3A", "#A74E3E", "#8C6B2C", "#B8911F", "#6B3226", "#4A2018", "#2C1810",
+  // Row 4 — cool + accent
+  "#0F4C5C", "#2E5266", "#4A6B8A", "#1A4340", "#4A5D3A", "#7B4B94", "#5D4379", "#1F2A44",
+  // Row 5 — brights
+  "#E74C3C", "#E67E22", "#F1C40F", "#27AE60", "#3498DB", "#9B59B6", "#FF6B9D", "#00C49A",
+];
+
+function ColorPickerModal({ visible, title, initialColor, onPick, onClose, allowClear }) {
+  const [local, setLocal] = useState(initialColor || "");
+  // Re-sync when the modal opens with a new color
+  useEffect(() => { if (visible) setLocal(initialColor || ""); }, [visible, initialColor]);
+  const validHex = /^#([0-9A-Fa-f]{6})$/.test(local);
+  return (
+    <Modal transparent animationType="fade" visible={visible} onRequestClose={onClose}>
+      <Pressable style={pickerStyles.backdrop} onPress={onClose}>
+        <Pressable style={pickerStyles.sheet} onPress={(e) => e.stopPropagation()}>
+          <Text style={pickerStyles.title}>{title}</Text>
+          <View style={pickerStyles.grid}>
+            {PALETTE.map((c) => {
+              const selected = local.toUpperCase() === c.toUpperCase();
+              return (
+                <TouchableOpacity
+                  key={c}
+                  style={[
+                    pickerStyles.swatch,
+                    { backgroundColor: c },
+                    selected && pickerStyles.swatchSelected,
+                    c.toUpperCase() === "#FFFFFF" && pickerStyles.swatchBordered,
+                  ]}
+                  onPress={() => setLocal(c)}
+                >
+                  {selected && <Ionicons name="checkmark" size={16} color={isLight(c) ? "#000" : "#fff"} />}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <Text style={pickerStyles.customLabel}>Or enter a custom color</Text>
+          <View style={pickerStyles.hexRow}>
+            <View style={[pickerStyles.hexPreview, { backgroundColor: validHex ? local : "#E0E0E0" }]} />
+            <TextInput
+              style={pickerStyles.hexInput}
+              value={local}
+              onChangeText={(v) => {
+                let val = v.trim();
+                if (val && !val.startsWith("#")) val = "#" + val;
+                if (val.length <= 7) setLocal(val);
+              }}
+              placeholder="#RRGGBB"
+              placeholderTextColor={C.muted}
+              autoCapitalize="characters"
+              maxLength={7}
+            />
+          </View>
+          <View style={pickerStyles.btnRow}>
+            {allowClear && (
+              <TouchableOpacity
+                style={[pickerStyles.btn, pickerStyles.btnGhost]}
+                onPress={() => { onPick(""); onClose(); }}
+              >
+                <Text style={pickerStyles.btnGhostText}>Reset to preset</Text>
+              </TouchableOpacity>
+            )}
+            <View style={{ flex: 1 }} />
+            <TouchableOpacity
+              style={[pickerStyles.btn, pickerStyles.btnGhost]}
+              onPress={onClose}
+            >
+              <Text style={pickerStyles.btnGhostText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[pickerStyles.btn, pickerStyles.btnPrimary, !validHex && { opacity: 0.5 }]}
+              disabled={!validHex}
+              onPress={() => { onPick(local); onClose(); }}
+            >
+              <Text style={pickerStyles.btnPrimaryText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+function isLight(hex) {
+  try {
+    let h = hex.replace("#", "");
+    if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    return (0.299 * r + 0.587 * g + 0.114 * b) > 160;
+  } catch (e) { return false; }
+}
+
+function ColorField({ label, value, onChange, defaultHex, allowClear }) {
+  const [picking, setPicking] = useState(false);
+  const hasValue = value && /^#([0-9A-Fa-f]{6})$/.test(value);
   return (
     <View style={{ marginBottom: 12 }}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={styles.hexRow}>
-        <View style={[styles.hexSwatch, { backgroundColor: validHex ? value : (defaultHex || "#E0E0E0") }]} />
-        <TextInput
-          style={styles.hexInput}
-          value={value}
-          onChangeText={(v) => {
-            let val = v.trim();
-            if (val && !val.startsWith("#")) val = "#" + val;
-            if (val.length <= 7) onChange(val);
-          }}
-          placeholder={placeholder || defaultHex || "#RRGGBB"}
-          placeholderTextColor={C.muted}
-          autoCapitalize="characters"
-          maxLength={7}
-        />
-      </View>
+      <TouchableOpacity style={styles.colorFieldRow} onPress={() => setPicking(true)}>
+        <View style={[styles.colorFieldSwatch, { backgroundColor: hasValue ? value : (defaultHex || "#E0E0E0") }]} />
+        <Text style={styles.colorFieldText}>
+          {hasValue ? value : (allowClear ? "Using preset default" : (defaultHex || "Tap to choose"))}
+        </Text>
+        <Ionicons name="chevron-forward" size={18} color={C.muted} />
+      </TouchableOpacity>
+      <ColorPickerModal
+        visible={picking}
+        title={label}
+        initialColor={value || defaultHex || ""}
+        allowClear={allowClear}
+        onPick={onChange}
+        onClose={() => setPicking(false)}
+      />
     </View>
   );
 }
@@ -757,13 +881,16 @@ const styles = StyleSheet.create({
   sectionRowLabel: { flex: 1, fontSize: 14, fontWeight: "600", color: C.espresso, marginLeft: 6 },
   sectionIconBtn: { padding: 4 },
 
-  hexRow: {
-    flexDirection: "row", alignItems: "center", gap: 8,
+  colorFieldRow: {
+    flexDirection: "row", alignItems: "center", gap: 10,
     backgroundColor: C.surface, borderWidth: 1, borderColor: C.border,
-    borderRadius: 8, padding: 8,
+    borderRadius: 8, paddingHorizontal: 10, paddingVertical: 9,
   },
-  hexSwatch: { width: 30, height: 30, borderRadius: 6, borderWidth: 1, borderColor: C.border },
-  hexInput: { flex: 1, fontSize: 14, fontFamily: "Courier", letterSpacing: 1, color: C.espresso, fontWeight: "600" },
+  colorFieldSwatch: {
+    width: 28, height: 28, borderRadius: 6,
+    borderWidth: 1, borderColor: "rgba(0,0,0,.12)",
+  },
+  colorFieldText: { flex: 1, fontSize: 13, color: C.espresso, fontWeight: "600", fontFamily: "Courier" },
 
   disclosureHeader: {
     flexDirection: "row", alignItems: "center", gap: 8,
@@ -812,4 +939,46 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: C.terra, backgroundColor: "transparent",
   },
   previewBtnText: { fontSize: 14, fontWeight: "800", color: C.terra },
+});
+
+const pickerStyles = StyleSheet.create({
+  backdrop: {
+    flex: 1, backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
+  },
+  sheet: {
+    backgroundColor: C.cream,
+    paddingTop: 16, paddingBottom: 36,
+    paddingHorizontal: 20,
+    borderTopLeftRadius: 20, borderTopRightRadius: 20,
+  },
+  title: { fontSize: 17, fontWeight: "800", color: C.espresso, marginBottom: 14 },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 18 },
+  swatch: {
+    width: 36, height: 36, borderRadius: 8,
+    alignItems: "center", justifyContent: "center",
+    borderWidth: 2, borderColor: "transparent",
+  },
+  swatchSelected: { borderColor: C.espresso, transform: [{ scale: 1.08 }] },
+  swatchBordered: { borderColor: "rgba(0,0,0,0.12)", borderWidth: 1 },
+
+  customLabel: { fontSize: 12, fontWeight: "700", color: C.muted, letterSpacing: 1, marginBottom: 8 },
+  hexRow: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+    backgroundColor: C.white, borderWidth: 1, borderColor: C.border,
+    borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10,
+    marginBottom: 16,
+  },
+  hexPreview: { width: 28, height: 28, borderRadius: 6, borderWidth: 1, borderColor: "rgba(0,0,0,.12)" },
+  hexInput: {
+    flex: 1, fontSize: 15, fontFamily: "Courier", letterSpacing: 1,
+    color: C.espresso, fontWeight: "700",
+  },
+
+  btnRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  btn: { paddingHorizontal: 16, paddingVertical: 11, borderRadius: 10 },
+  btnGhost: { backgroundColor: "transparent" },
+  btnGhostText: { fontSize: 14, fontWeight: "700", color: C.muted },
+  btnPrimary: { backgroundColor: C.espresso },
+  btnPrimaryText: { fontSize: 14, fontWeight: "800", color: C.cream },
 });
