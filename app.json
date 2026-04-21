@@ -2,7 +2,7 @@
   "expo": {
     "name": "Clipd",
     "slug": "clipd-app",
-    "version": "1.0.5",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -23,7 +23,7 @@
           "remote-notification"
         ]
       },
-      "buildNumber": "12"
+      "buildNumber": "16"
     },
     "android": {
       "package": "ca.getclipd.app",
