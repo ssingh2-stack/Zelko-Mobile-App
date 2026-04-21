@@ -157,7 +157,7 @@ export const api = {
     try {
       const res = await fetch(`${BASE_URL}/api/admin/upload`, {
         method: "POST",
-        headers: { "X-Mobile-Token": token },
+        headers: { "X-Mobile-Token": token, "Idempotency-Key": _randKey() },
         body: form,
         signal: controller.signal,
       });

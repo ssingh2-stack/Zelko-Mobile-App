@@ -99,6 +99,7 @@ export default function SettingsScreen() {
   async function savePassword() {
     if (!currentPw) { Alert.alert("Error", "Enter your current password."); return; }
     if (!newPw)     { Alert.alert("Error", "Enter a new password."); return; }
+    if (newPw.length < 8) { Alert.alert("Error", "Password must be at least 8 characters."); return; }
     if (newPw !== confirmPw) { Alert.alert("Error", "Passwords don't match."); return; }
     setSavingPw(true); setPwMsg("");
     try {

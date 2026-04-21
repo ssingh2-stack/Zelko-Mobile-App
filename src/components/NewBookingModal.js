@@ -173,8 +173,11 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
     const effectivePhone = isWalkin ? "" : phone.trim();
 
     if (!isWalkin && !effectiveName) { setError("Customer name is required."); return; }
+    if (!isWalkin && effectiveName.length > 200) { setError("Name is too long."); return; }
     if (!isWalkin && !effectivePhone) { setError("Phone number is required."); return; }
+    if (!isWalkin && effectivePhone.length > 30) { setError("Phone number is too long."); return; }
     if (!isWalkin && !effectiveEmail) { setError("Email address is required."); return; }
+    if (!isWalkin && (!effectiveEmail.includes("@") || effectiveEmail.length > 254)) { setError("Please enter a valid email address."); return; }
     if (!slot) { setError("Please select a time slot."); return; }
 
     setSubmitting(true);

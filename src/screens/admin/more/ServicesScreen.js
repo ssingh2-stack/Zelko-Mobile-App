@@ -40,9 +40,13 @@ export default function ServicesScreen() {
     if (!name.trim())     { setAddError("Service name is required."); return; }
     if (!duration.trim()) { setAddError("Duration is required."); return; }
     if (!price.trim())    { setAddError("Price is required."); return; }
+    const durMin = parseInt(duration);
+    if (!Number.isFinite(durMin) || durMin < 5) { setAddError("Duration must be at least 5 minutes."); return; }
+    const priceNum = parseFloat(price);
+    if (!Number.isFinite(priceNum) || priceNum < 0) { setAddError("Price must be a non-negative number."); return; }
     setAdding(true);
     try {
-      await api.adminAddService({ name: name.trim(), duration_min: parseInt(duration), price: parseFloat(price), description: desc.trim() });
+      await api.adminAddService({ name: name.trim(), duration_min: durMin, price: priceNum, description: desc.trim() });
       setName(""); setDuration(""); setPrice(""); setDesc("");
       hapticSuccess(); showToast("Service added!");
       load(true);

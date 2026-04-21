@@ -26,7 +26,7 @@ export default function CollectPaymentModal({ booking, visible, onClose, onSucce
 
   const servicePrice = parseFloat(booking.service_price ?? booking.price ?? 0);
   const depositPaid = (booking.amount_paid || 0) / 100; // stored in cents
-  const tipNum = parseFloat(tipAmount) || 0;
+  const tipNum = Math.max(0, parseFloat(tipAmount) || 0);
   const remaining = Math.max(servicePrice - depositPaid, 0);
   const total = remaining + tipNum;
 
