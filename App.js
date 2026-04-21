@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
-import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
+import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Text, ActivityIndicator, View, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import * as Notifications from "expo-notifications";
 
-const navigationRef = createNavigationContainerRef();
+import { navigationRef } from "./src/lib/navigation";
 
 // ── Error Boundary ───────────────────────────────────────────────────────────
 class ErrorBoundary extends React.Component {

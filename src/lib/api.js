@@ -2,7 +2,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 
 import Constants from "expo-constants";
+import { navigationRef } from "./navigation";
 const BASE_URL = Constants.expoConfig?.extra?.apiUrl || "https://app.getclipd.ca";
+
+// Clear local session artifacts WITHOUT calling api.logout (which would re-hit a dead token
+// and recurse back through request()). Used by the 401 auto-logout path.
+async function _wipeLocalSession() {
+  try { await SecureStore.deleteItemAsync("mobile_token"); } catch (_) {}
+  try { await AsyncStorage.removeItem("mobile_token"); } catch (_) {}
+  try { await AsyncStorage.removeItem("mobile_profile"); } catch (_) {}
+}
 
 async function getToken() {
   try {
@@ -39,6 +48,17 @@ async function request(path, options = {}) {
     clearTimeout(timeout);
     const data = await res.json();
     if (!res.ok) {
+      if (res.status === 401) {
+        // Token invalidated server-side (password change elsewhere, admin revoke, 14d expiry).
+        // Wipe local session and bounce to Login so user isn't stuck retrying a dead token.
+        await _wipeLocalSession();
+        if (navigationRef.isReady()) {
+          navigationRef.reset({ index: 0, routes: [{ name: "Login" }] });
+        }
+        const err = new Error("Your session has expired. Please sign in again.");
+        err.unauthorized = true;
+        throw err;
+      }
       if (data.error === "trial_expired") {
         const err = new Error(data.message || "Your free trial has ended. Visit getclipd.ca to subscribe.");
         err.trialExpired = true;
