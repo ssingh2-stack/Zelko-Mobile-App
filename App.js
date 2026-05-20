@@ -136,7 +136,7 @@ function MoreHomeScreen({ navigation }) {
   return (
     <View style={[moreStyles.container, { paddingTop: insets.top }]}>
       <View style={moreStyles.header}>
-        <Text style={moreStyles.headerLogo}>Clip<Text style={moreStyles.accent}>d</Text></Text>
+        <Text style={moreStyles.headerLogo}>CLIPD</Text>
         <Text style={moreStyles.headerSub}>More</Text>
       </View>
       {items.map(item => (
@@ -165,8 +165,7 @@ const moreStyles = StyleSheet.create({
     backgroundColor: C.espresso, paddingHorizontal: 16, paddingBottom: 14, paddingTop: 6,
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
   },
-  headerLogo: { fontFamily: serif, fontSize: 22, fontWeight: "900", color: C.cream },
-  accent: { color: C.terra },
+  headerLogo: { fontSize: 18, fontWeight: "900", color: C.terra, letterSpacing: -0.5 },
   headerSub: { fontSize: 11, fontWeight: "700", color: "rgba(247,243,238,0.4)", textTransform: "uppercase", letterSpacing: 2 },
   row: {
     flexDirection: "row", alignItems: "center", gap: 16,

@@ -90,7 +90,7 @@ export default function LoginScreen({ navigation }) {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          <Text style={styles.logo}>Clip<Text style={styles.logoAccent}>d</Text></Text>
+          <Text style={styles.logo}>CLIPD</Text>
           <Text style={styles.heading}>Create Your Account</Text>
           <Text style={styles.subheading}>Start managing your barbershop in minutes.</Text>
 
@@ -146,7 +146,7 @@ export default function LoginScreen({ navigation }) {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <Text style={styles.logo}>Clip<Text style={styles.logoAccent}>d</Text></Text>
+        <Text style={styles.logo}>CLIPD</Text>
 
         <View style={styles.toggle}>
           <TouchableOpacity
@@ -196,8 +196,7 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.cream },
   scrollContent: { flexGrow: 1, justifyContent: "center", paddingHorizontal: 32, paddingBottom: 40 },
-  logo: { fontFamily: serif, fontSize: 40, fontWeight: "900", color: C.espresso, textAlign: "center", marginBottom: 8 },
-  logoAccent: { color: C.terra },
+  logo: { fontSize: 36, fontWeight: "900", color: C.terra, textAlign: "center", marginBottom: 8, letterSpacing: -1 },
   heading: { fontFamily: serif, fontSize: 22, fontWeight: "800", color: C.espresso, textAlign: "center", marginBottom: 4 },
   subheading: { fontSize: 13, color: C.muted, textAlign: "center", marginBottom: 28 },
   toggle: { flexDirection: "row", backgroundColor: C.surface, borderRadius: 10, marginBottom: 24, padding: 4 },

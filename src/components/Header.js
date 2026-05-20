@@ -8,7 +8,7 @@ export default function Header({ shopName, rightLabel, onRightPress }) {
   return (
     <View style={[styles.header, { paddingTop: insets.top }]}>
       <View style={styles.inner}>
-        <Text style={styles.logo}>Clip<Text style={styles.accent}>d</Text></Text>
+        <Text style={styles.logo}>CLIPD</Text>
         <Text style={styles.shopName}>{shopName || "Admin"}</Text>
         {onRightPress ? (
           <TouchableOpacity onPress={onRightPress} style={styles.rightBtn}>
@@ -29,8 +29,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
   },
-  logo: { fontFamily: serif, fontSize: 22, fontWeight: "900", color: C.cream },
-  accent: { color: C.terra },
+  logo: { fontSize: 18, fontWeight: "900", color: C.terra, letterSpacing: -0.5 },
   shopName: { fontSize: 11, fontWeight: "700", color: "rgba(247,243,238,0.4)", textTransform: "uppercase", letterSpacing: 2 },
   rightBtn: { paddingHorizontal: 12, paddingVertical: 6, backgroundColor: C.terra, borderRadius: 8 },
   rightBtnText: { fontSize: 13, fontWeight: "800", color: C.cream, letterSpacing: 0.3 },
