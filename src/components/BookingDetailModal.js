@@ -24,17 +24,17 @@ function fmtDate(d) {
 }
 
 const STATUS_COLORS = {
-  confirmed: { bg: "#D1FAE5", text: "#065F46" },
+  confirmed: { bg: "rgba(17,17,17,0.05)", text: "#333333" },
   cancelled: { bg: "#F3F4F6", text: "#6B7280" },
-  no_show:   { bg: "#FEF3C7", text: "#92400E" },
+  no_show:   { bg: "rgba(196,104,62,0.08)", text: "#C4683E" },
 };
 
 const PAYMENT_BADGES = {
-  paid:         { label: "Paid",         bg: "#D1FAE5", text: "#065F46" },
-  deposit_paid: { label: "Deposit Paid", bg: "#FEF3C7", text: "#92400E" },
-  cash_paid:    { label: "Cash",         bg: "#D1FAE5", text: "#065F46" },
-  card_paid:    { label: "Card",         bg: "#D1FAE5", text: "#065F46" },
-  refunded:     { label: "Refunded",     bg: "#FEE2E2", text: "#DC2626" },
+  paid:         { label: "Paid",         bg: "rgba(17,17,17,0.05)", text: "#333333" },
+  deposit_paid: { label: "Deposit Paid", bg: "rgba(196,104,62,0.08)", text: "#C4683E" },
+  cash_paid:    { label: "Cash",         bg: "rgba(17,17,17,0.05)", text: "#333333" },
+  card_paid:    { label: "Card",         bg: "rgba(17,17,17,0.05)", text: "#333333" },
+  refunded:     { label: "Refunded",     bg: "rgba(220,38,38,0.08)", text: "#DC2626" },
   unpaid:       { label: "Unpaid",       bg: "#F3F4F6", text: "#6B7280" },
 };
 
@@ -434,11 +434,11 @@ export default function BookingDetailModal({ booking, visible, onClose, onAction
                     />
                     <View style={{ flexDirection: "row", gap: 8 }}>
                       <TouchableOpacity
-                        style={[styles.payBtn, { backgroundColor: "#D1FAE5" }, payingMethod === "cash" && { opacity: 0.6 }]}
+                        style={[styles.payBtn, { backgroundColor: "rgba(17,17,17,0.05)" }, payingMethod === "cash" && { opacity: 0.6 }]}
                         onPress={() => handleMarkPaid("cash")}
                         disabled={!!payingMethod}
                       >
-                        <Text style={[styles.payBtnText, { color: "#065F46" }]}>
+                        <Text style={[styles.payBtnText, { color: "#333333" }]}>
                           {payingMethod === "cash" ? "Saving…" : "💵 Cash"}
                         </Text>
                       </TouchableOpacity>
@@ -521,7 +521,7 @@ export default function BookingDetailModal({ booking, visible, onClose, onAction
               </TouchableOpacity>
             )}
             {!isCancelled && !editing && (booking.payment_status === "card_paid" || booking.payment_status === "cash_paid" || booking.payment_status === "paid") && booking.payment_status !== "refunded" && (
-              <TouchableOpacity style={[styles.warnBtn, { backgroundColor: "#FEE2E2" }]} onPress={handleRefund}>
+              <TouchableOpacity style={[styles.warnBtn, { backgroundColor: "rgba(220,38,38,0.08)" }]} onPress={handleRefund}>
                 <Text style={[styles.warnBtnText, { color: "#DC2626" }]}>Refund</Text>
               </TouchableOpacity>
             )}
@@ -626,8 +626,8 @@ const styles = StyleSheet.create({
   rebookLabel: { fontSize: 11, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 0.6, marginRight: 4 },
   rebookBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, backgroundColor: "rgba(196,104,62,0.1)", borderWidth: 1, borderColor: "rgba(196,104,62,0.25)", alignItems: "center" },
   rebookBtnText: { fontSize: 12, fontWeight: "800", color: C.terra },
-  warnBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, backgroundColor: "#FEF3C7", alignItems: "center" },
-  warnBtnText: { fontSize: 12, fontWeight: "700", color: "#92400E" },
+  warnBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, backgroundColor: "rgba(196,104,62,0.08)", alignItems: "center" },
+  warnBtnText: { fontSize: 12, fontWeight: "700", color: "#C4683E" },
   dangerBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, backgroundColor: "rgba(196,104,62,0.12)", alignItems: "center" },
   dangerBtnText: { fontSize: 12, fontWeight: "700", color: C.terra },
   payBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: "center" },

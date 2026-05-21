@@ -3,7 +3,7 @@ import { Animated, Text, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ICONS = { success: "✓", error: "✕", info: "ℹ" };
-const BG    = { success: "#065F46", error: "#991B1B", info: "#1E3A5F" };
+const BG    = { success: "#333333", error: "#991B1B", info: "#1E3A5F" };
 
 export function useToast() {
   const [state, setState] = useState({ msg: "", type: "success" });

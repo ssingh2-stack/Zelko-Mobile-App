@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   logo: { fontSize: 18, fontWeight: "900", color: C.terra, letterSpacing: -0.5 },
-  shopName: { fontSize: 11, fontWeight: "700", color: "rgba(247,243,238,0.4)", textTransform: "uppercase", letterSpacing: 2 },
+  shopName: { fontSize: 11, fontWeight: "700", color: "rgba(250,250,250,0.4)", textTransform: "uppercase", letterSpacing: 2 },
   rightBtn: { paddingHorizontal: 12, paddingVertical: 6, backgroundColor: C.terra, borderRadius: 8 },
   rightBtnText: { fontSize: 13, fontWeight: "800", color: C.cream, letterSpacing: 0.3 },
   rightPlaceholder: { width: 60 },

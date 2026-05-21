@@ -942,7 +942,7 @@ const styles = StyleSheet.create({
   statsLeft: { flexDirection: "row", alignItems: "center", flexShrink: 1 },
   stat: {},
   statVal: { fontFamily: serif, fontSize: 16, fontWeight: "900", color: C.terra },
-  statLbl: { fontSize: 9, fontWeight: "700", color: "rgba(247,243,238,0.4)", textTransform: "uppercase", letterSpacing: 1.2, marginTop: 1 },
+  statLbl: { fontSize: 9, fontWeight: "700", color: "rgba(250,250,250,0.4)", textTransform: "uppercase", letterSpacing: 1.2, marginTop: 1 },
   statDivider: { width: 1, height: 26, backgroundColor: "rgba(255,255,255,0.1)", marginHorizontal: 10 },
   newBtn: { flexDirection: "row", alignItems: "center", gap: 2, paddingHorizontal: 10, paddingVertical: 7, borderRadius: 8, backgroundColor: C.terra },
   newBtnText: { fontSize: 12, fontWeight: "800", color: C.cream },

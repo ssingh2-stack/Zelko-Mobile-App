@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   saveRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   saveBtn: { backgroundColor: C.espresso, borderRadius: 9, paddingVertical: 11, paddingHorizontal: 20 },
   saveBtnText: { fontSize: 14, fontWeight: "800", color: C.cream },
-  savedMsg: { fontSize: 13, fontWeight: "600", color: "#065F46" },
+  savedMsg: { fontSize: 13, fontWeight: "600", color: "#333333" },
   hourRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: C.border },
   dayName: { width: 32, fontSize: 13, fontWeight: "700", color: C.espresso },
   timePair: { flex: 1, flexDirection: "row", alignItems: "center", gap: 6 },

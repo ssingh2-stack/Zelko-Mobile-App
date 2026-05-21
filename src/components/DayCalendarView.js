@@ -615,9 +615,9 @@ const styles = StyleSheet.create({
   apptBarber: { fontSize: 8, fontWeight: "600", color: C.muted, lineHeight: 10 },
   apptNameMuted: { color: C.muted },
   apptSvc:  { fontSize: 9, color: "rgba(44,24,16,0.65)", lineHeight: 11, marginTop: 1 },
-  apptNote: { fontSize: 9, color: "#92400E", fontStyle: "italic", marginTop: 1 },
-  paidIcon: { fontSize: 8, fontWeight: "900", color: "#065F46", backgroundColor: "#D1FAE5", borderRadius: 3, paddingHorizontal: 3, paddingVertical: 1, overflow: "hidden" },
-  depositIcon: { fontSize: 8, fontWeight: "900", color: "#92400E", backgroundColor: "#FEF3C7", borderRadius: 3, paddingHorizontal: 3, paddingVertical: 1, overflow: "hidden" },
+  apptNote: { fontSize: 9, color: "#C4683E", fontStyle: "italic", marginTop: 1 },
+  paidIcon: { fontSize: 8, fontWeight: "900", color: "#333333", backgroundColor: "rgba(17,17,17,0.05)", borderRadius: 3, paddingHorizontal: 3, paddingVertical: 1, overflow: "hidden" },
+  depositIcon: { fontSize: 8, fontWeight: "900", color: "#C4683E", backgroundColor: "rgba(196,104,62,0.08)", borderRadius: 3, paddingHorizontal: 3, paddingVertical: 1, overflow: "hidden" },
 
   // Buffer blocks — uniform "cushion" look (icon-only, no text)
   bufferBlock: {

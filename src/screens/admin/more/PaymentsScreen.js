@@ -186,5 +186,5 @@ const styles = StyleSheet.create({
   saveRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   saveBtn: { backgroundColor: C.espresso, borderRadius: 9, paddingVertical: 11, paddingHorizontal: 20 },
   saveBtnText: { fontSize: 14, fontWeight: "800", color: C.cream },
-  savedMsg: { fontSize: 13, fontWeight: "600", color: "#065F46" },
+  savedMsg: { fontSize: 13, fontWeight: "600", color: "#333333" },
 });

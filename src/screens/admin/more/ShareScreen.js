@@ -64,8 +64,8 @@ export default function ShareScreen() {
             <QRCode
               value={bookingUrl}
               size={180}
-              color="#2C1810"
-              backgroundColor="#F7F3EE"
+              color="#111111"
+              backgroundColor="#FAFAFA"
               quietZone={12}
             />
           </View>
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   btnText: { fontSize: 13, fontWeight: "700", color: C.cream },
   qrSection: { borderTopWidth: 1, borderTopColor: C.border, paddingTop: 14, marginBottom: 14 },
   qrLabel: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10 },
-  qrWrap: { backgroundColor: "#F7F3EE", padding: 16, borderRadius: 14, borderWidth: 1, borderColor: C.border, alignSelf: "center" },
+  qrWrap: { backgroundColor: "#FAFAFA", padding: 16, borderRadius: 14, borderWidth: 1, borderColor: C.border, alignSelf: "center" },
   qrHint: { fontSize: 11, color: C.muted, fontStyle: "italic", marginTop: 8, textAlign: "center" },
   msgSection: { borderTopWidth: 1, borderTopColor: C.border, paddingTop: 14 },
   msgBox: { backgroundColor: C.surface, borderRadius: 10, borderWidth: 1, borderColor: C.border, padding: 14, marginBottom: 10 },

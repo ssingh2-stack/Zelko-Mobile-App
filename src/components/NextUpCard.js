@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   },
   meta: {
     fontSize: 12,
-    color: "rgba(247,243,238,0.5)",
+    color: "rgba(250,250,250,0.5)",
     fontWeight: "500",
   },
   countdown: {
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   time: {
     fontSize: 11,
     fontWeight: "700",
-    color: "rgba(247,243,238,0.45)",
+    color: "rgba(250,250,250,0.45)",
     marginTop: 2,
   },
   timeLabel: {

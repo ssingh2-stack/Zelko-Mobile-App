@@ -82,12 +82,12 @@ const styles = StyleSheet.create({
   wrap: {
     flexDirection: "row", alignItems: "center",
     marginHorizontal: 12, marginTop: 8, marginBottom: 0,
-    backgroundColor: "#FFFBEB", borderRadius: 12,
-    padding: 12, borderWidth: 1, borderColor: "#FDE68A",
+    backgroundColor: "rgba(196,104,62,0.05)", borderRadius: 12,
+    padding: 12, borderWidth: 1, borderColor: "rgba(196,104,62,0.25)",
     gap: 10,
   },
   content: { flex: 1 },
-  label: { fontSize: 13, fontWeight: "700", color: "#92400E", marginBottom: 2 },
+  label: { fontSize: 13, fontWeight: "700", color: "#C4683E", marginBottom: 2 },
   hint: { fontSize: 11, color: "#B45309" },
   goBtn: {
     paddingHorizontal: 14, paddingVertical: 8,

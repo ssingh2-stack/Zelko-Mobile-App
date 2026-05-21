@@ -761,20 +761,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingBottom: 12, paddingTop: 6,
     borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.06)",
   },
-  stripLabel: { fontSize: 11, fontWeight: "700", color: "rgba(247,243,238,0.45)", textTransform: "uppercase", letterSpacing: 2, marginBottom: 2 },
+  stripLabel: { fontSize: 11, fontWeight: "700", color: "rgba(250,250,250,0.45)", textTransform: "uppercase", letterSpacing: 2, marginBottom: 2 },
   stripDate: { fontFamily: serif, fontSize: 20, fontWeight: "900", color: C.cream },
   statsGroup: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
   stat: { flex: 1, alignItems: "center" },
   statVal: { fontFamily: serif, fontSize: 17, fontWeight: "900", color: C.terra },
-  statLbl: { fontSize: 9, fontWeight: "700", color: "rgba(247,243,238,0.4)", textTransform: "uppercase", letterSpacing: 1.2, marginTop: 1 },
+  statLbl: { fontSize: 9, fontWeight: "700", color: "rgba(250,250,250,0.4)", textTransform: "uppercase", letterSpacing: 1.2, marginTop: 1 },
   statDivider: { width: 1, height: 28, backgroundColor: "rgba(255,255,255,0.1)", marginHorizontal: 12 },
 
   // Occupancy bar
-  paymentBreakdown: { fontSize: 10, fontWeight: "600", color: "rgba(247,243,238,0.45)", marginBottom: 6, marginTop: 2 },
+  paymentBreakdown: { fontSize: 10, fontWeight: "600", color: "rgba(250,250,250,0.45)", marginBottom: 6, marginTop: 2 },
   occRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   occTrack: { flex: 1, height: 4, backgroundColor: "rgba(255,255,255,0.12)", borderRadius: 2, overflow: "hidden" },
   occFill: { height: 4, backgroundColor: C.terra, borderRadius: 2, minWidth: 4 },
-  occLabel: { fontSize: 10, fontWeight: "700", color: "rgba(247,243,238,0.4)", width: 68, textAlign: "right" },
+  occLabel: { fontSize: 10, fontWeight: "700", color: "rgba(250,250,250,0.4)", width: 68, textAlign: "right" },
 
   // Service legend
   svcLegend: {
@@ -801,16 +801,16 @@ const styles = StyleSheet.create({
     fontFamily: serif, fontSize: 22, fontWeight: "900", color: C.terra, marginBottom: 2,
   },
   eodStatLbl: {
-    fontSize: 9, fontWeight: "700", color: "rgba(247,243,238,0.5)", textTransform: "uppercase", letterSpacing: 1,
+    fontSize: 9, fontWeight: "700", color: "rgba(250,250,250,0.5)", textTransform: "uppercase", letterSpacing: 1,
   },
   eodCashRow: {
-    marginBottom: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: "rgba(247,243,238,0.15)",
+    marginBottom: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: "rgba(250,250,250,0.15)",
   },
   eodCashText: {
-    fontSize: 12, fontWeight: "600", color: "rgba(247,243,238,0.7)", marginBottom: 4,
+    fontSize: 12, fontWeight: "600", color: "rgba(250,250,250,0.7)", marginBottom: 4,
   },
   eodOcc: {
-    fontSize: 11, fontWeight: "600", color: "rgba(247,243,238,0.4)", textAlign: "center",
+    fontSize: 11, fontWeight: "600", color: "rgba(250,250,250,0.4)", textAlign: "center",
   },
 
   // Controls
@@ -850,7 +850,7 @@ const styles = StyleSheet.create({
   clientTagText: { fontSize: 8, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 },
   listNameMuted: { color: C.muted, textDecorationLine: "line-through" },
   listSvc: { fontSize: 11, color: C.muted, marginBottom: 3 },
-  listNote: { fontSize: 10, color: "#92400E", fontStyle: "italic", flex: 1 },
+  listNote: { fontSize: 10, color: "#C4683E", fontStyle: "italic", flex: 1 },
   listFooter: { flexDirection: "row", alignItems: "center" },
   listPrice: { fontSize: 12, fontWeight: "700", color: C.espresso },
   listMeta: { fontSize: 10, color: C.muted },

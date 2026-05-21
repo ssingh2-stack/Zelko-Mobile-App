@@ -8,9 +8,9 @@ import { api } from "../lib/api";
 import { C, serif, fmtMoney } from "../lib/theme";
 
 const TAG_STYLES = {
-  vip:     { bg: "#FEF3C7", text: "#92400E", border: "#FDE68A" },
-  new:     { bg: "#D1FAE5", text: "#065F46", border: "#6EE7B7" },
-  regular: { bg: "#EDE9FE", text: "#5B21B6", border: "#C4B5FD" },
+  vip:     { bg: "rgba(196,104,62,0.08)", text: "#C4683E", border: "rgba(196,104,62,0.25)" },
+  new:     { bg: "rgba(17,17,17,0.05)", text: "#333333", border: "rgba(17,17,17,0.15)" },
+  regular: { bg: "rgba(107,114,128,0.06)", text: "#6B7280", border: "rgba(107,114,128,0.2)" },
   lapsed:  { bg: "#F3F4F6", text: "#6B7280", border: "#D1D5DB" },
 };
 
@@ -35,9 +35,9 @@ function initials(name) {
 }
 
 const STATUS_COLORS = {
-  confirmed: { bg: "#D1FAE5", text: "#065F46" },
-  cancelled: { bg: "#F3F4F6", text: "#9B8677" },
-  no_show:   { bg: "#FEF3C7", text: "#92400E" },
+  confirmed: { bg: "rgba(17,17,17,0.05)", text: "#333333" },
+  cancelled: { bg: "#F3F4F6", text: "#6B7280" },
+  no_show:   { bg: "rgba(196,104,62,0.08)", text: "#C4683E" },
 };
 
 export default function ClientProfileModal({ client, visible, onClose, onNewBooking, onClientUpdate }) {
@@ -280,10 +280,10 @@ const styles = StyleSheet.create({
   clientName: { fontFamily: serif, fontSize: 22, fontWeight: "700", color: C.espresso },
   clientSub: { fontSize: 12, color: C.muted, marginTop: 3 },
   headerActions: { alignItems: "flex-end", gap: 6 },
-  vipBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 1.5, borderColor: "#FDE68A", backgroundColor: C.white },
-  vipBtnActive: { backgroundColor: "#FEF3C7", borderColor: "#F59E0B" },
+  vipBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 1.5, borderColor: "rgba(196,104,62,0.25)", backgroundColor: C.white },
+  vipBtnActive: { backgroundColor: "rgba(196,104,62,0.08)", borderColor: "#F59E0B" },
   vipBtnText: { fontSize: 11, fontWeight: "800", color: C.muted },
-  vipBtnTextActive: { color: "#92400E" },
+  vipBtnTextActive: { color: "#C4683E" },
   closeBtn: { padding: 4 },
   closeBtnText: { fontSize: 18, color: C.muted },
 
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   statItem: { flex: 1, alignItems: "center" },
   statDivider: { width: 1, backgroundColor: "rgba(255,255,255,0.12)" },
   statVal: { fontFamily: serif, fontSize: 16, fontWeight: "900", color: C.terra },
-  statLbl: { fontSize: 9, fontWeight: "700", color: "rgba(247,243,238,0.4)", textTransform: "uppercase", letterSpacing: 1.2, marginTop: 2 },
+  statLbl: { fontSize: 9, fontWeight: "700", color: "rgba(250,250,250,0.4)", textTransform: "uppercase", letterSpacing: 1.2, marginTop: 2 },
 
   // Contact actions
   contactRow: {

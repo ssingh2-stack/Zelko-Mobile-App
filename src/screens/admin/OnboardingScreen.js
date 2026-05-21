@@ -392,5 +392,5 @@ const styles = StyleSheet.create({
   backBtnText: { fontSize: 14, fontWeight: "700", color: C.muted },
 
   doneChecks: { marginBottom: 28, alignItems: "flex-start" },
-  doneCheck: { fontSize: 15, fontWeight: "600", color: "#065F46", marginBottom: 8 },
+  doneCheck: { fontSize: 15, fontWeight: "600", color: "#333333", marginBottom: 8 },
 });

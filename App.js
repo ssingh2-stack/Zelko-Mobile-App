@@ -20,11 +20,11 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <View style={{ flex: 1, backgroundColor: '#F7F3EE', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
-          <Text style={{ fontFamily: 'serif', fontSize: 24, fontWeight: '900', color: '#2C1810', marginBottom: 12 }}>Something went wrong</Text>
-          <Text style={{ fontSize: 14, color: '#9B8677', textAlign: 'center', marginBottom: 24, lineHeight: 20 }}>The app ran into an unexpected error. Tap below to try again.</Text>
+        <View style={{ flex: 1, backgroundColor: '#FAFAFA', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+          <Text style={{ fontFamily: 'serif', fontSize: 24, fontWeight: '900', color: '#111111', marginBottom: 12 }}>Something went wrong</Text>
+          <Text style={{ fontSize: 14, color: '#6B7280', textAlign: 'center', marginBottom: 24, lineHeight: 20 }}>The app ran into an unexpected error. Tap below to try again.</Text>
           <TouchableOpacity onPress={() => this.setState({ hasError: false })} style={{ backgroundColor: '#C4683E', paddingHorizontal: 28, paddingVertical: 14, borderRadius: 10 }}>
-            <Text style={{ color: '#F7F3EE', fontSize: 15, fontWeight: '700' }}>Try Again</Text>
+            <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' }}>Try Again</Text>
           </TouchableOpacity>
         </View>
       );
@@ -69,7 +69,7 @@ function TabIon({ name, color, size = 22 }) {
 
 const tabBarOptions = {
   tabBarActiveTintColor: C.terra,
-  tabBarInactiveTintColor: "rgba(247,243,238,0.45)",
+  tabBarInactiveTintColor: "rgba(250,250,250,0.4)",
   tabBarStyle: {
     backgroundColor: C.espresso,
     borderTopColor: "rgba(255,255,255,0.08)",
@@ -166,7 +166,7 @@ const moreStyles = StyleSheet.create({
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
   },
   headerLogo: { fontSize: 18, fontWeight: "900", color: C.terra, letterSpacing: -0.5 },
-  headerSub: { fontSize: 11, fontWeight: "700", color: "rgba(247,243,238,0.4)", textTransform: "uppercase", letterSpacing: 2 },
+  headerSub: { fontSize: 11, fontWeight: "700", color: "rgba(250,250,250,0.4)", textTransform: "uppercase", letterSpacing: 2 },
   row: {
     flexDirection: "row", alignItems: "center", gap: 16,
     paddingHorizontal: 20, paddingVertical: 16,

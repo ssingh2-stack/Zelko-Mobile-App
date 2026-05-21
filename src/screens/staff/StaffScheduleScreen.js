@@ -200,13 +200,13 @@ export default function StaffScheduleScreen() {
             style={[styles.toggleBtn, view === "cal" && styles.toggleBtnActive]}
             onPress={() => setView("cal")}
           >
-            <Ionicons name="calendar-outline" size={14} color={view === "cal" ? C.cream : "rgba(247,243,238,0.6)"} />
+            <Ionicons name="calendar-outline" size={14} color={view === "cal" ? C.cream : "rgba(250,250,250,0.6)"} />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.toggleBtn, view === "list" && styles.toggleBtnActive]}
             onPress={() => setView("list")}
           >
-            <Ionicons name="menu" size={14} color={view === "list" ? C.cream : "rgba(247,243,238,0.6)"} />
+            <Ionicons name="menu" size={14} color={view === "list" ? C.cream : "rgba(250,250,250,0.6)"} />
           </TouchableOpacity>
         </View>
       </View>
@@ -388,12 +388,12 @@ const styles = StyleSheet.create({
   statsLeft: { flexDirection: "row", alignItems: "center" },
   stat: {},
   statVal: { fontFamily: serif, fontSize: 17, fontWeight: "900", color: C.terra },
-  statLbl: { fontSize: 9, fontWeight: "700", color: "rgba(247,243,238,0.4)", textTransform: "uppercase", letterSpacing: 1.2, marginTop: 1 },
+  statLbl: { fontSize: 9, fontWeight: "700", color: "rgba(250,250,250,0.4)", textTransform: "uppercase", letterSpacing: 1.2, marginTop: 1 },
   statDivider: { width: 1, height: 28, backgroundColor: "rgba(255,255,255,0.1)", marginHorizontal: 14 },
   toggleGroup: { flexDirection: "row", gap: 4 },
   toggleBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.2)" },
   toggleBtnActive: { backgroundColor: C.terra, borderColor: C.terra },
-  toggleBtnText: { fontSize: 14, color: "rgba(247,243,238,0.6)" },
+  toggleBtnText: { fontSize: 14, color: "rgba(250,250,250,0.6)" },
   toggleBtnTextActive: { color: C.cream },
 
   list: { flex: 1, padding: 12 },
