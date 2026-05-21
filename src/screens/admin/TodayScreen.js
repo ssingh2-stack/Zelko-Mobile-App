@@ -223,7 +223,7 @@ export default function TodayScreen() {
   }
 
   async function handleQuickWalkIn() {
-    // 1-tap walk-in: pick the first barber (or current filter), default service, next 15-min slot from now
+    // 1-tap walk-in: pick the first barber (or current filter), default service, first available slot
     if (!allBarbers || allBarbers.length === 0) {
       Alert.alert("No barbers", "Add a barber before creating a walk-in.");
       return;
@@ -238,10 +238,15 @@ export default function TodayScreen() {
         return;
       }
       const service = services[0];
-      const now = new Date();
-      const mins = Math.ceil(now.getMinutes() / 15) * 15;
-      now.setMinutes(mins, 0, 0);
-      const time = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
+      // Fetch actual available slots instead of guessing the next 15-min mark
+      const slots = await api.adminSlots(todayStr, barber.id, service.id);
+      const slotList = Array.isArray(slots) ? slots : (slots?.slots || []);
+      if (!slotList.length) {
+        Alert.alert("No slots available", "No open slots today for this barber. Try the + New flow to pick a different barber or date.");
+        return;
+      }
+      // Pick the first available slot (closest to now)
+      const time = slotList[0].time;
       await api.adminCreateBooking({
         barber_id: barber.id,
         service_id: service.id,

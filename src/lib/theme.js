@@ -1,13 +1,13 @@
 import { Platform } from "react-native";
 
 export const C = {
-  cream: "#F7F3EE",
-  surface: "#F0EAE2",
+  cream: "#FAFAFA",
+  surface: "#F3F4F6",
   white: "#fff",
-  espresso: "#2C1810",
+  espresso: "#111111",
   terra: "#C4683E",
-  border: "#E0D5CB",
-  muted: "#9B8677",
+  border: "#E5E7EB",
+  muted: "#6B7280",
 };
 
 export const BARBER_PALETTES = [
