@@ -6,6 +6,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "../lib/api";
 import { C, serif, fmtMoney } from "../lib/theme";
+import { DCAL_COLORS } from "./DayCalendarView";
 
 function Picker({ label, value, onChange, options, loading }) {
   return (
@@ -22,9 +23,12 @@ function Picker({ label, value, onChange, options, loading }) {
                 style={[styles.pill, value === opt.value && styles.pillActive]}
                 onPress={() => onChange(opt.value)}
               >
-                <Text style={[styles.pillText, value === opt.value && styles.pillTextActive]}>
-                  {opt.label}
-                </Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                  {opt.dot ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: opt.dot }} /> : null}
+                  <Text style={[styles.pillText, value === opt.value && styles.pillTextActive]}>
+                    {opt.label}
+                  </Text>
+                </View>
               </TouchableOpacity>
             ))
           )}
@@ -220,7 +224,7 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
     }
   }
 
-  const barberOptions = barbers.map(b => ({ value: String(b.id), label: b.name }));
+  const barberOptions = barbers.map((b, i) => ({ value: String(b.id), label: b.name, dot: DCAL_COLORS[i % DCAL_COLORS.length].bd }));
   const serviceOptions = services.map(s => ({ value: String(s.id), label: `${s.name} — ${fmtMoney(s.price)}` }));
   const slotOptions = slots.map(s => ({ value: s.time, label: s.display || s.time }));
 

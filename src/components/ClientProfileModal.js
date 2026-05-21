@@ -45,6 +45,7 @@ export default function ClientProfileModal({ client, visible, onClose, onNewBook
   const [bookings, setBookings] = useState(null);
   const [notes, setNotes] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
+  const [notesSaved, setNotesSaved] = useState(false);
   const [isVip, setIsVip] = useState(false);
 
   useEffect(() => {
@@ -82,7 +83,11 @@ export default function ClientProfileModal({ client, visible, onClose, onNewBook
   async function saveNotes() {
     if (!client.email) return;
     setSavingNotes(true);
-    try { await api.adminSaveNotes(client.email, notes); }
+    try {
+      await api.adminSaveNotes(client.email, notes);
+      setNotesSaved(true);
+      setTimeout(() => setNotesSaved(false), 2000);
+    }
     catch {}
     setSavingNotes(false);
   }
@@ -188,6 +193,7 @@ export default function ClientProfileModal({ client, visible, onClose, onNewBook
                 textAlignVertical="top"
               />
               {savingNotes && <Text style={styles.savingText}>Saving…</Text>}
+              {notesSaved && !savingNotes && <Text style={styles.savedText}>Saved ✓</Text>}
             </View>
 
             {/* Contact info */}
@@ -349,5 +355,6 @@ const styles = StyleSheet.create({
     padding: 12, fontSize: 13, color: C.espresso, minHeight: 80,
   },
   savingText: { fontSize: 11, color: C.muted, marginTop: 4 },
+  savedText: { fontSize: 11, color: "#059669", fontWeight: "600", marginTop: 4 },
   emptyText: { fontSize: 13, color: C.muted, fontStyle: "italic", paddingVertical: 8 },
 });

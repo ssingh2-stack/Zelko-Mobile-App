@@ -587,7 +587,7 @@ export default function TodayScreen() {
             <View style={styles.empty}>
               <Ionicons name="calendar-outline" size={40} color={C.muted} />
               <Text style={styles.emptyTitle}>No bookings today</Text>
-              <TouchableOpacity style={styles.emptyBtn} onPress={() => { setNewBookingPrefill({}); setShowNewBooking(true); }}>
+              <TouchableOpacity style={styles.emptyBtn} onPress={() => { setNewBookingPrefill({ date: todayStr }); setShowNewBooking(true); }}>
                 <Text style={styles.emptyBtnText}>+ New Booking</Text>
               </TouchableOpacity>
             </View>
@@ -765,7 +765,7 @@ const styles = StyleSheet.create({
   stripDate: { fontFamily: serif, fontSize: 20, fontWeight: "900", color: C.cream },
   statsGroup: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
   stat: { flex: 1, alignItems: "center" },
-  statVal: { fontFamily: serif, fontSize: 17, fontWeight: "900", color: C.terra },
+  statVal: { fontFamily: serif, fontSize: 15, fontWeight: "900", color: C.terra },
   statLbl: { fontSize: 9, fontWeight: "700", color: "rgba(250,250,250,0.4)", textTransform: "uppercase", letterSpacing: 1.2, marginTop: 1 },
   statDivider: { width: 1, height: 28, backgroundColor: "rgba(255,255,255,0.1)", marginHorizontal: 12 },
 

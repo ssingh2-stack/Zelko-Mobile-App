@@ -9,6 +9,7 @@ import { success as hapticSuccess, error as hapticError } from "../lib/haptics";
 
 export default function CollectPaymentModal({ booking, visible, onClose, onSuccess }) {
   const [tipAmount, setTipAmount] = useState("");
+  const [showCustomTip, setShowCustomTip] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [status, setStatus] = useState("idle"); // idle, creating, waiting, success, error
   const [errorMsg, setErrorMsg] = useState("");
@@ -16,6 +17,7 @@ export default function CollectPaymentModal({ booking, visible, onClose, onSucce
   useEffect(() => {
     if (visible) {
       setTipAmount("");
+      setShowCustomTip(false);
       setProcessing(false);
       setStatus("idle");
       setErrorMsg("");
@@ -132,23 +134,32 @@ export default function CollectPaymentModal({ booking, visible, onClose, onSucce
                   {[0, 5, 10, 15, 20].map(t => (
                     <TouchableOpacity
                       key={t}
-                      style={[styles.tipBtn, tipAmount === String(t) && styles.tipBtnActive]}
-                      onPress={() => setTipAmount(t === 0 ? "" : String(t))}
+                      style={[styles.tipBtn, !showCustomTip && tipAmount === String(t) && styles.tipBtnActive]}
+                      onPress={() => { setShowCustomTip(false); setTipAmount(t === 0 ? "" : String(t)); }}
                     >
-                      <Text style={[styles.tipBtnText, tipAmount === String(t) && styles.tipBtnTextActive]}>
+                      <Text style={[styles.tipBtnText, !showCustomTip && tipAmount === String(t) && styles.tipBtnTextActive]}>
                         {t === 0 ? "None" : `$${t}`}
                       </Text>
                     </TouchableOpacity>
                   ))}
+                  <TouchableOpacity
+                    style={[styles.tipBtn, showCustomTip && styles.tipBtnActive]}
+                    onPress={() => { setShowCustomTip(true); setTipAmount(""); }}
+                  >
+                    <Text style={[styles.tipBtnText, showCustomTip && styles.tipBtnTextActive]}>Custom</Text>
+                  </TouchableOpacity>
                 </View>
-                <TextInput
-                  style={styles.tipInput}
-                  value={tipAmount}
-                  onChangeText={setTipAmount}
-                  placeholder="Custom amount"
-                  placeholderTextColor={C.muted}
-                  keyboardType="decimal-pad"
-                />
+                {showCustomTip && (
+                  <TextInput
+                    style={styles.tipInput}
+                    value={tipAmount}
+                    onChangeText={setTipAmount}
+                    placeholder="Custom tip amount"
+                    placeholderTextColor={C.muted}
+                    keyboardType="decimal-pad"
+                    autoFocus
+                  />
+                )}
               </View>
 
               {/* Total */}
