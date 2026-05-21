@@ -14,9 +14,9 @@ import ErrorState from "../../components/ErrorState";
 import { getCached, setCache } from "../../lib/cache";
 
 const TAG_STYLES = {
-  vip:     { bg: "#FEF3C7", text: "#92400E", border: "#FDE68A" },
-  new:     { bg: "#D1FAE5", text: "#065F46", border: "#6EE7B7" },
-  regular: { bg: "#EDE9FE", text: "#5B21B6", border: "#C4B5FD" },
+  vip:     { bg: "rgba(196,104,62,0.08)", text: "#C4683E", border: "rgba(196,104,62,0.25)" },
+  new:     { bg: "rgba(17,17,17,0.05)", text: "#333333", border: "rgba(17,17,17,0.15)" },
+  regular: { bg: "rgba(107,114,128,0.06)", text: "#6B7280", border: "rgba(107,114,128,0.2)" },
   lapsed:  { bg: "#F3F4F6", text: "#6B7280", border: "#D1D5DB" },
 };
 

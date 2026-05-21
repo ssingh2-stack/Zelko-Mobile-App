@@ -23,7 +23,7 @@
           "remote-notification"
         ]
       },
-      "buildNumber": "17"
+      "buildNumber": "18"
     },
     "android": {
       "package": "ca.getclipd.app",

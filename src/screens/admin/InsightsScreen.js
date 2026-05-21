@@ -268,9 +268,9 @@ export default function InsightsScreen() {
             <Text style={styles.sectionTitle}>Overview</Text>
             <View style={styles.kpiGrid}>
               <KPICard icon="cash-outline" value={fmtMoney(data.total_revenue)} label="Total Revenue" accent={C.terra} trend={trends.revenue} />
-              <KPICard icon="calendar-outline" value={data.total_bookings ?? 0} label="Bookings" accent="#3B82F6" trend={trends.bookings} />
-              <KPICard icon="star-outline" value={fmtMoney(data.avg_booking_value)} label="Avg Value" accent="#10B981" trend={trends.avg} />
-              <KPICard icon="close-circle-outline" value={`${data.cancellation_rate ?? 0}%`} label="Cancel Rate" accent="#F59E0B" trend={trends.cancel} />
+              <KPICard icon="calendar-outline" value={data.total_bookings ?? 0} label="Bookings" accent="#555555" trend={trends.bookings} />
+              <KPICard icon="star-outline" value={fmtMoney(data.avg_booking_value)} label="Avg Value" accent="#C4683E" trend={trends.avg} />
+              <KPICard icon="close-circle-outline" value={`${data.cancellation_rate ?? 0}%`} label="Cancel Rate" accent="#888888" trend={trends.cancel} />
             </View>
           </View>
 

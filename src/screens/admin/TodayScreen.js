@@ -28,9 +28,9 @@ import SetupNudge from "../../components/SetupNudge";
 import { getCached, setCache } from "../../lib/cache";
 
 const CLIENT_TAG_STYLES = {
-  vip:     { backgroundColor: "#FEF3C7", borderColor: "#FDE68A", color: "#92400E" },
-  new:     { backgroundColor: "#D1FAE5", borderColor: "#6EE7B7", color: "#065F46" },
-  regular: { backgroundColor: "#EDE9FE", borderColor: "#C4B5FD", color: "#5B21B6" },
+  vip:     { backgroundColor: "rgba(196,104,62,0.08)", borderColor: "rgba(196,104,62,0.25)", color: "#C4683E" },
+  new:     { backgroundColor: "rgba(17,17,17,0.05)", borderColor: "rgba(17,17,17,0.15)", color: "#333333" },
+  regular: { backgroundColor: "rgba(107,114,128,0.06)", borderColor: "rgba(107,114,128,0.2)", color: "#6B7280" },
   lapsed:  { backgroundColor: "#F3F4F6", borderColor: "#D1D5DB", color: "#6B7280" },
 };
 function clientTagStyle(tag) { return CLIENT_TAG_STYLES[tag] || CLIENT_TAG_STYLES.regular; }
@@ -635,7 +635,7 @@ export default function TodayScreen() {
                     <Text style={styles.listSvc} numberOfLines={1}>{b.service_name}</Text>
                     {clientNotes[b.customer_email] ? (
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 3, marginBottom: 4, overflow: "hidden" }}>
-                        <Ionicons name="document-text-outline" size={10} color="#92400E" style={{ flexShrink: 0 }} />
+                        <Ionicons name="document-text-outline" size={10} color="#C4683E" style={{ flexShrink: 0 }} />
                         <Text style={styles.listNote} numberOfLines={1}>{clientNotes[b.customer_email]}</Text>
                       </View>
                     ) : null}

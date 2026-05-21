@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   TextInput, Alert, ActivityIndicator, RefreshControl, Image, Switch, Share,
@@ -92,8 +92,17 @@ export default function BarbersScreen() {
   const [editEmail, setEditEmail] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [editBuffer, setEditBuffer] = useState(0);
+  const scrollRef = useRef(null);
+  const cardPositions = useRef({});
 
   function startEditBio(b) {
+    // Scroll to the top of this barber's card after a short delay for layout
+    setTimeout(() => {
+      const y = cardPositions.current[b.id];
+      if (y != null && scrollRef.current) {
+        scrollRef.current.scrollTo({ y: Math.max(0, y - 10), animated: true });
+      }
+    }, 100);
     setEditingId(b.id);
     setEditBio(b.bio || "");
     setEditYears(b.years_exp ? String(b.years_exp) : "");
@@ -223,6 +232,7 @@ export default function BarbersScreen() {
 
   return (
     <ScrollView
+      ref={scrollRef}
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={C.espresso} />}
       keyboardShouldPersistTaps="handled"
@@ -269,7 +279,7 @@ export default function BarbersScreen() {
           barbers.map((b, i) => {
             const color = COLORS[i % COLORS.length];
             return (
-              <View key={b.id} style={styles.barberCard}>
+              <View key={b.id} style={styles.barberCard} onLayout={(e) => { cardPositions.current[b.id] = e.nativeEvent.layout.y; }}>
                 <View style={styles.barberRow}>
                   <TouchableOpacity onPress={() => pickPhoto(b.id)} activeOpacity={0.7}>
                     {b.photo_url ? (
