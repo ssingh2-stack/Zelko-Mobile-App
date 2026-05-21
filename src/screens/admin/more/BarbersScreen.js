@@ -93,16 +93,18 @@ export default function BarbersScreen() {
   const [editPhone, setEditPhone] = useState("");
   const [editBuffer, setEditBuffer] = useState(0);
   const scrollRef = useRef(null);
-  const cardPositions = useRef({});
+  const cardRefs = useRef({});
 
   function startEditBio(b) {
-    // Scroll to the top of this barber's card after a short delay for layout
+    // Scroll so this barber's card is at the top of the screen
     setTimeout(() => {
-      const y = cardPositions.current[b.id];
-      if (y != null && scrollRef.current) {
-        scrollRef.current.scrollTo({ y: Math.max(0, y - 10), animated: true });
+      const ref = cardRefs.current[b.id];
+      if (ref && scrollRef.current) {
+        ref.measureLayout(scrollRef.current.getInnerViewRef(), (x, y) => {
+          scrollRef.current.scrollTo({ y: Math.max(0, y - 8), animated: true });
+        }, () => {});
       }
-    }, 100);
+    }, 150);
     setEditingId(b.id);
     setEditBio(b.bio || "");
     setEditYears(b.years_exp ? String(b.years_exp) : "");
@@ -279,7 +281,7 @@ export default function BarbersScreen() {
           barbers.map((b, i) => {
             const color = COLORS[i % COLORS.length];
             return (
-              <View key={b.id} style={styles.barberCard} onLayout={(e) => { cardPositions.current[b.id] = e.nativeEvent.layout.y; }}>
+              <View key={b.id} style={styles.barberCard} ref={(r) => { cardRefs.current[b.id] = r; }}>
                 <View style={styles.barberRow}>
                   <TouchableOpacity onPress={() => pickPhoto(b.id)} activeOpacity={0.7}>
                     {b.photo_url ? (
