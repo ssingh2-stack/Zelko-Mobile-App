@@ -37,12 +37,12 @@ export function buildServiceColorMap(bookings) {
 }
 
 export const DCAL_COLORS = [
-  { bg: "rgba(59,130,246,0.10)",  bd: "#3B82F6", tx: "#1D4ED8" },
-  { bg: "rgba(16,185,129,0.10)",  bd: "#10B981", tx: "#065F46" },
-  { bg: "rgba(139,92,246,0.10)",  bd: "#8B5CF6", tx: "#5B21B6" },
-  { bg: "rgba(245,158,11,0.10)",  bd: "#F59E0B", tx: "#92400E" },
-  { bg: "rgba(196,104,62,0.14)",  bd: "#C4683E", tx: "#5C2A0A" },
-  { bg: "rgba(100,80,155,0.12)",  bd: "#64509B", tx: "#2A1E52" },
+  { bg: "rgba(196,104,62,0.10)",  bd: "#C4683E", tx: "#8B3A1D" },
+  { bg: "rgba(17,17,17,0.07)",    bd: "#555555", tx: "#111111" },
+  { bg: "rgba(107,114,128,0.08)", bd: "#9CA3AF", tx: "#4B5563" },
+  { bg: "rgba(196,104,62,0.06)",  bd: "#D4956A", tx: "#A0522D" },
+  { bg: "rgba(17,17,17,0.04)",    bd: "#888888", tx: "#333333" },
+  { bg: "rgba(107,114,128,0.05)", bd: "#6B7280", tx: "#374151" },
 ];
 
 export function tMin(t) {

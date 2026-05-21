@@ -11,12 +11,12 @@ export const C = {
 };
 
 export const BARBER_PALETTES = [
-  { bg: "rgba(59,130,246,0.07)",  border: "#3B82F6", text: "#1D4ED8" },
-  { bg: "rgba(16,185,129,0.07)",  border: "#10B981", text: "#065F46" },
-  { bg: "rgba(139,92,246,0.07)",  border: "#8B5CF6", text: "#5B21B6" },
-  { bg: "rgba(245,158,11,0.07)",  border: "#F59E0B", text: "#92400E" },
-  { bg: "rgba(239,68,68,0.07)",   border: "#EF4444", text: "#991B1B" },
-  { bg: "rgba(6,182,212,0.07)",   border: "#06B6D4", text: "#155E75" },
+  { bg: "rgba(196,104,62,0.08)",  border: "#C4683E", text: "#8B3A1D" },
+  { bg: "rgba(17,17,17,0.06)",    border: "#555555", text: "#111111" },
+  { bg: "rgba(107,114,128,0.08)", border: "#9CA3AF", text: "#4B5563" },
+  { bg: "rgba(196,104,62,0.05)",  border: "#D4956A", text: "#A0522D" },
+  { bg: "rgba(17,17,17,0.04)",    border: "#888888", text: "#333333" },
+  { bg: "rgba(107,114,128,0.05)", border: "#6B7280", text: "#374151" },
 ];
 
 export const serif = Platform.OS === "ios" ? "Georgia" : "serif";
