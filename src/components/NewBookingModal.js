@@ -56,6 +56,7 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [barberId, setBarberId] = useState(null);
   const [serviceId, setServiceId] = useState(null);
   const [date, setDate] = useState("");
@@ -264,11 +265,60 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
                   <TouchableOpacity style={styles.dateArrow} onPress={() => changeDate(-1)}>
                     <Text style={styles.dateArrowText}>‹</Text>
                   </TouchableOpacity>
-                  <Text style={styles.dateLabel}>{dateLabel}</Text>
+                  <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+                    <Text style={[styles.dateLabel, { textDecorationLine: "underline" }]}>{dateLabel}</Text>
+                  </TouchableOpacity>
                   <TouchableOpacity style={styles.dateArrow} onPress={() => changeDate(1)}>
                     <Text style={styles.dateArrowText}>›</Text>
                   </TouchableOpacity>
                 </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
+                  <View style={{ flexDirection: "row", gap: 6 }}>
+                    <TouchableOpacity style={styles.jumpPill} onPress={() => { setDate(todayISO()); setShowDatePicker(false); }}>
+                      <Text style={styles.jumpPillText}>Today</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.jumpPill} onPress={() => { const d = new Date(); d.setDate(d.getDate() + 1); setDate(d.toISOString().split("T")[0]); setShowDatePicker(false); }}>
+                      <Text style={styles.jumpPillText}>Tomorrow</Text>
+                    </TouchableOpacity>
+                    {[1,2,3,4].map(w => (
+                      <TouchableOpacity key={w} style={styles.jumpPill} onPress={() => { const d = new Date(); d.setDate(d.getDate() + w * 7); setDate(d.toISOString().split("T")[0]); setShowDatePicker(false); }}>
+                        <Text style={styles.jumpPillText}>+{w}w</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </ScrollView>
+                {showDatePicker && (() => {
+                  const now = new Date();
+                  // Start from the Sunday of the current week
+                  const startOfWeek = new Date(now);
+                  startOfWeek.setDate(now.getDate() - now.getDay());
+                  const allDays = Array.from({ length: 42 }, (_, i) => {
+                    const d = new Date(startOfWeek);
+                    d.setDate(startOfWeek.getDate() + i);
+                    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+                    const isPast = key < todayISO();
+                    return { key, day: d.getDate(), isPast };
+                  });
+                  return (
+                    <View style={{ marginTop: 10, backgroundColor: C.surface, borderRadius: 10, padding: 10, borderWidth: 1, borderColor: C.border }}>
+                      <View style={{ flexDirection: "row", marginBottom: 6 }}>
+                        {["S","M","T","W","T","F","S"].map((d, i) => <Text key={i} style={{ flex: 1, textAlign: "center", fontSize: 10, fontWeight: "700", color: C.muted }}>{d}</Text>)}
+                      </View>
+                      {Array.from({ length: 6 }, (_, week) => (
+                        <View key={week} style={{ flexDirection: "row" }}>
+                          {allDays.slice(week * 7, week * 7 + 7).map((dayObj) => {
+                            const isSelected = dayObj.key === date;
+                            return (
+                              <TouchableOpacity key={dayObj.key} disabled={dayObj.isPast} style={{ flex: 1, height: 36, alignItems: "center", justifyContent: "center", borderRadius: 18, backgroundColor: isSelected ? C.terra : "transparent" }} onPress={() => { setDate(dayObj.key); setShowDatePicker(false); }}>
+                                <Text style={{ fontSize: 13, fontWeight: isSelected ? "800" : "500", color: isSelected ? "#fff" : dayObj.isPast ? C.border : C.espresso }}>{dayObj.day}</Text>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </View>
+                      ))}
+                    </View>
+                  );
+                })()}
               </View>
 
               {/* Time slot */}
@@ -478,6 +528,8 @@ const styles = StyleSheet.create({
   dateArrow: { padding: 12, paddingHorizontal: 18 },
   dateArrowText: { fontSize: 22, color: C.espresso, fontWeight: "300", lineHeight: 26 },
   dateLabel: { flex: 1, textAlign: "center", fontSize: 14, fontWeight: "700", color: C.espresso },
+  jumpPill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: C.border, backgroundColor: C.white },
+  jumpPillText: { fontSize: 12, fontWeight: "600", color: C.muted },
   walkinRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 20, paddingVertical: 4 },
   walkinLabel: { fontSize: 14, fontWeight: "700", color: C.espresso },
 
