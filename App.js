@@ -339,13 +339,32 @@ function SplashA({ onFinish }) {
 }
 
 // ──── CONCEPT B: "The Reveal" ────
+function DriftLine({ top, delay, speed, opacity: lineOpacity }) {
+  const translateX = useRef(new Animated.Value(-200)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(translateX, { toValue: 500, duration: speed, delay, useNativeDriver: true })
+    ).start();
+  }, []);
+  return (
+    <Animated.View style={{
+      position: "absolute", top, left: -100, width: "200%", height: 1,
+      backgroundColor: `rgba(196,104,62,${lineOpacity})`,
+      transform: [{ translateX }, { rotate: "12deg" }],
+    }} />
+  );
+}
+
 function SplashB({ onFinish }) {
   const letters = "CLIPD".split("");
   const anims = useRef(letters.map(() => new Animated.Value(0))).current;
   const exitY = useRef(new Animated.Value(0)).current;
   const exitOpacity = useRef(new Animated.Value(1)).current;
+  const linesOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Fade lines in
+    Animated.timing(linesOpacity, { toValue: 1, duration: 800, useNativeDriver: true }).start();
     // Phase 1: stagger each letter in (120ms apart, 300ms each)
     Animated.stagger(120, anims.map(a =>
       Animated.timing(a, { toValue: 1, duration: 300, useNativeDriver: true })
@@ -360,7 +379,20 @@ function SplashB({ onFinish }) {
   }, []);
 
   return (
-    <Animated.View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, backgroundColor: "#FAFAFA", justifyContent: "center", alignItems: "center", opacity: exitOpacity }}>
+    <Animated.View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, backgroundColor: "#FAFAFA", justifyContent: "center", alignItems: "center", opacity: exitOpacity, overflow: "hidden" }}>
+      {/* Ambient drift lines — subtle diagonal lines moving continuously */}
+      <Animated.View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: linesOpacity }}>
+        <DriftLine top="12%" delay={0}   speed={6000} opacity={0.06} />
+        <DriftLine top="22%" delay={400} speed={7000} opacity={0.04} />
+        <DriftLine top="35%" delay={200} speed={5500} opacity={0.07} />
+        <DriftLine top="45%" delay={600} speed={6500} opacity={0.03} />
+        <DriftLine top="55%" delay={100} speed={7500} opacity={0.05} />
+        <DriftLine top="65%" delay={500} speed={5000} opacity={0.06} />
+        <DriftLine top="75%" delay={300} speed={6800} opacity={0.04} />
+        <DriftLine top="85%" delay={700} speed={5800} opacity={0.05} />
+      </Animated.View>
+
+      {/* Letters */}
       <Animated.View style={{ flexDirection: "row", transform: [{ translateY: exitY }] }}>
         {letters.map((letter, i) => (
           <Animated.Text key={i} style={{
