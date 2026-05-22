@@ -338,19 +338,22 @@ function SplashA({ onFinish }) {
   );
 }
 
-// ──── CONCEPT B: "The Reveal" ────
-function DriftLine({ top, delay, speed, opacity: lineOpacity }) {
-  const translateX = useRef(new Animated.Value(-200)).current;
+// ──── CONCEPT B: "The Reveal" — Bold Edition ────
+function DriftLine({ top, delay, speed, thickness, lineColor }) {
+  const translateX = useRef(new Animated.Value(-400)).current;
   useEffect(() => {
     Animated.loop(
-      Animated.timing(translateX, { toValue: 500, duration: speed, delay, useNativeDriver: true })
+      Animated.sequence([
+        Animated.timing(translateX, { toValue: 500, duration: speed, delay, useNativeDriver: true }),
+        Animated.timing(translateX, { toValue: -400, duration: 0, useNativeDriver: true }),
+      ])
     ).start();
   }, []);
   return (
     <Animated.View style={{
-      position: "absolute", top, left: -100, width: "200%", height: 1,
-      backgroundColor: `rgba(196,104,62,${lineOpacity})`,
-      transform: [{ translateX }, { rotate: "12deg" }],
+      position: "absolute", top, left: -200, width: "300%", height: thickness,
+      backgroundColor: lineColor,
+      transform: [{ translateX }, { rotate: "15deg" }],
     }} />
   );
 }
@@ -358,51 +361,87 @@ function DriftLine({ top, delay, speed, opacity: lineOpacity }) {
 function SplashB({ onFinish }) {
   const letters = "CLIPD".split("");
   const anims = useRef(letters.map(() => new Animated.Value(0))).current;
-  const exitY = useRef(new Animated.Value(0)).current;
+  const exitScale = useRef(new Animated.Value(1)).current;
   const exitOpacity = useRef(new Animated.Value(1)).current;
   const linesOpacity = useRef(new Animated.Value(0)).current;
+  const bgFlash = useRef(new Animated.Value(0)).current;
+  const taglineOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Fade lines in
-    Animated.timing(linesOpacity, { toValue: 1, duration: 800, useNativeDriver: true }).start();
-    // Phase 1: stagger each letter in (120ms apart, 300ms each)
-    Animated.stagger(120, anims.map(a =>
-      Animated.timing(a, { toValue: 1, duration: 300, useNativeDriver: true })
-    )).start();
-    // Phase 2: hold (500ms) then lift + fade (350ms)
+    // Phase 0: lines fade in immediately
+    Animated.timing(linesOpacity, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+
+    // Phase 1: stagger letters in — each slides up + fades in
+    setTimeout(() => {
+      Animated.stagger(100, anims.map(a =>
+        Animated.timing(a, { toValue: 1, duration: 250, useNativeDriver: true })
+      )).start();
+    }, 200);
+
+    // Phase 2: once all letters are in, brief bg flash (white pulse) + tagline appears
+    setTimeout(() => {
+      Animated.sequence([
+        Animated.timing(bgFlash, { toValue: 1, duration: 120, useNativeDriver: true }),
+        Animated.timing(bgFlash, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]).start();
+      Animated.timing(taglineOpacity, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+    }, 900);
+
+    // Phase 3: hold, then scale up slightly + fade out (cinematic exit)
     setTimeout(() => {
       Animated.parallel([
-        Animated.timing(exitY, { toValue: -50, duration: 350, useNativeDriver: true }),
-        Animated.timing(exitOpacity, { toValue: 0, duration: 350, useNativeDriver: true }),
+        Animated.timing(exitScale, { toValue: 1.15, duration: 500, useNativeDriver: true }),
+        Animated.timing(exitOpacity, { toValue: 0, duration: 500, useNativeDriver: true }),
       ]).start(() => onFinish());
-    }, 1600);
+    }, 1700);
   }, []);
 
   return (
-    <Animated.View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, backgroundColor: "#FAFAFA", justifyContent: "center", alignItems: "center", opacity: exitOpacity, overflow: "hidden" }}>
-      {/* Ambient drift lines — subtle diagonal lines moving continuously */}
+    <Animated.View style={{
+      position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
+      backgroundColor: "#FAFAFA", justifyContent: "center", alignItems: "center",
+      opacity: exitOpacity, overflow: "hidden",
+    }}>
+      {/* Drift lines — bolder, more visible, mixed terra + dark */}
       <Animated.View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: linesOpacity }}>
-        <DriftLine top="12%" delay={0}   speed={6000} opacity={0.06} />
-        <DriftLine top="22%" delay={400} speed={7000} opacity={0.04} />
-        <DriftLine top="35%" delay={200} speed={5500} opacity={0.07} />
-        <DriftLine top="45%" delay={600} speed={6500} opacity={0.03} />
-        <DriftLine top="55%" delay={100} speed={7500} opacity={0.05} />
-        <DriftLine top="65%" delay={500} speed={5000} opacity={0.06} />
-        <DriftLine top="75%" delay={300} speed={6800} opacity={0.04} />
-        <DriftLine top="85%" delay={700} speed={5800} opacity={0.05} />
+        <DriftLine top="8%"  delay={0}   speed={4000} thickness={2} lineColor="rgba(196,104,62,0.08)" />
+        <DriftLine top="18%" delay={300} speed={5000} thickness={1} lineColor="rgba(17,17,17,0.06)" />
+        <DriftLine top="28%" delay={100} speed={3500} thickness={3} lineColor="rgba(196,104,62,0.06)" />
+        <DriftLine top="38%" delay={500} speed={4500} thickness={1} lineColor="rgba(17,17,17,0.04)" />
+        <DriftLine top="48%" delay={200} speed={5500} thickness={2} lineColor="rgba(196,104,62,0.07)" />
+        <DriftLine top="58%" delay={400} speed={3800} thickness={1} lineColor="rgba(17,17,17,0.05)" />
+        <DriftLine top="68%" delay={150} speed={4200} thickness={3} lineColor="rgba(196,104,62,0.05)" />
+        <DriftLine top="78%" delay={600} speed={5200} thickness={1} lineColor="rgba(17,17,17,0.06)" />
+        <DriftLine top="88%" delay={250} speed={3600} thickness={2} lineColor="rgba(196,104,62,0.08)" />
+        <DriftLine top="95%" delay={350} speed={4800} thickness={1} lineColor="rgba(17,17,17,0.04)" />
       </Animated.View>
 
-      {/* Letters */}
-      <Animated.View style={{ flexDirection: "row", transform: [{ translateY: exitY }] }}>
-        {letters.map((letter, i) => (
-          <Animated.Text key={i} style={{
-            fontSize: 48, fontWeight: "900", color: "#C4683E", letterSpacing: -2,
-            opacity: anims[i],
-            transform: [{ translateY: anims[i].interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
-          }}>
-            {letter}
-          </Animated.Text>
-        ))}
+      {/* White flash overlay */}
+      <Animated.View style={{
+        position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: "#FFFFFF",
+        opacity: bgFlash.interpolate({ inputRange: [0, 1], outputRange: [0, 0.6] }),
+      }} />
+
+      {/* Logo + tagline */}
+      <Animated.View style={{ alignItems: "center", transform: [{ scale: exitScale }] }}>
+        <View style={{ flexDirection: "row" }}>
+          {letters.map((letter, i) => (
+            <Animated.Text key={i} style={{
+              fontSize: 56, fontWeight: "900", color: "#C4683E", letterSpacing: -2,
+              opacity: anims[i],
+              transform: [{ translateY: anims[i].interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
+            }}>
+              {letter}
+            </Animated.Text>
+          ))}
+        </View>
+        <Animated.Text style={{
+          fontSize: 11, fontWeight: "600", color: "#111111", letterSpacing: 4,
+          textTransform: "uppercase", marginTop: 14, opacity: taglineOpacity,
+        }}>
+          Built for barbershops
+        </Animated.Text>
       </Animated.View>
     </Animated.View>
   );
