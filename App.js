@@ -338,7 +338,73 @@ function SplashA({ onFinish }) {
   );
 }
 
-// ──── CONCEPT B: "The Reveal" — Final Cut ────
+// ──── CONCEPT B: "The Reveal" — Angular Edition ────
+
+// Angular shape: two thin lines meeting at an angle — like open scissors or a V-cut
+function AngularShape({ x, y, size, angle, delay: d, color, pulseAt }) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const rotation = useRef(new Animated.Value(0)).current;
+  const scale = useRef(new Animated.Value(0.6)).current;
+
+  useEffect(() => {
+    // Fade in + scale up
+    Animated.parallel([
+      Animated.timing(opacity, { toValue: 1, duration: 400, delay: d, useNativeDriver: true }),
+      Animated.timing(scale, { toValue: 1, duration: 600, delay: d, useNativeDriver: true }),
+    ]).start();
+    // Slow continuous rotation
+    Animated.loop(
+      Animated.timing(rotation, { toValue: 1, duration: 8000, useNativeDriver: true })
+    ).start();
+    // Pulse when letters land
+    if (pulseAt) {
+      setTimeout(() => {
+        Animated.sequence([
+          Animated.timing(opacity, { toValue: 1.8, duration: 80, useNativeDriver: true }),
+          Animated.timing(opacity, { toValue: 0.6, duration: 400, useNativeDriver: true }),
+        ]).start();
+      }, pulseAt);
+    }
+  }, []);
+
+  const spin = rotation.interpolate({ inputRange: [0, 1], outputRange: [`${angle}deg`, `${angle + 45}deg`] });
+
+  return (
+    <Animated.View style={{
+      position: "absolute", left: x, top: y,
+      width: size, height: size,
+      opacity,
+      transform: [{ rotate: spin }, { scale }],
+    }}>
+      {/* Two arms forming a V / angular cut shape */}
+      <View style={{ position: "absolute", top: 0, left: "50%", width: 1.5, height: size * 0.6, backgroundColor: color, transform: [{ rotate: "-25deg" }] }} />
+      <View style={{ position: "absolute", top: 0, left: "50%", width: 1.5, height: size * 0.6, backgroundColor: color, transform: [{ rotate: "25deg" }] }} />
+    </Animated.View>
+  );
+}
+
+// Single clean line that slides across — precision, like a razor line
+function SliceLine({ startY, delay: d, speed, color, thickness }) {
+  const translateX = useRef(new Animated.Value(-500)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(opacity, { toValue: 1, duration: 200, delay: d, useNativeDriver: true }).start();
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(translateX, { toValue: 600, duration: speed, delay: d, useNativeDriver: true }),
+        Animated.timing(translateX, { toValue: -500, duration: 0, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+  return (
+    <Animated.View style={{
+      position: "absolute", top: startY, left: -200, width: "300%", height: thickness,
+      backgroundColor: color, opacity,
+      transform: [{ translateX }, { rotate: "8deg" }],
+    }} />
+  );
+}
+
 function DriftLine({ top, delay, speed, thickness, lineColor, pulseAt }) {
   const translateX = useRef(new Animated.Value(-400)).current;
   const lineOpacity = useRef(new Animated.Value(1)).current;
@@ -379,12 +445,9 @@ function SplashB({ onFinish }) {
   const linesOpacity = useRef(new Animated.Value(0)).current;
   const bgFlash = useRef(new Animated.Value(0)).current;
   const breathScale = useRef(new Animated.Value(1)).current;
-  const stageLineWidth = useRef(new Animated.Value(0)).current;
-
   useEffect(() => {
-    // Phase 0: lines fade in + stage line draws across center
+    // Phase 0: angular shapes + slice lines fade in
     Animated.timing(linesOpacity, { toValue: 1, duration: 300, useNativeDriver: true }).start();
-    Animated.timing(stageLineWidth, { toValue: 1, duration: 500, useNativeDriver: false }).start();
 
     // Phase 1: stagger letters — each fades in + slides up + scales to 1
     // Timing: 140ms stagger, each letter takes 220ms
@@ -439,26 +502,20 @@ function SplashB({ onFinish }) {
       backgroundColor: "#FAFAFA", justifyContent: "center", alignItems: "center",
       opacity: exitOpacity, overflow: "hidden",
     }}>
-      {/* Drift lines — react to letter landing with opacity pulse */}
+      {/* Angular shapes — scissors/V-cut geometry, slowly rotating */}
       <Animated.View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: linesOpacity }}>
-        <DriftLine top="6%"  delay={0}   speed={3500} thickness={2} lineColor="rgba(196,104,62,0.10)" pulseAt={PULSE_TIME} />
-        <DriftLine top="16%" delay={200} speed={4500} thickness={1} lineColor="rgba(17,17,17,0.07)"   pulseAt={PULSE_TIME + 40} />
-        <DriftLine top="26%" delay={100} speed={3000} thickness={3} lineColor="rgba(196,104,62,0.08)" pulseAt={PULSE_TIME + 80} />
-        <DriftLine top="36%" delay={400} speed={4000} thickness={1} lineColor="rgba(17,17,17,0.05)"   pulseAt={null} />
-        <DriftLine top="46%" delay={150} speed={5000} thickness={2} lineColor="rgba(196,104,62,0.09)" pulseAt={PULSE_TIME + 20} />
-        <DriftLine top="56%" delay={300} speed={3200} thickness={1} lineColor="rgba(17,17,17,0.06)"   pulseAt={PULSE_TIME + 60} />
-        <DriftLine top="66%" delay={100} speed={3800} thickness={3} lineColor="rgba(196,104,62,0.07)" pulseAt={null} />
-        <DriftLine top="76%" delay={500} speed={4600} thickness={1} lineColor="rgba(17,17,17,0.07)"   pulseAt={PULSE_TIME + 100} />
-        <DriftLine top="86%" delay={200} speed={3100} thickness={2} lineColor="rgba(196,104,62,0.10)" pulseAt={PULSE_TIME + 30} />
-        <DriftLine top="94%" delay={350} speed={4300} thickness={1} lineColor="rgba(17,17,17,0.05)"   pulseAt={null} />
+        <AngularShape x="8%"  y="10%" size={60}  angle={0}   delay={0}   color="rgba(196,104,62,0.10)" pulseAt={PULSE_TIME} />
+        <AngularShape x="75%" y="8%"  size={45}  angle={30}  delay={150} color="rgba(17,17,17,0.07)"   pulseAt={PULSE_TIME + 40} />
+        <AngularShape x="85%" y="35%" size={70}  angle={-15} delay={100} color="rgba(196,104,62,0.08)" pulseAt={null} />
+        <AngularShape x="5%"  y="55%" size={50}  angle={45}  delay={300} color="rgba(17,17,17,0.06)"   pulseAt={PULSE_TIME + 80} />
+        <AngularShape x="70%" y="70%" size={55}  angle={10}  delay={200} color="rgba(196,104,62,0.09)" pulseAt={null} />
+        <AngularShape x="25%" y="80%" size={40}  angle={-30} delay={400} color="rgba(17,17,17,0.07)"   pulseAt={PULSE_TIME + 60} />
+        {/* Slice lines — clean razor-precise lines gliding across */}
+        <SliceLine startY="20%" delay={0}   speed={4500} color="rgba(196,104,62,0.06)" thickness={1} />
+        <SliceLine startY="45%" delay={200} speed={3800} color="rgba(17,17,17,0.04)"   thickness={1} />
+        <SliceLine startY="72%" delay={100} speed={5200} color="rgba(196,104,62,0.05)" thickness={1} />
+        <SliceLine startY="90%" delay={350} speed={4000} color="rgba(17,17,17,0.03)"   thickness={1} />
       </Animated.View>
-
-      {/* Stage line — thin horizontal line draws across before letters */}
-      <Animated.View style={{
-        position: "absolute", height: 1, backgroundColor: "rgba(196,104,62,0.15)",
-        top: "50%", left: "15%",
-        width: stageLineWidth.interpolate({ inputRange: [0, 1], outputRange: ["0%", "70%"] }),
-      }} />
 
       {/* Flash overlay */}
       <Animated.View style={{
