@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Text, ActivityIndicator, View, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { Text, ActivityIndicator, View, TouchableOpacity, StyleSheet, Alert, Animated } from "react-native";
 import * as Notifications from "expo-notifications";
 
 import { navigationRef } from "./src/lib/navigation";
@@ -297,8 +297,41 @@ function StaffTabs() {
   );
 }
 
+function SplashAnimation({ onFinish }) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const scale = useRef(new Animated.Value(0.8)).current;
+  const slideUp = useRef(new Animated.Value(0)).current;
+  const screenOpacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    // Phase 1: fade in + scale up the logo
+    Animated.parallel([
+      Animated.timing(opacity, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.spring(scale, { toValue: 1, tension: 80, friction: 10, useNativeDriver: true }),
+    ]).start(() => {
+      // Phase 2: hold for a beat
+      setTimeout(() => {
+        // Phase 3: slide up + fade out
+        Animated.parallel([
+          Animated.timing(slideUp, { toValue: -60, duration: 400, useNativeDriver: true }),
+          Animated.timing(screenOpacity, { toValue: 0, duration: 400, useNativeDriver: true }),
+        ]).start(() => onFinish());
+      }, 600);
+    });
+  }, []);
+
+  return (
+    <Animated.View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, backgroundColor: "#111111", justifyContent: "center", alignItems: "center", opacity: screenOpacity }}>
+      <Animated.Text style={{ fontSize: 42, fontWeight: "900", color: "#C4683E", letterSpacing: -1.5, opacity, transform: [{ scale }, { translateY: slideUp }] }}>
+        CLIPD
+      </Animated.Text>
+    </Animated.View>
+  );
+}
+
 export default function App() {
   const [initialRoute, setInitialRoute] = useState(null);
+  const [splashDone, setSplashDone] = useState(false);
 
   // Deep-link from push notification taps to the relevant screen
   useEffect(() => {
@@ -350,10 +383,9 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
+      {!splashDone && <SplashAnimation onFinish={() => setSplashDone(true)} />}
       {!initialRoute ? (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: C.cream }}>
-          <ActivityIndicator color={C.espresso} size="large" />
-        </View>
+        <View style={{ flex: 1, backgroundColor: "#111111" }} />
       ) : (
         <NavigationContainer ref={navigationRef}>
           <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
