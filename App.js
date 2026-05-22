@@ -502,19 +502,18 @@ function SplashB({ onFinish }) {
       backgroundColor: "#FAFAFA", justifyContent: "center", alignItems: "center",
       opacity: exitOpacity, overflow: "hidden",
     }}>
-      {/* Angular shapes — scissors/V-cut geometry, slowly rotating */}
+      {/* Drift lines — react to letter landing with opacity pulse */}
       <Animated.View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: linesOpacity }}>
-        <AngularShape x="8%"  y="10%" size={60}  angle={0}   delay={0}   color="rgba(196,104,62,0.10)" pulseAt={PULSE_TIME} />
-        <AngularShape x="75%" y="8%"  size={45}  angle={30}  delay={150} color="rgba(17,17,17,0.07)"   pulseAt={PULSE_TIME + 40} />
-        <AngularShape x="85%" y="35%" size={70}  angle={-15} delay={100} color="rgba(196,104,62,0.08)" pulseAt={null} />
-        <AngularShape x="5%"  y="55%" size={50}  angle={45}  delay={300} color="rgba(17,17,17,0.06)"   pulseAt={PULSE_TIME + 80} />
-        <AngularShape x="70%" y="70%" size={55}  angle={10}  delay={200} color="rgba(196,104,62,0.09)" pulseAt={null} />
-        <AngularShape x="25%" y="80%" size={40}  angle={-30} delay={400} color="rgba(17,17,17,0.07)"   pulseAt={PULSE_TIME + 60} />
-        {/* Slice lines — clean razor-precise lines gliding across */}
-        <SliceLine startY="20%" delay={0}   speed={4500} color="rgba(196,104,62,0.06)" thickness={1} />
-        <SliceLine startY="45%" delay={200} speed={3800} color="rgba(17,17,17,0.04)"   thickness={1} />
-        <SliceLine startY="72%" delay={100} speed={5200} color="rgba(196,104,62,0.05)" thickness={1} />
-        <SliceLine startY="90%" delay={350} speed={4000} color="rgba(17,17,17,0.03)"   thickness={1} />
+        <DriftLine top="6%"  delay={0}   speed={3500} thickness={2} lineColor="rgba(196,104,62,0.10)" pulseAt={PULSE_TIME} />
+        <DriftLine top="16%" delay={200} speed={4500} thickness={1} lineColor="rgba(17,17,17,0.07)"   pulseAt={PULSE_TIME + 40} />
+        <DriftLine top="26%" delay={100} speed={3000} thickness={3} lineColor="rgba(196,104,62,0.08)" pulseAt={PULSE_TIME + 80} />
+        <DriftLine top="36%" delay={400} speed={4000} thickness={1} lineColor="rgba(17,17,17,0.05)"   pulseAt={null} />
+        <DriftLine top="46%" delay={150} speed={5000} thickness={2} lineColor="rgba(196,104,62,0.09)" pulseAt={PULSE_TIME + 20} />
+        <DriftLine top="56%" delay={300} speed={3200} thickness={1} lineColor="rgba(17,17,17,0.06)"   pulseAt={PULSE_TIME + 60} />
+        <DriftLine top="66%" delay={100} speed={3800} thickness={3} lineColor="rgba(196,104,62,0.07)" pulseAt={null} />
+        <DriftLine top="76%" delay={500} speed={4600} thickness={1} lineColor="rgba(17,17,17,0.07)"   pulseAt={PULSE_TIME + 100} />
+        <DriftLine top="86%" delay={200} speed={3100} thickness={2} lineColor="rgba(196,104,62,0.10)" pulseAt={PULSE_TIME + 30} />
+        <DriftLine top="94%" delay={350} speed={4300} thickness={1} lineColor="rgba(17,17,17,0.05)"   pulseAt={null} />
       </Animated.View>
 
       {/* Flash overlay */}
