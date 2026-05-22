@@ -6,7 +6,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { api } from "../../../lib/api";
-import { C, serif } from "../../../lib/theme";
+import { C, serif, fmtMoney } from "../../../lib/theme";
 import { clearSession } from "../../../lib/auth";
 import { success as hapticSuccess } from "../../../lib/haptics";
 import AddressAutocomplete from "../../../components/AddressAutocomplete";

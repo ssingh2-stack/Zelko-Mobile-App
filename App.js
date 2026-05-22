@@ -151,6 +151,20 @@ function MoreHomeScreen({ navigation }) {
           <Ionicons name="chevron-forward" size={18} color={C.muted} />
         </TouchableOpacity>
       ))}
+      <View style={{ flex: 1 }} />
+      <TouchableOpacity style={moreStyles.logoutRow} onPress={() => {
+        Alert.alert("Log Out", "Are you sure you want to log out?", [
+          { text: "Cancel", style: "cancel" },
+          { text: "Log Out", style: "destructive", onPress: async () => {
+            try { await api.logout(); } catch {}
+            await clearSession();
+            navigation.reset({ index: 0, routes: [{ name: "Login" }] });
+          }},
+        ]);
+      }}>
+        <Ionicons name="log-out-outline" size={18} color={C.muted} style={{ width: 28, textAlign: "center" }} />
+        <Text style={moreStyles.logoutLabel}>Log Out</Text>
+      </TouchableOpacity>
       <TouchableOpacity style={moreStyles.deleteRow} onPress={handleDeleteAccount}>
         <Ionicons name="trash-outline" size={18} color="#DC2626" style={{ width: 28, textAlign: "center" }} />
         <Text style={moreStyles.deleteLabel}>Delete Account</Text>
@@ -176,10 +190,17 @@ const moreStyles = StyleSheet.create({
   rowLabel: { flex: 1, fontSize: 15, fontWeight: "600", color: C.espresso },
   newBadge: { backgroundColor: C.terra, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, marginRight: 6 },
   newBadgeText: { color: C.cream, fontSize: 9, fontWeight: "900", letterSpacing: 0.6 },
+  logoutRow: {
+    flexDirection: "row", alignItems: "center", gap: 16,
+    paddingHorizontal: 20, paddingVertical: 16,
+    marginTop: 12, marginHorizontal: 16, borderRadius: 10,
+    borderWidth: 1.5, borderColor: C.border, backgroundColor: C.surface,
+  },
+  logoutLabel: { flex: 1, fontSize: 14, fontWeight: "700", color: C.muted },
   deleteRow: {
     flexDirection: "row", alignItems: "center", gap: 16,
     paddingHorizontal: 20, paddingVertical: 16,
-    marginTop: 20, marginHorizontal: 16, borderRadius: 10,
+    marginTop: 8, marginHorizontal: 16, marginBottom: 32, borderRadius: 10,
     borderWidth: 1.5, borderColor: "#FCA5A5", backgroundColor: "#FEF2F2",
   },
   deleteLabel: { flex: 1, fontSize: 14, fontWeight: "700", color: "#DC2626" },
