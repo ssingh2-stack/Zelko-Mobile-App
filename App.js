@@ -297,34 +297,90 @@ function StaffTabs() {
   );
 }
 
-function SplashAnimation({ onFinish }) {
-  const opacity = useRef(new Animated.Value(0)).current;
-  const scale = useRef(new Animated.Value(0.8)).current;
-  const slideUp = useRef(new Animated.Value(0)).current;
-  const screenOpacity = useRef(new Animated.Value(1)).current;
+function FloatingShape({ size, startX, startY, color, delay, duration }) {
+  const translateX = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
+  const shapeOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Phase 1: fade in + scale up the logo
-    Animated.parallel([
-      Animated.timing(opacity, { toValue: 1, duration: 600, useNativeDriver: true }),
-      Animated.spring(scale, { toValue: 1, tension: 80, friction: 10, useNativeDriver: true }),
-    ]).start(() => {
-      // Phase 2: hold for a beat
-      setTimeout(() => {
-        // Phase 3: slide up + fade out
-        Animated.parallel([
-          Animated.timing(slideUp, { toValue: -60, duration: 400, useNativeDriver: true }),
-          Animated.timing(screenOpacity, { toValue: 0, duration: 400, useNativeDriver: true }),
-        ]).start(() => onFinish());
-      }, 600);
-    });
+    Animated.timing(shapeOpacity, { toValue: 1, duration: 800, delay, useNativeDriver: true }).start();
+    // Gentle continuous drift
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(translateX, { toValue: 20, duration: duration, useNativeDriver: true }),
+        Animated.timing(translateX, { toValue: -20, duration: duration, useNativeDriver: true }),
+      ])
+    ).start();
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(translateY, { toValue: -15, duration: duration * 0.8, useNativeDriver: true }),
+        Animated.timing(translateY, { toValue: 15, duration: duration * 0.8, useNativeDriver: true }),
+      ])
+    ).start();
   }, []);
 
   return (
-    <Animated.View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, backgroundColor: "#111111", justifyContent: "center", alignItems: "center", opacity: screenOpacity }}>
-      <Animated.Text style={{ fontSize: 42, fontWeight: "900", color: "#C4683E", letterSpacing: -1.5, opacity, transform: [{ scale }, { translateY: slideUp }] }}>
-        CLIPD
-      </Animated.Text>
+    <Animated.View style={{
+      position: "absolute", left: startX, top: startY,
+      width: size, height: size, borderRadius: size / 2,
+      backgroundColor: color,
+      opacity: shapeOpacity,
+      transform: [{ translateX }, { translateY }],
+    }} />
+  );
+}
+
+function SplashAnimation({ onFinish }) {
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+  const logoScale = useRef(new Animated.Value(0.7)).current;
+  const slideUp = useRef(new Animated.Value(0)).current;
+  const screenOpacity = useRef(new Animated.Value(1)).current;
+  const barWidth = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Phase 1: logo fades in + springs to scale
+    Animated.parallel([
+      Animated.timing(logoOpacity, { toValue: 1, duration: 500, delay: 300, useNativeDriver: true }),
+      Animated.spring(logoScale, { toValue: 1, tension: 60, friction: 8, delay: 300, useNativeDriver: true }),
+    ]).start();
+    // Phase 1b: underline bar sweeps in
+    Animated.timing(barWidth, { toValue: 1, duration: 600, delay: 700, useNativeDriver: false }).start();
+    // Phase 2: hold, then exit
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(slideUp, { toValue: -80, duration: 350, useNativeDriver: true }),
+        Animated.timing(screenOpacity, { toValue: 0, duration: 350, useNativeDriver: true }),
+      ]).start(() => onFinish());
+    }, 1600);
+  }, []);
+
+  return (
+    <Animated.View style={{
+      position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
+      backgroundColor: "#FAFAFA", justifyContent: "center", alignItems: "center",
+      opacity: screenOpacity,
+    }}>
+      {/* Floating shapes — soft gray, continuous drift */}
+      <FloatingShape size={180} startX="10%" startY="15%" color="rgba(196,104,62,0.04)" delay={0} duration={4000} />
+      <FloatingShape size={120} startX="65%" startY="25%" color="rgba(17,17,17,0.03)" delay={200} duration={3500} />
+      <FloatingShape size={200} startX="50%" startY="60%" color="rgba(196,104,62,0.03)" delay={100} duration={4500} />
+      <FloatingShape size={90} startX="20%" startY="70%" color="rgba(17,17,17,0.04)" delay={300} duration={3000} />
+      <FloatingShape size={140} startX="75%" startY="75%" color="rgba(196,104,62,0.025)" delay={150} duration={3800} />
+
+      {/* Logo */}
+      <Animated.View style={{ alignItems: "center", transform: [{ scale: logoScale }, { translateY: slideUp }] }}>
+        <Animated.Text style={{
+          fontSize: 48, fontWeight: "900", color: "#C4683E",
+          letterSpacing: -2, opacity: logoOpacity,
+        }}>
+          CLIPD
+        </Animated.Text>
+        {/* Animated underline bar */}
+        <Animated.View style={{
+          height: 3, backgroundColor: "#C4683E", borderRadius: 2, marginTop: 8,
+          width: barWidth.interpolate({ inputRange: [0, 1], outputRange: [0, 80] }),
+        }} />
+      </Animated.View>
     </Animated.View>
   );
 }
@@ -385,7 +441,7 @@ export default function App() {
     <SafeAreaProvider>
       {!splashDone && <SplashAnimation onFinish={() => setSplashDone(true)} />}
       {!initialRoute ? (
-        <View style={{ flex: 1, backgroundColor: "#111111" }} />
+        <View style={{ flex: 1, backgroundColor: "#FAFAFA" }} />
       ) : (
         <NavigationContainer ref={navigationRef}>
           <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
