@@ -261,18 +261,19 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
               {/* Date */}
               <View style={styles.fieldWrap}>
                 <Text style={styles.fieldLabel}>Date</Text>
-                <View style={styles.dateRow}>
+                <TouchableOpacity style={styles.dateRow} onPress={() => setShowDatePicker(!showDatePicker)} activeOpacity={0.7}>
                   <TouchableOpacity style={styles.dateArrow} onPress={() => changeDate(-1)}>
-                    <Text style={styles.dateArrowText}>‹</Text>
+                    <Ionicons name="chevron-back" size={18} color={C.muted} />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-                    <Text style={[styles.dateLabel, { textDecorationLine: "underline" }]}>{dateLabel}</Text>
-                  </TouchableOpacity>
+                  <View style={{ flex: 1, alignItems: "center" }}>
+                    <Text style={styles.dateLabel}>{dateLabel}</Text>
+                    <Text style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>Tap to pick date</Text>
+                  </View>
                   <TouchableOpacity style={styles.dateArrow} onPress={() => changeDate(1)}>
-                    <Text style={styles.dateArrowText}>›</Text>
+                    <Ionicons name="chevron-forward" size={18} color={C.muted} />
                   </TouchableOpacity>
-                </View>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
+                </TouchableOpacity>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 10 }}>
                   <View style={{ flexDirection: "row", gap: 6 }}>
                     <TouchableOpacity style={styles.jumpPill} onPress={() => { setDate(todayISO()); setShowDatePicker(false); }}>
                       <Text style={styles.jumpPillText}>Today</Text>
@@ -524,10 +525,9 @@ const styles = StyleSheet.create({
   pillActive: { backgroundColor: C.espresso, borderColor: C.espresso },
   pillText: { fontSize: 12, fontWeight: "700", color: C.muted },
   pillTextActive: { color: C.cream },
-  dateRow: { flexDirection: "row", alignItems: "center", backgroundColor: C.white, borderRadius: 10, borderWidth: 1, borderColor: C.border, overflow: "hidden" },
-  dateArrow: { padding: 12, paddingHorizontal: 18 },
-  dateArrowText: { fontSize: 22, color: C.espresso, fontWeight: "300", lineHeight: 26 },
-  dateLabel: { flex: 1, textAlign: "center", fontSize: 14, fontWeight: "700", color: C.espresso },
+  dateRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: C.white, borderRadius: 12, borderWidth: 1, borderColor: C.border, paddingVertical: 14 },
+  dateArrow: { paddingHorizontal: 20, paddingVertical: 4 },
+  dateLabel: { fontSize: 16, fontWeight: "800", color: C.espresso, textAlign: "center" },
   jumpPill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: C.border, backgroundColor: C.white },
   jumpPillText: { fontSize: 12, fontWeight: "600", color: C.muted },
   walkinRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 20, paddingVertical: 4 },
