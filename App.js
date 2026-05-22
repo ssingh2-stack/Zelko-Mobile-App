@@ -297,93 +297,112 @@ function StaffTabs() {
   );
 }
 
-function FloatingShape({ size, startX, startY, color, delay, duration }) {
-  const translateX = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(0)).current;
-  const shapeOpacity = useRef(new Animated.Value(0)).current;
+/*
+ * SPLASH CONCEPTS — pick one:
+ *
+ * A — "The Breath": CLIPD starts enormous and transparent, slowly pulls into
+ *     focus at final size. One continuous cinematic motion. No decoration.
+ *
+ * B — "The Reveal": Each letter appears one at a time, staggered, precise.
+ *     Typewriter energy but slower, more deliberate. Then the whole word
+ *     lifts and vanishes.
+ *
+ * C — "The Cut": Nothing. Beat. CLIPD appears instantly — hard cut, no fade.
+ *     Holds with confidence. Then smoothly dissolves. The restraint IS the design.
+ */
+
+// ──── CONCEPT A: "The Breath" ────
+function SplashA({ onFinish }) {
+  const scale = useRef(new Animated.Value(4)).current;
+  const opacity = useRef(new Animated.Value(0.06)).current;
+  const exitOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    Animated.timing(shapeOpacity, { toValue: 1, duration: 800, delay, useNativeDriver: true }).start();
-    // Gentle continuous drift
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(translateX, { toValue: 20, duration: duration, useNativeDriver: true }),
-        Animated.timing(translateX, { toValue: -20, duration: duration, useNativeDriver: true }),
-      ])
-    ).start();
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(translateY, { toValue: -15, duration: duration * 0.8, useNativeDriver: true }),
-        Animated.timing(translateY, { toValue: 15, duration: duration * 0.8, useNativeDriver: true }),
-      ])
-    ).start();
+    // Phase 1: pull into focus — scale 4x→1x, opacity 0.06→1 (1200ms, ease-out)
+    Animated.parallel([
+      Animated.timing(scale, { toValue: 1, duration: 1200, useNativeDriver: true }),
+      Animated.timing(opacity, { toValue: 1, duration: 1200, useNativeDriver: true }),
+    ]).start();
+    // Phase 2: hold (400ms) then dissolve (400ms)
+    setTimeout(() => {
+      Animated.timing(exitOpacity, { toValue: 0, duration: 400, useNativeDriver: true }).start(() => onFinish());
+    }, 1700);
   }, []);
 
   return (
-    <Animated.View style={{
-      position: "absolute", left: startX, top: startY,
-      width: size, height: size, borderRadius: size / 2,
-      backgroundColor: color,
-      opacity: shapeOpacity,
-      transform: [{ translateX }, { translateY }],
-    }} />
+    <Animated.View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, backgroundColor: "#FAFAFA", justifyContent: "center", alignItems: "center", opacity: exitOpacity }}>
+      <Animated.Text style={{ fontSize: 48, fontWeight: "900", color: "#C4683E", letterSpacing: -2, opacity, transform: [{ scale }] }}>
+        CLIPD
+      </Animated.Text>
+    </Animated.View>
   );
 }
 
-function SplashAnimation({ onFinish }) {
-  const logoOpacity = useRef(new Animated.Value(0)).current;
-  const logoScale = useRef(new Animated.Value(0.7)).current;
-  const slideUp = useRef(new Animated.Value(0)).current;
-  const screenOpacity = useRef(new Animated.Value(1)).current;
-  const barWidth = useRef(new Animated.Value(0)).current;
+// ──── CONCEPT B: "The Reveal" ────
+function SplashB({ onFinish }) {
+  const letters = "CLIPD".split("");
+  const anims = useRef(letters.map(() => new Animated.Value(0))).current;
+  const exitY = useRef(new Animated.Value(0)).current;
+  const exitOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    // Phase 1: logo fades in + springs to scale
-    Animated.parallel([
-      Animated.timing(logoOpacity, { toValue: 1, duration: 500, delay: 300, useNativeDriver: true }),
-      Animated.spring(logoScale, { toValue: 1, tension: 60, friction: 8, delay: 300, useNativeDriver: true }),
-    ]).start();
-    // Phase 1b: underline bar sweeps in
-    Animated.timing(barWidth, { toValue: 1, duration: 600, delay: 700, useNativeDriver: false }).start();
-    // Phase 2: hold, then exit
+    // Phase 1: stagger each letter in (120ms apart, 300ms each)
+    Animated.stagger(120, anims.map(a =>
+      Animated.timing(a, { toValue: 1, duration: 300, useNativeDriver: true })
+    )).start();
+    // Phase 2: hold (500ms) then lift + fade (350ms)
     setTimeout(() => {
       Animated.parallel([
-        Animated.timing(slideUp, { toValue: -80, duration: 350, useNativeDriver: true }),
-        Animated.timing(screenOpacity, { toValue: 0, duration: 350, useNativeDriver: true }),
+        Animated.timing(exitY, { toValue: -50, duration: 350, useNativeDriver: true }),
+        Animated.timing(exitOpacity, { toValue: 0, duration: 350, useNativeDriver: true }),
       ]).start(() => onFinish());
     }, 1600);
   }, []);
 
   return (
-    <Animated.View style={{
-      position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
-      backgroundColor: "#FAFAFA", justifyContent: "center", alignItems: "center",
-      opacity: screenOpacity,
-    }}>
-      {/* Floating shapes — soft gray, continuous drift */}
-      <FloatingShape size={180} startX="10%" startY="15%" color="rgba(196,104,62,0.04)" delay={0} duration={4000} />
-      <FloatingShape size={120} startX="65%" startY="25%" color="rgba(17,17,17,0.03)" delay={200} duration={3500} />
-      <FloatingShape size={200} startX="50%" startY="60%" color="rgba(196,104,62,0.03)" delay={100} duration={4500} />
-      <FloatingShape size={90} startX="20%" startY="70%" color="rgba(17,17,17,0.04)" delay={300} duration={3000} />
-      <FloatingShape size={140} startX="75%" startY="75%" color="rgba(196,104,62,0.025)" delay={150} duration={3800} />
-
-      {/* Logo */}
-      <Animated.View style={{ alignItems: "center", transform: [{ scale: logoScale }, { translateY: slideUp }] }}>
-        <Animated.Text style={{
-          fontSize: 48, fontWeight: "900", color: "#C4683E",
-          letterSpacing: -2, opacity: logoOpacity,
-        }}>
-          CLIPD
-        </Animated.Text>
-        {/* Animated underline bar */}
-        <Animated.View style={{
-          height: 3, backgroundColor: "#C4683E", borderRadius: 2, marginTop: 8,
-          width: barWidth.interpolate({ inputRange: [0, 1], outputRange: [0, 80] }),
-        }} />
+    <Animated.View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, backgroundColor: "#FAFAFA", justifyContent: "center", alignItems: "center", opacity: exitOpacity }}>
+      <Animated.View style={{ flexDirection: "row", transform: [{ translateY: exitY }] }}>
+        {letters.map((letter, i) => (
+          <Animated.Text key={i} style={{
+            fontSize: 48, fontWeight: "900", color: "#C4683E", letterSpacing: -2,
+            opacity: anims[i],
+            transform: [{ translateY: anims[i].interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+          }}>
+            {letter}
+          </Animated.Text>
+        ))}
       </Animated.View>
     </Animated.View>
   );
 }
+
+// ──── CONCEPT C: "The Cut" ────
+function SplashC({ onFinish }) {
+  const wordOpacity = useRef(new Animated.Value(0)).current;
+  const exitOpacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    // Phase 1: silence (500ms) then instant appear (50ms — near-instant but not jarring)
+    setTimeout(() => {
+      Animated.timing(wordOpacity, { toValue: 1, duration: 50, useNativeDriver: true }).start();
+    }, 500);
+    // Phase 2: hold with confidence (800ms) then smooth dissolve (400ms)
+    setTimeout(() => {
+      Animated.timing(exitOpacity, { toValue: 0, duration: 400, useNativeDriver: true }).start(() => onFinish());
+    }, 1800);
+  }, []);
+
+  return (
+    <Animated.View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, backgroundColor: "#FAFAFA", justifyContent: "center", alignItems: "center", opacity: exitOpacity }}>
+      <Animated.Text style={{ fontSize: 48, fontWeight: "900", color: "#C4683E", letterSpacing: -2, opacity: wordOpacity }}>
+        CLIPD
+      </Animated.Text>
+    </Animated.View>
+  );
+}
+
+// ── Active splash — change this to SplashA, SplashB, or SplashC ──
+const SplashAnimation = SplashB;
 
 export default function App() {
   const [initialRoute, setInitialRoute] = useState(null);
