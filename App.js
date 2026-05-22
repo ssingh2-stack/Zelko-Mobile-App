@@ -338,9 +338,10 @@ function SplashA({ onFinish }) {
   );
 }
 
-// ──── CONCEPT B: "The Reveal" — Bold Edition ────
-function DriftLine({ top, delay, speed, thickness, lineColor }) {
+// ──── CONCEPT B: "The Reveal" — Final Cut ────
+function DriftLine({ top, delay, speed, thickness, lineColor, pulseAt }) {
   const translateX = useRef(new Animated.Value(-400)).current;
+  const lineOpacity = useRef(new Animated.Value(1)).current;
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
@@ -348,11 +349,21 @@ function DriftLine({ top, delay, speed, thickness, lineColor }) {
         Animated.timing(translateX, { toValue: -400, duration: 0, useNativeDriver: true }),
       ])
     ).start();
+    // Lines pulse brighter when letters land
+    if (pulseAt) {
+      setTimeout(() => {
+        Animated.sequence([
+          Animated.timing(lineOpacity, { toValue: 3, duration: 80, useNativeDriver: true }),
+          Animated.timing(lineOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+        ]).start();
+      }, pulseAt);
+    }
   }, []);
   return (
     <Animated.View style={{
       position: "absolute", top, left: -200, width: "300%", height: thickness,
       backgroundColor: lineColor,
+      opacity: lineOpacity,
       transform: [{ translateX }, { rotate: "15deg" }],
     }} />
   );
@@ -360,41 +371,67 @@ function DriftLine({ top, delay, speed, thickness, lineColor }) {
 
 function SplashB({ onFinish }) {
   const letters = "CLIPD".split("");
-  const anims = useRef(letters.map(() => new Animated.Value(0))).current;
+  const letterOpacities = useRef(letters.map(() => new Animated.Value(0))).current;
+  const letterYs = useRef(letters.map(() => new Animated.Value(40))).current;
+  const letterScales = useRef(letters.map(() => new Animated.Value(0.85))).current;
   const exitScale = useRef(new Animated.Value(1)).current;
   const exitOpacity = useRef(new Animated.Value(1)).current;
   const linesOpacity = useRef(new Animated.Value(0)).current;
   const bgFlash = useRef(new Animated.Value(0)).current;
-  const taglineOpacity = useRef(new Animated.Value(0)).current;
+  const breathScale = useRef(new Animated.Value(1)).current;
+  const stageLineWidth = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Phase 0: lines fade in immediately
-    Animated.timing(linesOpacity, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+    // Phase 0: lines fade in + stage line draws across center
+    Animated.timing(linesOpacity, { toValue: 1, duration: 300, useNativeDriver: true }).start();
+    Animated.timing(stageLineWidth, { toValue: 1, duration: 500, useNativeDriver: false }).start();
 
-    // Phase 1: stagger letters in — each slides up + fades in
+    // Phase 1: stagger letters — each fades in + slides up + scales to 1
+    // Timing: 140ms stagger, each letter takes 220ms
     setTimeout(() => {
-      Animated.stagger(100, anims.map(a =>
-        Animated.timing(a, { toValue: 1, duration: 250, useNativeDriver: true })
-      )).start();
-    }, 200);
+      letters.forEach((_, i) => {
+        setTimeout(() => {
+          Animated.parallel([
+            Animated.timing(letterOpacities[i], { toValue: 1, duration: 220, useNativeDriver: true }),
+            Animated.timing(letterYs[i], { toValue: 0, duration: 280, useNativeDriver: true }),
+            Animated.timing(letterScales[i], { toValue: 1, duration: 280, useNativeDriver: true }),
+          ]).start();
+        }, i * 140);
+      });
+    }, 400);
 
-    // Phase 2: once all letters are in, brief bg flash (white pulse) + tagline appears
+    // Phase 2: all letters landed — flash + breathe
     setTimeout(() => {
+      // Flash
       Animated.sequence([
-        Animated.timing(bgFlash, { toValue: 1, duration: 120, useNativeDriver: true }),
-        Animated.timing(bgFlash, { toValue: 0, duration: 200, useNativeDriver: true }),
+        Animated.timing(bgFlash, { toValue: 1, duration: 60, useNativeDriver: true }),
+        Animated.timing(bgFlash, { toValue: 0, duration: 250, useNativeDriver: true }),
       ]).start();
-      Animated.timing(taglineOpacity, { toValue: 1, duration: 400, useNativeDriver: true }).start();
-    }, 900);
+      // Breathe: subtle pulse 1→1.03→1
+      Animated.sequence([
+        Animated.timing(breathScale, { toValue: 1.03, duration: 200, useNativeDriver: true }),
+        Animated.timing(breathScale, { toValue: 1, duration: 200, useNativeDriver: true }),
+      ]).start();
+    }, 1200);
 
-    // Phase 3: hold, then scale up slightly + fade out (cinematic exit)
+    // Phase 3: cinematic exit — letters scatter outward + scale up + dissolve
     setTimeout(() => {
+      // Each letter drifts in a different direction as it fades
+      const scatterDirections = [-30, -12, 0, 12, 30];
+      letters.forEach((_, i) => {
+        Animated.parallel([
+          Animated.timing(letterYs[i], { toValue: -20, duration: 400, useNativeDriver: true }),
+          Animated.timing(letterOpacities[i], { toValue: 0, duration: 400, useNativeDriver: true }),
+        ]).start();
+      });
       Animated.parallel([
-        Animated.timing(exitScale, { toValue: 1.15, duration: 500, useNativeDriver: true }),
-        Animated.timing(exitOpacity, { toValue: 0, duration: 500, useNativeDriver: true }),
+        Animated.timing(exitScale, { toValue: 1.2, duration: 400, useNativeDriver: true }),
+        Animated.timing(exitOpacity, { toValue: 0, duration: 400, useNativeDriver: true }),
       ]).start(() => onFinish());
-    }, 1700);
+    }, 1800);
   }, []);
+
+  const PULSE_TIME = 1200; // when letters finish landing
 
   return (
     <Animated.View style={{
@@ -402,46 +439,48 @@ function SplashB({ onFinish }) {
       backgroundColor: "#FAFAFA", justifyContent: "center", alignItems: "center",
       opacity: exitOpacity, overflow: "hidden",
     }}>
-      {/* Drift lines — bolder, more visible, mixed terra + dark */}
+      {/* Drift lines — react to letter landing with opacity pulse */}
       <Animated.View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: linesOpacity }}>
-        <DriftLine top="8%"  delay={0}   speed={4000} thickness={2} lineColor="rgba(196,104,62,0.08)" />
-        <DriftLine top="18%" delay={300} speed={5000} thickness={1} lineColor="rgba(17,17,17,0.06)" />
-        <DriftLine top="28%" delay={100} speed={3500} thickness={3} lineColor="rgba(196,104,62,0.06)" />
-        <DriftLine top="38%" delay={500} speed={4500} thickness={1} lineColor="rgba(17,17,17,0.04)" />
-        <DriftLine top="48%" delay={200} speed={5500} thickness={2} lineColor="rgba(196,104,62,0.07)" />
-        <DriftLine top="58%" delay={400} speed={3800} thickness={1} lineColor="rgba(17,17,17,0.05)" />
-        <DriftLine top="68%" delay={150} speed={4200} thickness={3} lineColor="rgba(196,104,62,0.05)" />
-        <DriftLine top="78%" delay={600} speed={5200} thickness={1} lineColor="rgba(17,17,17,0.06)" />
-        <DriftLine top="88%" delay={250} speed={3600} thickness={2} lineColor="rgba(196,104,62,0.08)" />
-        <DriftLine top="95%" delay={350} speed={4800} thickness={1} lineColor="rgba(17,17,17,0.04)" />
+        <DriftLine top="6%"  delay={0}   speed={3500} thickness={2} lineColor="rgba(196,104,62,0.10)" pulseAt={PULSE_TIME} />
+        <DriftLine top="16%" delay={200} speed={4500} thickness={1} lineColor="rgba(17,17,17,0.07)"   pulseAt={PULSE_TIME + 40} />
+        <DriftLine top="26%" delay={100} speed={3000} thickness={3} lineColor="rgba(196,104,62,0.08)" pulseAt={PULSE_TIME + 80} />
+        <DriftLine top="36%" delay={400} speed={4000} thickness={1} lineColor="rgba(17,17,17,0.05)"   pulseAt={null} />
+        <DriftLine top="46%" delay={150} speed={5000} thickness={2} lineColor="rgba(196,104,62,0.09)" pulseAt={PULSE_TIME + 20} />
+        <DriftLine top="56%" delay={300} speed={3200} thickness={1} lineColor="rgba(17,17,17,0.06)"   pulseAt={PULSE_TIME + 60} />
+        <DriftLine top="66%" delay={100} speed={3800} thickness={3} lineColor="rgba(196,104,62,0.07)" pulseAt={null} />
+        <DriftLine top="76%" delay={500} speed={4600} thickness={1} lineColor="rgba(17,17,17,0.07)"   pulseAt={PULSE_TIME + 100} />
+        <DriftLine top="86%" delay={200} speed={3100} thickness={2} lineColor="rgba(196,104,62,0.10)" pulseAt={PULSE_TIME + 30} />
+        <DriftLine top="94%" delay={350} speed={4300} thickness={1} lineColor="rgba(17,17,17,0.05)"   pulseAt={null} />
       </Animated.View>
 
-      {/* White flash overlay */}
+      {/* Stage line — thin horizontal line draws across before letters */}
+      <Animated.View style={{
+        position: "absolute", height: 1, backgroundColor: "rgba(196,104,62,0.15)",
+        top: "50%", left: "15%",
+        width: stageLineWidth.interpolate({ inputRange: [0, 1], outputRange: ["0%", "70%"] }),
+      }} />
+
+      {/* Flash overlay */}
       <Animated.View style={{
         position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
         backgroundColor: "#FFFFFF",
-        opacity: bgFlash.interpolate({ inputRange: [0, 1], outputRange: [0, 0.6] }),
+        opacity: bgFlash.interpolate({ inputRange: [0, 1], outputRange: [0, 0.5] }),
       }} />
 
-      {/* Logo + tagline */}
-      <Animated.View style={{ alignItems: "center", transform: [{ scale: exitScale }] }}>
-        <View style={{ flexDirection: "row" }}>
-          {letters.map((letter, i) => (
-            <Animated.Text key={i} style={{
-              fontSize: 56, fontWeight: "900", color: "#C4683E", letterSpacing: -2,
-              opacity: anims[i],
-              transform: [{ translateY: anims[i].interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }],
-            }}>
-              {letter}
-            </Animated.Text>
-          ))}
-        </View>
-        <Animated.Text style={{
-          fontSize: 11, fontWeight: "600", color: "#111111", letterSpacing: 4,
-          textTransform: "uppercase", marginTop: 14, opacity: taglineOpacity,
-        }}>
-          Built for barbershops
-        </Animated.Text>
+      {/* Letters */}
+      <Animated.View style={{ flexDirection: "row", alignItems: "center", transform: [{ scale: exitScale }, { scale: breathScale }] }}>
+        {letters.map((letter, i) => (
+          <Animated.Text key={i} style={{
+            fontSize: 58, fontWeight: "900", color: "#C4683E",
+            opacity: letterOpacities[i],
+            transform: [
+              { translateY: letterYs[i] },
+              { scale: letterScales[i] },
+            ],
+          }}>
+            {letter}
+          </Animated.Text>
+        ))}
       </Animated.View>
     </Animated.View>
   );
