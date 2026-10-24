@@ -33,6 +33,23 @@ export function tMin(t) {
   const [h, m] = t.split(":").map(Number);
   return h * 60 + m;
 }
+// Overlapping bookings sit side by side. Returns {code: {lane, of}}.
+export function layoutLanes(bks) {
+  const out = {};
+  const items = bks.map(b => ({ code: b.confirmation_code, s: tMin(b.start_time), e: tMin(b.start_time) + (b.duration_min || 30) }))
+    .sort((a, b) => a.s - b.s || b.e - a.e);
+  let cluster = [], clusterEnd = -1, laneEnds = [];
+  const flush = () => { cluster.forEach(it => { out[it.code] = { lane: it.lane, of: laneEnds.length || 1 }; }); cluster = []; laneEnds = []; };
+  items.forEach(it => {
+    if (it.s >= clusterEnd) flush();
+    let lane = laneEnds.findIndex(e => e <= it.s);
+    if (lane < 0) { lane = laneEnds.length; laneEnds.push(it.e); } else laneEnds[lane] = it.e;
+    it.lane = lane; cluster.push(it); clusterEnd = Math.max(clusterEnd, it.e);
+  });
+  flush();
+  return out;
+}
+
 export function tPx(min) {
   return (min - OPEN_HOUR * 60) / 60 * PX_PER_HOUR;
 }
@@ -219,6 +236,7 @@ export default function DayCalendarView({
             const bIdx = allBarbers.findIndex(ab => ab.id === barber.id);
             const c = DCAL_COLORS[bIdx % DCAL_COLORS.length];
             const bks = bookings.filter(b => b.barber_id === barber.id);
+            const lanes = layoutLanes(bks);
 
             // Check barber availability for this day
             // JS getDay(): Sun=0..Sat=6. DB stores Python weekday(): Mon=0..Sun=6. Convert.
@@ -284,7 +302,8 @@ export default function DayCalendarView({
                     if (bl.all_day) {
                       return (
                         <TouchableOpacity key={`bl${bi}`} style={styles.blockedAll} activeOpacity={0.7} onPress={onPress}>
-                          <Ionicons name="remove-outline" size={20} color="rgba(44,24,16,0.5)" />
+                          <Ionicons name="lock-closed-outline" size={16} color={C.muted} />
+                          <Text style={styles.blockedText}>{bl.reason || "Blocked"} · all day</Text>
                         </TouchableOpacity>
                       );
                     }
@@ -301,7 +320,8 @@ export default function DayCalendarView({
                         activeOpacity={0.7}
                         onPress={onPress}
                       >
-                        <Ionicons name="remove-outline" size={Math.min(20, Math.max(14, blH - 4))} color="rgba(44,24,16,0.5)" />
+                        <Ionicons name="lock-closed-outline" size={11} color={C.muted} />
+                        <Text style={styles.blockedText} numberOfLines={1}>{bl.reason || "Blocked"} · {fmtTime(bl.start_time)} – {fmtTime(bl.end_time)}</Text>
                       </TouchableOpacity>
                     );
                   })
@@ -311,10 +331,15 @@ export default function DayCalendarView({
                   const startMin = tMin(bk.start_time);
                   if (startMin < OPEN_HOUR * 60 || startMin >= CLOSE_HOUR * 60) return null;
                   const top  = tPx(startMin);
-                  // Full duration height (no visual gap) so buffer attaches directly
-                  const bkH  = Math.max((bk.duration_min || 30) / 60 * PX_PER_HOUR - 1, 28);
+                  const dur  = bk.duration_min || 30;
+                  // True length, so a 20-minute booking never spills into the next one
+                  const bkH  = Math.max(dur / 60 * PX_PER_HOUR - 2, 18);
+                  const compact = bkH < 34;
+                  const L = lanes[bk.confirmation_code] || { lane: 0, of: 1 };
+                  const laneStyle = L.of > 1 ? { left: `${(L.lane / L.of) * 100}%`, width: `${100 / L.of - 1.5}%`, right: undefined } : null;
                   const cancelled = bk.status === "cancelled" || bk.status === "no_show";
-                  const endMin = bk.end_time ? tMin(bk.end_time) : startMin + (bk.duration_min || 30);
+                  const statusWord = bk.status === "no_show" ? "No-show · " : bk.status === "cancelled" ? "Cancelled · " : "";
+                  const endMin = bk.end_time ? tMin(bk.end_time) : startMin + dur;
                   const isPast = showNow && endMin < nowMin;
 
                   // Color = barber (consistent per column). Use the barber's palette entry.
@@ -322,16 +347,16 @@ export default function DayCalendarView({
                   const blockBg = barberColor.bg;
                   const blockBorder = barberColor.bd;
 
-                  // Buffer block — anchored directly to the booking's visual bottom (no gap)
+                  // Buffer starts at the booking's real end and sits underneath it
                   const bufferMin = bk.buffer_minutes || 0;
-                  const bufferTop = top + bkH;
+                  const bufferTop = tPx(startMin + dur);
                   let bufferH = (bufferMin / 60) * PX_PER_HOUR;
 
                   // Clip buffer if it would overlap the next booking or blocked time on this barber
                   if (bufferMin > 0) {
                     let earliestNextPx = Infinity;
                     bks.forEach(other => {
-                      if (other === bk) return;
+                      if (other === bk || other.status === "cancelled" || other.status === "no_show") return;
                       const oStart = tMin(other.start_time);
                       if (oStart > startMin) {
                         const oPx = tPx(oStart);
@@ -362,8 +387,10 @@ export default function DayCalendarView({
                     <TouchableOpacity
                       style={[
                         styles.appt,
+                        compact && styles.apptCompact,
                         { top: dragging?.code === bk.confirmation_code ? dragY : top,
-                          height: bkH, backgroundColor: blockBg },
+                          height: bkH, backgroundColor: blockBg, borderLeftColor: blockBorder },
+                        laneStyle,
                         cancelled && styles.apptCancelled,
                         isPast && !cancelled && styles.apptPast,
                         dragging?.code === bk.confirmation_code && styles.apptDragging,
@@ -378,31 +405,35 @@ export default function DayCalendarView({
                       activeOpacity={dragging?.code === bk.confirmation_code ? 1 : 0.8}
                     >
                       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                        <Text style={[styles.apptTime, { color: blockBorder }]} numberOfLines={1}>
-                          {fmtTime(bk.start_time)} · {bk.customer_name}
+                        <Text style={[styles.apptTime, cancelled && styles.apptStruck]} numberOfLines={1}>
+                          {statusWord}{fmtTime(bk.start_time)} · {bk.customer_name}
+                          {compact && bk.service_name ? <Text style={styles.apptSvcInline}>  {bk.service_name}</Text> : null}
                         </Text>
-                        {(bk.payment_status === "paid" || bk.payment_status === "cash_paid" || bk.payment_status === "card_paid") && (
-                          <Text style={styles.paidIcon}>Paid ✓</Text>
-                        )}
-                        {bk.payment_status === "deposit_paid" && (
-                          <Text style={styles.depositIcon}>Deposit</Text>
-                        )}
                       </View>
-                      {bk.service_name && (
-                        <Text style={styles.apptSvc} numberOfLines={1}>{bk.service_name}</Text>
-                      )}
+                      {!compact ? (
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                          {bk.service_name ? <Text style={[styles.apptSvc, { flexShrink: 1 }]} numberOfLines={1}>{bk.service_name}</Text> : null}
+                          {(bk.payment_status === "paid" || bk.payment_status === "cash_paid" || bk.payment_status === "card_paid") && (
+                            <Text style={styles.paidIcon} numberOfLines={1}>Paid ✓</Text>
+                          )}
+                          {bk.payment_status === "deposit_paid" && (
+                            <Text style={styles.depositIcon} numberOfLines={1}>Deposit</Text>
+                          )}
+                        </View>
+                      ) : null}
                       {bkH > 56 && clientNotes[bk.customer_email] ? (
                         <Text style={styles.apptNote} numberOfLines={1}>{clientNotes[bk.customer_email]}</Text>
                       ) : null}
                     </TouchableOpacity>
-                    {bufferMin > 0 && bufferH > 2 && !cancelled && (() => {
-                      const iconSize = Math.max(8, Math.min(14, bufferH - 6));
-                      const showIcon = bufferH >= 14;
+                    {bufferMin > 0 && bufferH >= 4 && !cancelled && (() => {
+                      const showLabel = bufferH >= 12;
                       return (
                         <TouchableOpacity
+                          accessibilityLabel={`${bufferMin} minute buffer after ${bk.customer_name}`}
                           style={[
                             styles.bufferBlock,
                             { top: bufferTop, height: bufferH },
+                            laneStyle,
                           ]}
                           activeOpacity={0.7}
                           onPress={(e) => {
@@ -411,9 +442,7 @@ export default function DayCalendarView({
                             onBufferPress?.(bk);
                           }}
                         >
-                          {showIcon && (
-                            <Ionicons name="time-outline" size={iconSize} color="rgba(44,24,16,0.5)" />
-                          )}
+                          {showLabel && <Text style={styles.bufferText}>{bufferMin} min</Text>}
                         </TouchableOpacity>
                       );
                     })()}
@@ -499,8 +528,9 @@ const styles = StyleSheet.create({
   },
 
   // Blocked time — uniform "off limits" look regardless of reason
-  blockedAll: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(14,14,12,0.06)", alignItems: "center", justifyContent: "center", zIndex: 4 },
-  blockedSlot: { position: "absolute", left: 4, right: 4, backgroundColor: C.sunk, borderLeftWidth: 3, borderLeftColor: C.lineStrong, borderRadius: 8, alignItems: "center", justifyContent: "center", zIndex: 4 },
+  blockedAll: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(14,14,12,0.06)", alignItems: "center", justifyContent: "center", gap: 6, zIndex: 4 },
+  blockedSlot: { position: "absolute", left: 3, right: 3, backgroundColor: C.paper, borderWidth: 1, borderStyle: "dashed", borderColor: C.lineStrong, borderRadius: 6, flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 7, overflow: "hidden", zIndex: 4 },
+  blockedText: { flexShrink: 1, fontFamily: F.medium, fontSize: 11, color: C.muted },
 
   // Closed day
   closedContainer: {
@@ -526,9 +556,12 @@ const styles = StyleSheet.create({
   closedBand: { position: "absolute", left: 0, right: 0, backgroundColor: C.sunk, opacity: 0.7, zIndex: 1 },
 
   // Booking blocks
-  appt: { position: "absolute", left: 3, right: 3, borderRadius: 8, paddingHorizontal: 6, paddingVertical: 3, overflow: "hidden", zIndex: 5 },
+  appt: { position: "absolute", left: 3, right: 3, borderRadius: 6, borderLeftWidth: 3, paddingHorizontal: 7, paddingVertical: 3, overflow: "hidden", zIndex: 5 },
+  apptCompact: { paddingVertical: 1, justifyContent: "center" },
+  apptStruck: { textDecorationLine: "line-through" },
+  apptSvcInline: { fontFamily: F.regular, color: C.muted },
   apptDragging: { opacity: 0.85, zIndex: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 8 },
-  apptCancelled: { opacity: 0.25 },
+  apptCancelled: { opacity: 0.45, backgroundColor: "transparent", borderStyle: "dashed", borderWidth: 1, borderColor: C.line },
   apptPast:      { opacity: 0.45 },
   apptTime: { flex: 1, fontSize: 11, fontFamily: F.medium, color: C.ink, lineHeight: 14 },
   apptName: { fontSize: 12, fontFamily: F.medium, color: C.ink, lineHeight: 15 },
@@ -536,11 +569,12 @@ const styles = StyleSheet.create({
   apptNameMuted: { color: C.muted },
   apptSvc: { fontFamily: F.regular, fontSize: 11, color: C.muted, lineHeight: 13, marginTop: 1 },
   apptNote: { fontFamily: F.regular, fontSize: 11, color: C.muted, marginTop: 1 },
-  paidIcon: { fontSize: 11, fontFamily: F.medium, color: C.success, backgroundColor: C.surface, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 1, overflow: "hidden" },
-  depositIcon: { fontSize: 11, fontFamily: F.medium, color: C.blue, backgroundColor: C.surface, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 1, overflow: "hidden" },
+  paidIcon: { flexShrink: 0, fontSize: 10, fontFamily: F.medium, color: C.success, backgroundColor: C.surface, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 1, overflow: "hidden" },
+  depositIcon: { flexShrink: 0, fontSize: 10, fontFamily: F.medium, color: C.blue, backgroundColor: C.surface, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 1, overflow: "hidden" },
 
   // Buffer blocks — uniform "cushion" look (icon-only, no text)
-  bufferBlock: { position: "absolute", left: 4, right: 4, backgroundColor: C.paper, borderWidth: 1, borderColor: C.line, borderStyle: "dashed", borderRadius: 6, alignItems: "center", justifyContent: "center", zIndex: 6 },
+  bufferBlock: { position: "absolute", left: 3, right: 3, backgroundColor: C.sunk, opacity: 0.7, borderBottomLeftRadius: 6, borderBottomRightRadius: 6, alignItems: "flex-end", justifyContent: "center", paddingHorizontal: 6, zIndex: 3 },
+  bufferText: { fontFamily: F.mono, fontSize: 9, color: C.muted },
   bufferIconWrap: {
     alignItems: "center", justifyContent: "center",
   },

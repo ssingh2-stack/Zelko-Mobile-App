@@ -509,7 +509,7 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
 
 const styles = StyleSheet.create({
   overlay: { flex: 1, justifyContent: "flex-end" },
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(44,24,16,0.4)" },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(14,14,12,0.4)" },
   sheet: { backgroundColor: C.paper, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: "92%", paddingBottom: 32 },
   handle: { width: 36, height: 4, backgroundColor: C.line, borderRadius: 2, alignSelf: "center", marginTop: 10, marginBottom: 4 },
   titleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: C.line },
