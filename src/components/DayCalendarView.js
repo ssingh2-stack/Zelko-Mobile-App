@@ -4,7 +4,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "../lib/api";
-import { C, serif } from "../lib/theme";
+import { F, C, DCAL_COLORS } from "../lib/theme";
 
 export const PX_PER_HOUR = 80;
 export const OPEN_HOUR   = 9;
@@ -12,17 +12,8 @@ export const CLOSE_HOUR  = 21;
 export const TOTAL_H     = CLOSE_HOUR - OPEN_HOUR;
 const TIME_COL_W = 56;
 
-// Distinct but on-brand — each pulls from a different hue family, kept muted/mature
-export const SERVICE_COLORS = [
-  "#C4683E", // terra (the Clipd accent)
-  "#2C6E63", // deep teal
-  "#7B4B94", // muted plum
-  "#8C6B2C", // burnished gold
-  "#3D5A80", // steel blue
-  "#994D3A", // burnt brick
-  "#4A7C59", // forest sage
-  "#6B4C6E", // dusty mauve
-];
+// Service accents: brand colours only, told apart by strength; the service name is always on the block.
+export const SERVICE_COLORS = [C.blue, C.ink, C.muted, "rgba(26,36,201,0.55)", C.lineStrong];
 
 export function buildServiceColorMap(bookings) {
   const names = [...new Set(bookings.map(b => b.service_name).filter(Boolean))];
@@ -36,14 +27,7 @@ export function buildServiceColorMap(bookings) {
   return map;
 }
 
-export const DCAL_COLORS = [
-  { bg: "rgba(196,104,62,0.10)",  bd: "#C4683E", tx: "#8B3A1D" },
-  { bg: "rgba(17,17,17,0.07)",    bd: "#555555", tx: "#111111" },
-  { bg: "rgba(107,114,128,0.08)", bd: "#9CA3AF", tx: "#4B5563" },
-  { bg: "rgba(196,104,62,0.06)",  bd: "#D4956A", tx: "#A0522D" },
-  { bg: "rgba(17,17,17,0.04)",    bd: "#888888", tx: "#333333" },
-  { bg: "rgba(107,114,128,0.05)", bd: "#6B7280", tx: "#374151" },
-];
+export { DCAL_COLORS };
 
 export function tMin(t) {
   const [h, m] = t.split(":").map(Number);
@@ -118,7 +102,7 @@ export default function DayCalendarView({
       <ScrollView
         ref={scrollRef}
         style={styles.scroll}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.espresso} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.ink} />}
         contentContainerStyle={styles.closedContainer}
         onTouchStart={(e) => {
           touchStart.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY, t: Date.now(), swiped: false };
@@ -135,9 +119,9 @@ export default function DayCalendarView({
       >
         <View style={styles.closedCard}>
           <Ionicons name="lock-closed-outline" size={40} color={C.muted} />
-          <Text style={styles.closedTitle}>Shop Closed</Text>
-          <Text style={styles.closedSub}>{dayOfWeek}s are not a business day</Text>
-          <Text style={styles.closedHint}>Update your hours in Settings → Business Hours</Text>
+          <Text style={styles.closedTitle}>Closed today.</Text>
+          <Text style={styles.closedSub}>The shop is closed on {dayOfWeek}s.</Text>
+          <Text style={styles.closedHint}>Change your hours in More, then Settings.</Text>
         </View>
       </ScrollView>
     );
@@ -148,7 +132,7 @@ export default function DayCalendarView({
       ref={scrollRef}
       style={styles.scroll}
       scrollEnabled={!dragging}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.espresso} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.ink} />}
       onTouchStart={(e) => {
         touchStart.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY, t: Date.now(), swiped: false };
       }}
@@ -398,10 +382,10 @@ export default function DayCalendarView({
                           {fmtTime(bk.start_time)} · {bk.customer_name}
                         </Text>
                         {(bk.payment_status === "paid" || bk.payment_status === "cash_paid" || bk.payment_status === "card_paid") && (
-                          <Text style={styles.paidIcon}>$</Text>
+                          <Text style={styles.paidIcon}>Paid ✓</Text>
                         )}
                         {bk.payment_status === "deposit_paid" && (
-                          <Text style={styles.depositIcon}>$</Text>
+                          <Text style={styles.depositIcon}>Deposit</Text>
                         )}
                       </View>
                       {bk.service_name && (
@@ -456,42 +440,22 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
 
   // Header
-  head: {
-    flexDirection: "row",
-    backgroundColor: C.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: C.border,
-  },
-  timeColHead: { width: TIME_COL_W, borderRightWidth: 1, borderRightColor: C.border },
+  head: { flexDirection: "row", backgroundColor: C.paper, borderBottomWidth: 1, borderBottomColor: C.line },
+  timeColHead: { width: TIME_COL_W, borderRightWidth: 1, borderRightColor: C.line },
   th: {
     flex: 1, paddingVertical: 10, paddingHorizontal: 10,
-    borderLeftWidth: 1, borderLeftColor: C.border,
+    borderLeftWidth: 1, borderLeftColor: C.line,
     justifyContent: "center",
   },
   thEmpty: { flex: 1 },
-  thText: { fontSize: 12, fontWeight: "800", color: C.espresso },
+  thText: { fontSize: 13, fontFamily: F.medium, color: C.ink },
 
   // Body
   body: { flexDirection: "row" },
 
   // Time labels column — overflow hidden prevents ±bleed into header/footer
-  timeCol: {
-    width: TIME_COL_W,
-    position: "relative",
-    backgroundColor: C.surface,
-    borderRightWidth: 1,
-    borderRightColor: C.border,
-    overflow: "hidden",
-  },
-  timeLabel: {
-    position: "absolute",
-    right: 6,
-    fontSize: 9,
-    fontWeight: "700",
-    color: C.muted,
-    width: 44,
-    textAlign: "right",
-  },
+  timeCol: { width: TIME_COL_W, position: "relative", backgroundColor: C.paper, borderRightWidth: 1, borderRightColor: C.line, overflow: "hidden" },
+  timeLabel: { position: "absolute", right: 6, fontSize: 11, fontFamily: F.mono, color: C.muted, width: 48, textAlign: "right" },
 
   // Grid area
   cols: {
@@ -502,38 +466,24 @@ const styles = StyleSheet.create({
   },
 
   // ── Google Calendar alternating hour bands ──
-  hourBand: {
-    position: "absolute",
-    left: 0, right: 0,
-    height: PX_PER_HOUR,
-    backgroundColor: "#fff",
-    zIndex: 0,
-  },
-  hourBandAlt: {
-    backgroundColor: "#F5F1ED",
-  },
+  hourBand: { position: "absolute", left: 0, right: 0, height: PX_PER_HOUR, backgroundColor: C.surface, zIndex: 0 },
+  hourBandAlt: { backgroundColor: C.surface },
 
   // Grid lines (above bands)
   hLine: {
     position: "absolute", left: 0, right: 0,
-    height: 1, backgroundColor: C.border, zIndex: 2,
+    height: 1, backgroundColor: C.line, zIndex: 2,
   },
-  hLineDash: {
-    position: "absolute", left: 0, right: 0,
-    height: 1,
-    borderTopWidth: 1, borderTopColor: "#E8DFDA",
-    borderStyle: "dashed",
-    zIndex: 2,
-  },
+  hLineDash: { position: "absolute", left: 0, right: 0, height: 1, borderTopWidth: 1, borderTopColor: C.sunk, borderStyle: "dashed", zIndex: 2 },
 
   // Now line
   nowLine: {
     position: "absolute", left: 0, right: 0,
-    height: 2, backgroundColor: C.terra, zIndex: 8,
+    height: 2, backgroundColor: C.blue, zIndex: 8,
   },
   nowDot: {
     position: "absolute", left: -1, top: -4,
-    width: 10, height: 10, borderRadius: 5, backgroundColor: C.terra,
+    width: 10, height: 10, borderRadius: 5, backgroundColor: C.blue,
   },
 
   // Barber columns
@@ -541,7 +491,7 @@ const styles = StyleSheet.create({
     flex: 1,
     position: "relative",
     borderLeftWidth: 1,
-    borderLeftColor: C.border,
+    borderLeftColor: C.line,
     zIndex: 3,
   },
   colEmpty: {
@@ -549,86 +499,48 @@ const styles = StyleSheet.create({
   },
 
   // Blocked time — uniform "off limits" look regardless of reason
-  blockedAll: {
-    position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: "rgba(44,24,16,0.14)",
-    alignItems: "center", justifyContent: "center",
-    zIndex: 4,
-  },
-  blockedSlot: {
-    position: "absolute", left: 4, right: 4,
-    backgroundColor: "rgba(44,24,16,0.14)",
-    borderLeftWidth: 3, borderLeftColor: "rgba(44,24,16,0.45)",
-    borderRadius: 6,
-    alignItems: "center", justifyContent: "center",
-    zIndex: 4,
-  },
+  blockedAll: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(14,14,12,0.06)", alignItems: "center", justifyContent: "center", zIndex: 4 },
+  blockedSlot: { position: "absolute", left: 4, right: 4, backgroundColor: C.sunk, borderLeftWidth: 3, borderLeftColor: C.lineStrong, borderRadius: 8, alignItems: "center", justifyContent: "center", zIndex: 4 },
 
   // Closed day
   closedContainer: {
     flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 80,
   },
   closedCard: {
-    alignItems: "center", padding: 32, backgroundColor: C.white,
-    borderRadius: 16, borderWidth: 1, borderColor: C.border,
+    alignItems: "center", padding: 32, backgroundColor: C.surface,
+    borderRadius: 16, borderWidth: 1, borderColor: C.line,
     marginHorizontal: 32, width: 280,
   },
-  closedIcon: { fontSize: 40, marginBottom: 12 },
-  closedTitle: {
-    fontFamily: serif, fontSize: 22, fontWeight: "800", color: C.espresso, marginBottom: 6,
-  },
-  closedSub: {
-    fontSize: 14, color: C.muted, fontWeight: "600", textAlign: "center", marginBottom: 12,
-  },
-  closedHint: {
-    fontSize: 11, color: C.muted, fontStyle: "italic", textAlign: "center",
-  },
+  closedIcon: { marginBottom: 12 },
+  closedTitle: { fontSize: 24, fontFamily: F.regular, color: C.ink, letterSpacing: -0.5, marginBottom: 6 },
+  closedSub: { fontSize: 15, color: C.muted, fontFamily: F.regular, textAlign: "center", marginBottom: 12 },
+  closedHint: { fontFamily: F.regular, fontSize: 13, color: C.muted, textAlign: "center" },
   // Barber off day
-  barberOffOverlay: {
-    position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: "rgba(155,134,119,0.08)",
-    alignItems: "center", paddingTop: 40, zIndex: 6,
-  },
+  barberOffOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(14,14,12,0.04)", alignItems: "center", paddingTop: 40, zIndex: 6 },
   barberOffText: {
-    fontSize: 11, fontWeight: "700", color: C.muted,
+    fontSize: 11, fontFamily: F.monoMedium, color: C.muted,
     textTransform: "uppercase", letterSpacing: 1,
   },
 
   // Before/after hours band
-  closedBand: {
-    position: "absolute", left: 0, right: 0,
-    backgroundColor: "rgba(155,134,119,0.10)",
-    zIndex: 1,
-  },
+  closedBand: { position: "absolute", left: 0, right: 0, backgroundColor: C.sunk, opacity: 0.7, zIndex: 1 },
 
   // Booking blocks
-  appt: {
-    position: "absolute", left: 4, right: 4,
-    borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2,
-    overflow: "hidden", zIndex: 5,
-  },
+  appt: { position: "absolute", left: 3, right: 3, borderRadius: 8, paddingHorizontal: 6, paddingVertical: 3, overflow: "hidden", zIndex: 5 },
   apptDragging: { opacity: 0.85, zIndex: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 8 },
   apptCancelled: { opacity: 0.25 },
   apptPast:      { opacity: 0.45 },
-  apptTime: { flex: 1, fontSize: 10, fontWeight: "800", color: C.espresso, lineHeight: 12 },
-  apptName: { fontSize: 11, fontWeight: "700", color: C.espresso, lineHeight: 13 },
-  apptBarber: { fontSize: 8, fontWeight: "600", color: C.muted, lineHeight: 10 },
+  apptTime: { flex: 1, fontSize: 11, fontFamily: F.medium, color: C.ink, lineHeight: 14 },
+  apptName: { fontSize: 12, fontFamily: F.medium, color: C.ink, lineHeight: 15 },
+  apptBarber: { fontSize: 11, fontFamily: F.regular, color: C.muted, lineHeight: 12 },
   apptNameMuted: { color: C.muted },
-  apptSvc:  { fontSize: 9, color: "rgba(44,24,16,0.65)", lineHeight: 11, marginTop: 1 },
-  apptNote: { fontSize: 9, color: "#C4683E", fontStyle: "italic", marginTop: 1 },
-  paidIcon: { fontSize: 8, fontWeight: "900", color: "#333333", backgroundColor: "rgba(17,17,17,0.05)", borderRadius: 3, paddingHorizontal: 3, paddingVertical: 1, overflow: "hidden" },
-  depositIcon: { fontSize: 8, fontWeight: "900", color: "#C4683E", backgroundColor: "rgba(196,104,62,0.08)", borderRadius: 3, paddingHorizontal: 3, paddingVertical: 1, overflow: "hidden" },
+  apptSvc: { fontFamily: F.regular, fontSize: 11, color: C.muted, lineHeight: 13, marginTop: 1 },
+  apptNote: { fontFamily: F.regular, fontSize: 11, color: C.muted, marginTop: 1 },
+  paidIcon: { fontSize: 11, fontFamily: F.medium, color: C.success, backgroundColor: C.surface, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 1, overflow: "hidden" },
+  depositIcon: { fontSize: 11, fontFamily: F.medium, color: C.blue, backgroundColor: C.surface, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 1, overflow: "hidden" },
 
   // Buffer blocks — uniform "cushion" look (icon-only, no text)
-  bufferBlock: {
-    position: "absolute", left: 4, right: 4,
-    backgroundColor: "rgba(155,134,119,0.18)",
-    borderWidth: 1, borderColor: "rgba(44,24,16,0.18)",
-    borderStyle: "dashed",
-    borderRadius: 4,
-    alignItems: "center", justifyContent: "center",
-    zIndex: 6,
-  },
+  bufferBlock: { position: "absolute", left: 4, right: 4, backgroundColor: C.paper, borderWidth: 1, borderColor: C.line, borderStyle: "dashed", borderRadius: 6, alignItems: "center", justifyContent: "center", zIndex: 6 },
   bufferIconWrap: {
     alignItems: "center", justifyContent: "center",
   },

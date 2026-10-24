@@ -6,7 +6,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { api } from "../../../lib/api";
-import { C, serif, fmtMoney } from "../../../lib/theme";
+import { F, C, fmtMoney } from "../../../lib/theme";
 import { clearSession } from "../../../lib/auth";
 import { success as hapticSuccess } from "../../../lib/haptics";
 import AddressAutocomplete from "../../../components/AddressAutocomplete";
@@ -80,7 +80,7 @@ export default function SettingsScreen() {
     setSavingInfo(true); setInfoMsg("");
     try {
       await api.adminSaveInfo({ name: shopName, address, phone, email, google_review_url: googleUrl });
-      setInfoMsg("Saved!");
+      setInfoMsg("Saved");
       setTimeout(() => setInfoMsg(""), 2000);
     } catch (err) { Alert.alert("Error", err.message); }
     finally { setSavingInfo(false); }
@@ -90,7 +90,7 @@ export default function SettingsScreen() {
     setSavingHours(true); setHoursMsg("");
     try {
       await api.adminSaveHours(hours);
-      setHoursMsg("Saved!");
+      setHoursMsg("Saved");
       setTimeout(() => setHoursMsg(""), 2000);
     } catch (err) { Alert.alert("Error", err.message); }
     finally { setSavingHours(false); }
@@ -104,7 +104,7 @@ export default function SettingsScreen() {
     setSavingPw(true); setPwMsg("");
     try {
       await api.adminSavePassword(currentPw, newPw, confirmPw);
-      setPwMsg("Password updated!");
+      setPwMsg("Password updated");
       setCurrentPw(""); setNewPw(""); setConfirmPw("");
       setTimeout(() => setPwMsg(""), 3000);
     } catch (err) { Alert.alert("Error", err.message); }
@@ -133,9 +133,9 @@ export default function SettingsScreen() {
   }
 
   async function handleLogout() {
-    Alert.alert("Log Out", "Are you sure you want to log out?", [
+    Alert.alert("Log out", "Are you sure you want to log out?", [
       { text: "Cancel", style: "cancel" },
-      { text: "Log Out", style: "destructive", onPress: async () => {
+      { text: "Log out", style: "destructive", onPress: async () => {
         try { await api.logout(); } catch {}
         await clearSession();
         navigation.reset({ index: 0, routes: [{ name: "Login" }] });
@@ -148,14 +148,14 @@ export default function SettingsScreen() {
     setHours({ ...hours, [day]: { ...current, open: !current.open } });
   }
 
-  if (loading) return <View style={styles.center}><ActivityIndicator color={C.espresso} /></View>;
+  if (loading) return <View style={styles.center}><ActivityIndicator color={C.ink} /></View>;
 
   return (
-    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled" refreshControl={<RefreshControl refreshing={false} onRefresh={() => { setLoading(true); api.adminSettings().then(s => { setShopName(s.name || ""); setAddress(s.address || ""); setPhone(s.phone || ""); setEmail(s.email || ""); setGoogleUrl(s.google_review_url || ""); setSlug(s.slug || ""); setLogoUrl(s.logo_url || ""); setHours(s.hours || {}); }).finally(() => setLoading(false)); }} tintColor={C.espresso} />}>
+    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled" refreshControl={<RefreshControl refreshing={false} onRefresh={() => { setLoading(true); api.adminSettings().then(s => { setShopName(s.name || ""); setAddress(s.address || ""); setPhone(s.phone || ""); setEmail(s.email || ""); setGoogleUrl(s.google_review_url || ""); setSlug(s.slug || ""); setLogoUrl(s.logo_url || ""); setHours(s.hours || {}); }).finally(() => setLoading(false)); }} tintColor={C.ink} />}>
 
       {/* Shop Info */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Shop Info</Text>
+        <Text style={styles.cardTitle}>Shop info</Text>
 
         {/* Logo */}
         <TouchableOpacity style={styles.logoWrap} onPress={pickLogo}>
@@ -169,20 +169,20 @@ export default function SettingsScreen() {
           <Text style={styles.logoLabel}>{logoUrl ? "Change logo" : "Upload shop logo"}</Text>
         </TouchableOpacity>
 
-        <Field label="Shop Name" value={shopName} onChange={setShopName} placeholder="Your shop name" />
+        <Field label="Shop name" value={shopName} onChange={setShopName} placeholder="Your shop name" />
         <View style={styles.fieldWrap}>
           <Text style={styles.label}>Address</Text>
           <AddressAutocomplete value={address} onChange={setAddress} />
         </View>
         <Field label="Phone" value={phone} onChange={setPhone} placeholder="416-555-0100" keyboardType="phone-pad" />
         <Field label="Email" value={email} onChange={setEmail} placeholder="hello@yourshop.com" keyboardType="email-address" />
-        <Field label="Google Review Link" value={googleUrl} onChange={setGoogleUrl} placeholder="https://g.page/r/XXXXXXXX/review" keyboardType="url" />
+        <Field label="Google review link" value={googleUrl} onChange={setGoogleUrl} placeholder="https://g.page/r/XXXXXXXX/review" keyboardType="url" />
         <View style={styles.noteRow}>
-          <Text style={styles.noteText}>Booking URL: <Text style={styles.noteUrl}>app.getclipd.ca/book/{slug}</Text></Text>
+          <Text style={styles.noteText}>Booking URL: <Text style={styles.noteUrl}>app.zelko.ca/book/{slug}</Text></Text>
         </View>
         <View style={styles.saveRow}>
           <TouchableOpacity style={[styles.saveBtn, savingInfo && { opacity: 0.6 }]} onPress={saveInfo} disabled={savingInfo}>
-            <Text style={styles.saveBtnText}>{savingInfo ? "Saving…" : "Save Info"}</Text>
+            <Text style={styles.saveBtnText}>{savingInfo ? "Saving…" : "Save"}</Text>
           </TouchableOpacity>
           {infoMsg ? <Text style={styles.savedMsg}>{infoMsg}</Text> : null}
         </View>
@@ -190,7 +190,7 @@ export default function SettingsScreen() {
 
       {/* Business Hours */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Business Hours</Text>
+        <Text style={styles.cardTitle}>Business hours</Text>
         {DAYS.map(day => {
           const h = hours[day] || { open: false, open_time: "09:00", close_time: "19:00" };
           return (
@@ -199,8 +199,8 @@ export default function SettingsScreen() {
               <Switch
                 value={h.open}
                 onValueChange={() => toggleDay(day)}
-                trackColor={{ true: C.terra }}
-                thumbColor={C.white}
+                trackColor={{ true: C.blue }}
+                thumbColor="#FFFFFF" activeThumbColor="#FFFFFF"
               />
               {h.open && (
                 <View style={styles.timePair}>
@@ -235,10 +235,10 @@ export default function SettingsScreen() {
 
       {/* Change Password */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Change Password</Text>
-        <Field label="Current Password" value={currentPw} onChange={setCurrentPw} placeholder="••••••••" secureTextEntry />
-        <Field label="New Password" value={newPw} onChange={setNewPw} placeholder="Min. 8 characters" secureTextEntry />
-        <Field label="Confirm New Password" value={confirmPw} onChange={setConfirmPw} placeholder="Repeat new password" secureTextEntry />
+        <Text style={styles.cardTitle}>Change password</Text>
+        <Field label="Current password" value={currentPw} onChange={setCurrentPw} placeholder="••••••••" secureTextEntry />
+        <Field label="New password" value={newPw} onChange={setNewPw} placeholder="Min. 8 characters" secureTextEntry />
+        <Field label="Confirm new password" value={confirmPw} onChange={setConfirmPw} placeholder="Repeat new password" secureTextEntry />
         <View style={styles.saveRow}>
           <TouchableOpacity style={[styles.saveBtn, savingPw && { opacity: 0.6 }]} onPress={savePassword} disabled={savingPw}>
             <Text style={styles.saveBtnText}>{savingPw ? "Updating…" : "Update Password"}</Text>
@@ -272,7 +272,7 @@ export default function SettingsScreen() {
               }}>
                 <Text style={styles.billingBtnText}>Subscribe — Essentials $29/mo</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.billingBtn, { backgroundColor: C.terra }]} onPress={async () => {
+              <TouchableOpacity style={[styles.billingBtn, { backgroundColor: C.blue }]} onPress={async () => {
                 try {
                   const res = await api.adminCheckoutUrl("pro");
                   if (res.url) Linking.openURL(res.url);
@@ -284,7 +284,7 @@ export default function SettingsScreen() {
           ) : (
             <>
               {plan.key === "essentials" && (
-                <TouchableOpacity style={[styles.billingBtn, { backgroundColor: C.terra }]} onPress={async () => {
+                <TouchableOpacity style={[styles.billingBtn, { backgroundColor: C.blue }]} onPress={async () => {
                   try {
                     const res = await api.adminCheckoutUrl("pro");
                     if (res.url) Linking.openURL(res.url);
@@ -299,7 +299,7 @@ export default function SettingsScreen() {
                   if (res.url) Linking.openURL(res.url);
                 } catch (err) { Alert.alert("Error", err.message); }
               }}>
-                <Text style={styles.billingManageBtnText}>Manage Subscription</Text>
+                <Text style={styles.billingManageBtnText}>Manage subscription</Text>
               </TouchableOpacity>
             </>
           )}
@@ -309,7 +309,7 @@ export default function SettingsScreen() {
       {/* Logout */}
       <View style={[styles.card, { marginTop: 24 }]}>
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <Text style={styles.logoutText}>Log Out</Text>
+          <Text style={styles.logoutText}>Log out</Text>
         </TouchableOpacity>
       </View>
 
@@ -319,47 +319,47 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.cream },
+  container: { flex: 1, backgroundColor: C.paper },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  card: { margin: 16, marginBottom: 0, backgroundColor: C.white, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: C.border },
-  cardTitle: { fontFamily: serif, fontSize: 17, fontWeight: "700", color: C.espresso, marginBottom: 14 },
+  card: { margin: 16, marginBottom: 0, backgroundColor: C.surface, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: C.line },
+  cardTitle: { fontSize: 17, fontFamily: F.regular, color: C.ink, marginBottom: 14 },
   fieldWrap: { marginBottom: 12 },
-  label: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 6 },
-  input: { backgroundColor: C.surface, borderRadius: 9, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: C.espresso, borderWidth: 1, borderColor: C.border },
-  noteRow: { backgroundColor: C.surface, borderRadius: 8, padding: 10, marginBottom: 14, borderWidth: 1, borderColor: C.border },
-  noteText: { fontSize: 12, color: C.muted },
-  noteUrl: { color: C.espresso, fontWeight: "600" },
+  label: { fontSize: 14, fontFamily: F.medium, color: C.ink, marginBottom: 6 },
+  input: { backgroundColor: C.surface, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontFamily: F.regular, fontSize: 15, color: C.ink, borderWidth: 1, borderColor: C.lineStrong },
+  noteRow: { backgroundColor: C.sunk, borderRadius: 8, padding: 10, marginBottom: 14, borderWidth: 1, borderColor: C.line },
+  noteText: { fontFamily: F.regular, fontSize: 12, color: C.muted },
+  noteUrl: { color: C.ink, fontFamily: F.semibold },
   saveRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  saveBtn: { backgroundColor: C.espresso, borderRadius: 9, paddingVertical: 11, paddingHorizontal: 20 },
-  saveBtnText: { fontSize: 14, fontWeight: "800", color: C.cream },
-  savedMsg: { fontSize: 13, fontWeight: "600", color: "#333333" },
-  hourRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: C.border },
-  dayName: { width: 32, fontSize: 13, fontWeight: "700", color: C.espresso },
+  saveBtn: { backgroundColor: C.blue, borderRadius: 12, paddingVertical: 11, paddingHorizontal: 20 },
+  saveBtnText: { fontSize: 14, fontFamily: F.semibold, color: C.paper },
+  savedMsg: { fontSize: 13, fontFamily: F.semibold, color: C.ink },
+  hourRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: C.line },
+  dayName: { width: 32, fontSize: 13, fontFamily: F.semibold, color: C.ink },
   timePair: { flex: 1, flexDirection: "row", alignItems: "center", gap: 6 },
-  timeInput: { flex: 1, backgroundColor: C.surface, borderRadius: 7, paddingHorizontal: 10, paddingVertical: 6, fontSize: 13, color: C.espresso, borderWidth: 1, borderColor: C.border, textAlign: "center" },
-  timeDash: { fontSize: 13, color: C.muted },
-  closed: { fontSize: 12, color: C.muted, fontStyle: "italic" },
+  timeInput: { flex: 1, backgroundColor: C.surface, borderRadius: 7, paddingHorizontal: 10, paddingVertical: 6, fontFamily: F.regular, fontSize: 15, color: C.ink, borderWidth: 1, borderColor: C.lineStrong, textAlign: "center" },
+  timeDash: { fontFamily: F.regular, fontSize: 13, color: C.muted },
+  closed: { fontFamily: F.regular, fontSize: 12, color: C.muted, fontStyle: "italic" },
   logoWrap: { alignItems: "center", marginBottom: 16 },
-  logoImg: { width: 80, height: 80, borderRadius: 14, borderWidth: 2, borderColor: C.border },
+  logoImg: { width: 80, height: 80, borderRadius: 14, borderWidth: 2, borderColor: C.line },
   logoPlaceholder: {
     width: 80, height: 80, borderRadius: 14,
-    borderWidth: 2, borderColor: C.border, borderStyle: "dashed",
-    alignItems: "center", justifyContent: "center", backgroundColor: C.surface,
+    borderWidth: 2, borderColor: C.line, borderStyle: "dashed",
+    alignItems: "center", justifyContent: "center", backgroundColor: C.sunk,
   },
-  logoPlaceholderText: { fontSize: 28, color: C.muted, fontWeight: "300" },
-  logoLabel: { fontSize: 11, color: C.terra, fontWeight: "700", marginTop: 6 },
+  logoPlaceholderText: { fontSize: 28, color: C.muted, fontFamily: F.regular },
+  logoLabel: { fontSize: 11, color: C.blue, fontFamily: F.semibold, marginTop: 6 },
   billingPlanRow: { marginBottom: 16 },
-  billingPlanName: { fontFamily: serif, fontSize: 22, fontWeight: "900", color: C.espresso, marginBottom: 4 },
-  billingPlanMeta: { fontSize: 13, color: C.muted, marginTop: 2 },
+  billingPlanName: { fontSize: 22, fontFamily: F.regular, color: C.ink, marginBottom: 4 },
+  billingPlanMeta: { fontFamily: F.regular, fontSize: 13, color: C.muted, marginTop: 2 },
   billingBtns: { gap: 8 },
-  billingBtn: { backgroundColor: C.espresso, borderRadius: 9, paddingVertical: 12, alignItems: "center" },
-  billingBtnText: { fontSize: 14, fontWeight: "800", color: C.cream },
-  billingManageBtn: { borderRadius: 9, paddingVertical: 12, alignItems: "center", borderWidth: 1.5, borderColor: C.border },
-  billingManageBtnText: { fontSize: 14, fontWeight: "700", color: C.espresso },
+  billingBtn: { backgroundColor: C.blue, borderRadius: 12, paddingVertical: 12, alignItems: "center" },
+  billingBtnText: { fontSize: 14, fontFamily: F.semibold, color: C.paper },
+  billingManageBtn: { borderRadius: 12, paddingVertical: 12, alignItems: "center", borderWidth: 1, borderColor: C.line },
+  billingManageBtnText: { fontSize: 14, fontFamily: F.semibold, color: C.ink },
   logoutBtn: {
-    paddingVertical: 14, borderRadius: 10,
-    backgroundColor: "#FEF2F2", borderWidth: 1.5, borderColor: "#FECACA",
+    paddingVertical: 14, borderRadius: 12,
+    backgroundColor: C.dangerSoft, borderWidth: 1, borderColor: C.line,
     alignItems: "center",
   },
-  logoutText: { fontSize: 15, fontWeight: "800", color: "#DC2626" },
+  logoutText: { fontSize: 15, fontFamily: F.semibold, color: C.danger },
 });

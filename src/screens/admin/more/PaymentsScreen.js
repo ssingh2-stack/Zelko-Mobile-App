@@ -4,7 +4,7 @@ import {
   Alert, ActivityIndicator, Switch, Linking, TextInput, RefreshControl,
 } from "react-native";
 import { api } from "../../../lib/api";
-import { C, serif } from "../../../lib/theme";
+import { F, C } from "../../../lib/theme";
 
 export default function PaymentsScreen() {
   const [settings, setSettings] = useState(null);
@@ -31,37 +31,37 @@ export default function PaymentsScreen() {
         deposit_amount:   settings.deposit_amount,
         deposit_type:     settings.deposit_type || "flat",
       });
-      setMsg("Saved!");
+      setMsg("Saved");
       setTimeout(() => setMsg(""), 2000);
     } catch (err) { Alert.alert("Error", err.message); }
     finally { setSaving(false); }
   }
 
-  if (loading) return <View style={styles.center}><ActivityIndicator color={C.espresso} /></View>;
+  if (loading) return <View style={styles.center}><ActivityIndicator color={C.ink} /></View>;
   if (!settings) return null;
 
   const connected = settings.stripe_connected;
 
   return (
-    <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={C.espresso} />}>
+    <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={C.ink} />}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Accept payments online</Text>
         <Text style={styles.cardSub}>
-          Connect your Stripe account to collect deposits or full payments when customers book. Money goes directly to your Stripe account — Clipd never touches your funds.
+          Connect Stripe to take deposits or full payments when clients book. Money goes straight to your Stripe account. Zelko never holds it.
         </Text>
 
         {!connected ? (
           <View style={styles.connectSection}>
             <TouchableOpacity
               style={styles.stripeBtn}
-              onPress={() => Linking.openURL("https://app.getclipd.ca/connect/stripe")}
+              onPress={() => Linking.openURL("https://app.zelko.ca/connect/stripe")}
             >
-              <Text style={styles.stripeBtnText}>Connect Stripe →</Text>
+              <Text style={styles.stripeBtnText}>Connect Stripe</Text>
             </TouchableOpacity>
             <Text style={styles.stripeNote}>
               You'll be taken to Stripe to securely connect your account. Takes under a minute.{" "}
-              <Text style={styles.learnMore} onPress={() => Linking.openURL("https://getclipd.ca/payments")}>
-                Learn how it works →
+              <Text style={styles.learnMore} onPress={() => Linking.openURL("https://zelko.ca/payments")}>
+                Learn how it works
               </Text>
             </Text>
           </View>
@@ -75,13 +75,13 @@ export default function PaymentsScreen() {
             <View style={styles.settingRow}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.settingLabel}>Require payment to book</Text>
-                <Text style={styles.settingDesc}>Customers must pay before their booking is confirmed</Text>
+                <Text style={styles.settingDesc}>Clients pay before their booking is confirmed</Text>
               </View>
               <Switch
                 value={settings.payments_enabled}
                 onValueChange={v => setSettings({ ...settings, payments_enabled: v })}
-                trackColor={{ true: C.terra }}
-                thumbColor={C.white}
+                trackColor={{ true: C.blue }}
+                thumbColor="#FFFFFF" activeThumbColor="#FFFFFF"
               />
             </View>
 
@@ -152,39 +152,39 @@ export default function PaymentsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.cream },
+  container: { flex: 1, backgroundColor: C.paper },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  card: { margin: 16, backgroundColor: C.white, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: C.border },
-  cardTitle: { fontFamily: serif, fontSize: 17, fontWeight: "700", color: C.espresso, marginBottom: 8 },
-  cardSub: { fontSize: 13, color: C.muted, lineHeight: 20, marginBottom: 20 },
+  card: { margin: 16, backgroundColor: C.surface, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: C.line },
+  cardTitle: { fontSize: 17, fontFamily: F.regular, color: C.ink, marginBottom: 8 },
+  cardSub: { fontFamily: F.regular, fontSize: 13, color: C.muted, lineHeight: 20, marginBottom: 20 },
   connectSection: {},
-  stripeBtn: { backgroundColor: C.espresso, borderRadius: 9, paddingVertical: 12, paddingHorizontal: 20, alignSelf: "flex-start", marginBottom: 12 },
-  stripeBtnText: { fontSize: 14, fontWeight: "800", color: C.cream },
-  stripeNote: { fontSize: 12, color: C.muted, lineHeight: 18 },
-  learnMore: { color: C.terra, fontWeight: "600" },
+  stripeBtn: { backgroundColor: C.blue, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 20, alignSelf: "flex-start", marginBottom: 12 },
+  stripeBtnText: { fontSize: 14, fontFamily: F.semibold, color: C.paper },
+  stripeNote: { fontFamily: F.regular, fontSize: 12, color: C.muted, lineHeight: 18 },
+  learnMore: { color: C.blue, fontFamily: F.semibold },
   connectedRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 20 },
-  connectedDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: "#10B981" },
-  connectedText: { fontSize: 13, fontWeight: "700", color: C.espresso },
+  connectedDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: C.success },
+  connectedText: { fontSize: 13, fontFamily: F.semibold, color: C.ink },
   settingRow: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 16 },
-  settingLabel: { fontSize: 14, fontWeight: "700", color: C.espresso },
-  settingDesc: { fontSize: 12, color: C.muted, marginTop: 2 },
-  payTypeSection: { backgroundColor: C.surface, borderRadius: 10, borderWidth: 1, borderColor: C.border, padding: 14, marginBottom: 16 },
-  payTypeLabel: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 },
+  settingLabel: { fontSize: 14, fontFamily: F.semibold, color: C.ink },
+  settingDesc: { fontFamily: F.regular, fontSize: 12, color: C.muted, marginTop: 2 },
+  payTypeSection: { backgroundColor: C.sunk, borderRadius: 10, borderWidth: 1, borderColor: C.line, padding: 14, marginBottom: 16 },
+  payTypeLabel: { fontSize: 11, fontFamily: F.monoMedium, color: C.muted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 },
   radioRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6 },
-  radio: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: C.border },
-  radioActive: { borderColor: C.terra, backgroundColor: C.terra },
-  radioLabel: { fontSize: 13, fontWeight: "600", color: C.espresso },
+  radio: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: C.line },
+  radioActive: { borderColor: C.blue, backgroundColor: C.blue },
+  radioLabel: { fontSize: 13, fontFamily: F.semibold, color: C.ink },
   depositTypeRow: { flexDirection: "row", gap: 6, paddingLeft: 28, marginBottom: 10 },
-  depositTypePill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1.5, borderColor: C.border },
-  depositTypePillActive: { backgroundColor: C.espresso, borderColor: C.espresso },
-  depositTypePillText: { fontSize: 12, fontWeight: "700", color: C.muted },
-  depositTypePillTextActive: { color: C.cream },
+  depositTypePill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: C.line },
+  depositTypePillActive: { backgroundColor: C.blue, borderColor: C.blue },
+  depositTypePillText: { fontSize: 12, fontFamily: F.semibold, color: C.muted },
+  depositTypePillTextActive: { color: C.onBlue },
   depositRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingLeft: 28, marginBottom: 4 },
-  dollarSign: { fontSize: 14, fontWeight: "700", color: C.espresso },
-  depositInput: { width: 70, padding: 8, borderWidth: 1.5, borderColor: C.border, borderRadius: 8, fontSize: 14, fontWeight: "700", color: C.espresso },
-  perBooking: { fontSize: 13, color: C.muted },
+  dollarSign: { fontSize: 14, fontFamily: F.semibold, color: C.ink },
+  depositInput: { width: 70, padding: 8, borderWidth: 1, borderColor: C.line, borderRadius: 8, fontSize: 14, fontFamily: F.semibold, color: C.ink },
+  perBooking: { fontFamily: F.regular, fontSize: 13, color: C.muted },
   saveRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  saveBtn: { backgroundColor: C.espresso, borderRadius: 9, paddingVertical: 11, paddingHorizontal: 20 },
-  saveBtnText: { fontSize: 14, fontWeight: "800", color: C.cream },
-  savedMsg: { fontSize: 13, fontWeight: "600", color: "#333333" },
+  saveBtn: { backgroundColor: C.blue, borderRadius: 12, paddingVertical: 11, paddingHorizontal: 20 },
+  saveBtnText: { fontSize: 14, fontFamily: F.semibold, color: C.paper },
+  savedMsg: { fontSize: 13, fontFamily: F.semibold, color: C.ink },
 });

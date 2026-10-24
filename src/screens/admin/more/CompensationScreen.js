@@ -4,14 +4,14 @@ import {
   TextInput, Alert, ActivityIndicator, RefreshControl, Modal,
 } from "react-native";
 import { api } from "../../../lib/api";
-import { C, serif, fmtMoney } from "../../../lib/theme";
+import { F, C, fmtMoney } from "../../../lib/theme";
 import { success as hapticSuccess } from "../../../lib/haptics";
 import { useToast, Toast } from "../../../components/Toast";
 
 const PLAN_TYPES = [
-  { key: "rent", label: "Chair Rent", desc: "Fixed monthly/weekly fee" },
-  { key: "split", label: "Commission Split", desc: "% split on every booking" },
-  { key: "tiered", label: "Tiered Split", desc: "% changes as barber earns more" },
+  { key: "rent", label: "Chair rent", desc: "Fixed monthly/weekly fee" },
+  { key: "split", label: "Commission split", desc: "% split on every booking" },
+  { key: "tiered", label: "Tiered split", desc: "% changes as barber earns more" },
 ];
 const PAY_PERIODS = [
   { key: "weekly", label: "Weekly" },
@@ -85,7 +85,7 @@ export default function CompensationScreen() {
     const { from, to } = periodDates(earningsPeriod);
     const cardAmount = barberEarnings.card_collected || 0;
     if (cardAmount <= 0) {
-      Alert.alert("No Card Earnings", "This barber has no card earnings to transfer for this period. Cash must be settled in person.");
+      Alert.alert("No card earnings", "This barber has no card earnings to transfer for this period. Cash must be settled in person.");
       return;
     }
     Alert.alert(
@@ -188,7 +188,7 @@ export default function CompensationScreen() {
   }
 
   async function deletePlan(plan) {
-    Alert.alert("Delete Plan", `Delete "${plan.name}"? Barbers using this plan will be unassigned.`, [
+    Alert.alert("Delete plan", `Delete "${plan.name}"? Barbers using this plan will be unassigned.`, [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: async () => {
         try {
@@ -239,19 +239,19 @@ export default function CompensationScreen() {
   return (
     <ScrollView
       style={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={C.espresso} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={C.ink} />}
       keyboardShouldPersistTaps="handled"
     >
       {/* Earnings Summary */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Earnings Summary</Text>
+        <Text style={styles.cardTitle}>Earnings</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
           <View style={{ flexDirection: "row", gap: 6 }}>
             {[
-              { key: "week", label: "This Week" },
-              { key: "month", label: "This Month" },
-              { key: "last_month", label: "Last Month" },
-              { key: "year", label: "This Year" },
+              { key: "week", label: "This week" },
+              { key: "month", label: "This month" },
+              { key: "last_month", label: "Last month" },
+              { key: "year", label: "This year" },
             ].map(p => (
               <TouchableOpacity
                 key={p.key}
@@ -271,12 +271,12 @@ export default function CompensationScreen() {
             <Text style={styles.totalLbl}>Gross</Text>
           </View>
           <View style={styles.totalItem}>
-            <Text style={[styles.totalVal, { color: C.terra }]}>{fmtMoney(totalShopTake)}</Text>
-            <Text style={styles.totalLbl}>Shop Take</Text>
+            <Text style={styles.totalVal}>{fmtMoney(totalShopTake)}</Text>
+            <Text style={styles.totalLbl}>Shop keeps</Text>
           </View>
           <View style={styles.totalItem}>
             <Text style={styles.totalVal}>{fmtMoney(totalBarberTake)}</Text>
-            <Text style={styles.totalLbl}>Barber Take</Text>
+            <Text style={styles.totalLbl}>Barber takes</Text>
           </View>
         </View>
 
@@ -322,13 +322,13 @@ export default function CompensationScreen() {
       {/* Plans */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>Compensation Plans</Text>
+          <Text style={styles.cardTitle}>Compensation plans</Text>
           <TouchableOpacity style={styles.newPlanBtn} onPress={openNewPlan}>
-            <Text style={styles.newPlanBtnText}>+ New Plan</Text>
+            <Text style={styles.newPlanBtnText}>New plan</Text>
           </TouchableOpacity>
         </View>
 
-        {loading ? <ActivityIndicator color={C.espresso} style={{ marginVertical: 20 }} /> : (
+        {loading ? <ActivityIndicator color={C.ink} style={{ marginVertical: 20 }} /> : (
           plans.length === 0 ? (
             <Text style={styles.emptyText}>No plans created yet. Create a plan and assign it to your barbers.</Text>
           ) : plans.map(plan => (
@@ -347,7 +347,7 @@ export default function CompensationScreen() {
                     <Text style={styles.planEditBtnText}>Edit</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => deletePlan(plan)}>
-                    <Text style={{ fontSize: 16, color: "#DC2626" }}>✕</Text>
+                    <Text style={{ fontFamily: F.regular, fontSize: 16, color: C.danger }}>✕</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -364,7 +364,7 @@ export default function CompensationScreen() {
 
       {/* Assign Plans to Barbers */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Assign Plans</Text>
+        <Text style={styles.cardTitle}>Assign plans</Text>
         {barbers.map(b => {
           const currentPlan = plans.find(p => p.id === b.compensation_plan_id);
           return (
@@ -400,7 +400,7 @@ export default function CompensationScreen() {
       {/* Payout History */}
       {payouts.length > 0 && (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Payout History</Text>
+          <Text style={styles.cardTitle}>Payout history</Text>
           {payouts.slice(0, 20).map(p => (
             <View key={p.id} style={styles.payoutRow}>
               <View style={{ flex: 1 }}>
@@ -412,7 +412,7 @@ export default function CompensationScreen() {
               </View>
               <View style={{ alignItems: "flex-end" }}>
                 <Text style={styles.earningsBarber}>{fmtMoney(p.amount / 100)}</Text>
-                <Text style={[styles.earningsMeta, { color: p.status === "completed" ? "#059669" : C.muted }]}>
+                <Text style={[styles.earningsMeta, { color: p.status === "completed" ? C.success : C.muted }]}>
                   {p.status === "completed" ? "Completed" : p.status}
                 </Text>
               </View>
@@ -430,8 +430,8 @@ export default function CompensationScreen() {
             <ScrollView keyboardShouldPersistTaps="handled">
               <Text style={styles.modalTitle}>{editingPlan ? "Edit Plan" : "New Compensation Plan"}</Text>
 
-              <Text style={styles.label}>Plan Name</Text>
-              <TextInput style={styles.input} value={planName} onChangeText={setPlanName} placeholder="e.g. Senior Barber Split" placeholderTextColor={C.muted} />
+              <Text style={styles.label}>Plan name</Text>
+              <TextInput style={styles.input} value={planName} onChangeText={setPlanName} placeholder="Senior barber split" placeholderTextColor={C.muted} />
 
               <Text style={styles.label}>Type</Text>
               <View style={{ flexDirection: "row", gap: 6, marginBottom: 14 }}>
@@ -442,7 +442,7 @@ export default function CompensationScreen() {
                 ))}
               </View>
 
-              <Text style={styles.label}>Pay Period</Text>
+              <Text style={styles.label}>Pay period</Text>
               <View style={{ flexDirection: "row", gap: 6, marginBottom: 14 }}>
                 {PAY_PERIODS.map(p => (
                   <TouchableOpacity key={p.key} style={[styles.typePill, payPeriod === p.key && styles.typePillActive]} onPress={() => setPayPeriod(p.key)}>
@@ -453,7 +453,7 @@ export default function CompensationScreen() {
 
               {planType === "rent" && (
                 <>
-                  <Text style={styles.label}>Rent Amount ($)</Text>
+                  <Text style={styles.label}>Rent amount ($)</Text>
                   <TextInput style={styles.input} value={rentAmount} onChangeText={setRentAmount} placeholder="2000" placeholderTextColor={C.muted} keyboardType="numeric" />
                 </>
               )}
@@ -475,7 +475,7 @@ export default function CompensationScreen() {
                           </View>
                           {tiers.length > 1 && (
                             <TouchableOpacity onPress={() => removeTier(i)} style={{ paddingTop: 18 }}>
-                              <Text style={{ color: "#DC2626", fontSize: 14 }}>✕</Text>
+                              <Text style={{ color: C.danger, fontFamily: F.regular, fontSize: 14 }}>✕</Text>
                             </TouchableOpacity>
                           )}
                         </View>
@@ -494,7 +494,7 @@ export default function CompensationScreen() {
                   ))}
                   {planType === "tiered" && (
                     <TouchableOpacity style={styles.addTierBtn} onPress={addTier}>
-                      <Text style={styles.addTierBtnText}>+ Add Tier</Text>
+                      <Text style={styles.addTierBtnText}>Add tier</Text>
                     </TouchableOpacity>
                   )}
                 </>
@@ -535,81 +535,81 @@ export default function CompensationScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.cream },
-  card: { margin: 16, marginBottom: 0, backgroundColor: C.white, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: C.border },
+  container: { flex: 1, backgroundColor: C.paper },
+  card: { margin: 16, marginBottom: 0, backgroundColor: C.surface, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: C.line },
   cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 },
-  cardTitle: { fontFamily: serif, fontSize: 17, fontWeight: "700", color: C.espresso, marginBottom: 14 },
+  cardTitle: { fontSize: 17, fontFamily: F.regular, color: C.ink, marginBottom: 14 },
 
   // Period pills
-  periodPill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1.5, borderColor: C.border },
-  periodPillActive: { backgroundColor: C.espresso, borderColor: C.espresso },
-  periodPillText: { fontSize: 12, fontWeight: "700", color: C.muted },
-  periodPillTextActive: { color: C.cream },
+  periodPill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: C.line },
+  periodPillActive: { backgroundColor: C.blueSoft, borderColor: C.blueSoft },
+  periodPillText: { fontSize: 12, fontFamily: F.semibold, color: C.muted },
+  periodPillTextActive: { color: C.blue },
 
   // Totals
-  totalsRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 16, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: C.border },
+  totalsRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 16, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: C.line },
   totalItem: { alignItems: "center" },
-  totalVal: { fontFamily: serif, fontSize: 20, fontWeight: "900", color: C.espresso },
-  totalLbl: { fontSize: 9, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1, marginTop: 2 },
+  totalVal: { fontSize: 20, fontFamily: F.regular, color: C.ink },
+  totalLbl: { fontSize: 11, fontFamily: F.monoMedium, color: C.muted, textTransform: "uppercase", letterSpacing: 1, marginTop: 2 },
 
   // Earnings rows
-  earningsRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: C.border },
-  earningsName: { fontSize: 14, fontWeight: "700", color: C.espresso },
-  earningsMeta: { fontSize: 11, color: C.muted, marginTop: 1 },
-  earningsBreakdown: { fontSize: 10, color: C.terra, fontWeight: "600", marginTop: 2 },
-  earningsPayment: { fontSize: 10, color: C.muted, fontWeight: "600", marginTop: 2 },
+  earningsRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: C.line },
+  earningsName: { fontSize: 14, fontFamily: F.semibold, color: C.ink },
+  earningsMeta: { fontFamily: F.regular, fontSize: 11, color: C.muted, marginTop: 1 },
+  earningsBreakdown: { fontSize: 13, color: C.muted, fontFamily: F.regular, marginTop: 2 },
+  earningsPayment: { fontSize: 11, color: C.muted, fontFamily: F.semibold, marginTop: 2 },
   earningsAmounts: { alignItems: "flex-end" },
-  earningsBarber: { fontFamily: serif, fontSize: 16, fontWeight: "700", color: C.espresso },
-  earningsShop: { fontSize: 10, color: C.muted, fontWeight: "600" },
+  earningsBarber: { fontSize: 16, fontFamily: F.regular, color: C.ink },
+  earningsShop: { fontSize: 11, color: C.muted, fontFamily: F.semibold },
   payoutBtn: { marginTop: 6, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6, backgroundColor: "rgba(5,150,105,0.1)" },
-  payoutBtnText: { fontSize: 10, fontWeight: "800", color: "#059669" },
-  payoutRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: C.border },
+  payoutBtnText: { fontSize: 11, fontFamily: F.semibold, color: C.success },
+  payoutRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: C.line },
 
   // Plans
-  newPlanBtn: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 8, backgroundColor: C.terra },
-  newPlanBtnText: { fontSize: 12, fontWeight: "800", color: C.cream },
-  planCard: { backgroundColor: C.surface, borderRadius: 10, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: C.border },
+  newPlanBtn: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 8, backgroundColor: C.blue },
+  newPlanBtnText: { fontSize: 12, fontFamily: F.semibold, color: C.paper },
+  planCard: { backgroundColor: C.sunk, borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: C.line },
   planHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  planName: { fontSize: 14, fontWeight: "700", color: C.espresso },
-  planMeta: { fontSize: 11, color: C.muted, marginTop: 2 },
-  planEditBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 1.5, borderColor: C.border },
-  planEditBtnText: { fontSize: 11, fontWeight: "700", color: C.espresso },
-  tierLine: { fontSize: 11, color: C.espresso, fontWeight: "600", marginTop: 6, paddingLeft: 8, borderLeftWidth: 2, borderLeftColor: C.terra },
+  planName: { fontSize: 14, fontFamily: F.semibold, color: C.ink },
+  planMeta: { fontFamily: F.regular, fontSize: 11, color: C.muted, marginTop: 2 },
+  planEditBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: C.line },
+  planEditBtnText: { fontSize: 11, fontFamily: F.semibold, color: C.ink },
+  tierLine: { fontSize: 11, color: C.ink, fontFamily: F.semibold, marginTop: 6, paddingLeft: 8, borderLeftWidth: 2, borderLeftColor: C.blue },
 
   // Assign
-  assignRow: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.border },
+  assignRow: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.line },
   assignHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  assignName: { fontSize: 14, fontWeight: "700", color: C.espresso, flex: 1 },
-  assignCurrent: { fontSize: 11, color: C.muted, fontWeight: "600" },
-  assignPill: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6, borderWidth: 1.5, borderColor: C.border },
-  assignPillActive: { backgroundColor: C.espresso, borderColor: C.espresso },
-  assignPillText: { fontSize: 11, fontWeight: "700", color: C.muted },
-  assignPillTextActive: { color: C.cream },
+  assignName: { fontSize: 14, fontFamily: F.semibold, color: C.ink, flex: 1 },
+  assignCurrent: { fontSize: 11, color: C.muted, fontFamily: F.semibold },
+  assignPill: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6, borderWidth: 1, borderColor: C.line },
+  assignPillActive: { backgroundColor: C.blue, borderColor: C.blue },
+  assignPillText: { fontSize: 11, fontFamily: F.semibold, color: C.muted },
+  assignPillTextActive: { color: C.onBlue },
 
-  emptyText: { fontSize: 13, color: C.muted, fontStyle: "italic", textAlign: "center", paddingVertical: 16 },
+  emptyText: { fontFamily: F.regular, fontSize: 13, color: C.muted, fontStyle: "italic", textAlign: "center", paddingVertical: 16 },
 
   // Modal
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
-  modalContent: { backgroundColor: C.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 40, maxHeight: "90%" },
-  modalTitle: { fontFamily: serif, fontSize: 20, fontWeight: "800", color: C.espresso, marginBottom: 16 },
-  label: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 6, marginTop: 10 },
-  input: { backgroundColor: C.surface, borderRadius: 9, paddingHorizontal: 12, paddingVertical: 11, fontSize: 14, color: C.espresso, borderWidth: 1, borderColor: C.border },
-  typePill: { flex: 1, paddingVertical: 8, borderRadius: 8, borderWidth: 1.5, borderColor: C.border, alignItems: "center" },
-  typePillActive: { backgroundColor: C.espresso, borderColor: C.espresso },
-  typePillText: { fontSize: 11, fontWeight: "700", color: C.muted },
-  typePillTextActive: { color: C.cream },
-  tierCard: { backgroundColor: C.surface, borderRadius: 8, padding: 10, marginBottom: 8, borderWidth: 1, borderColor: C.border },
-  tierLabel: { fontSize: 9, fontWeight: "700", color: C.muted, textTransform: "uppercase", marginBottom: 4 },
-  tierInput: { backgroundColor: C.white, borderRadius: 7, paddingHorizontal: 10, paddingVertical: 8, fontSize: 13, color: C.espresso, borderWidth: 1, borderColor: C.border, textAlign: "center" },
-  addTierBtn: { paddingVertical: 10, alignItems: "center", borderWidth: 1.5, borderColor: C.border, borderRadius: 8, borderStyle: "dashed", marginBottom: 8 },
-  addTierBtnText: { fontSize: 12, fontWeight: "700", color: C.terra },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(14,14,12,0.45)", justifyContent: "flex-end" },
+  modalContent: { backgroundColor: C.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 40, maxHeight: "90%" },
+  modalTitle: { fontSize: 20, fontFamily: F.regular, color: C.ink, marginBottom: 16 },
+  label: { fontSize: 14, fontFamily: F.medium, color: C.ink, marginBottom: 6, marginTop: 10 },
+  input: { backgroundColor: C.surface, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 11, fontFamily: F.regular, fontSize: 15, color: C.ink, borderWidth: 1, borderColor: C.lineStrong },
+  typePill: { flex: 1, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: C.line, alignItems: "center" },
+  typePillActive: { backgroundColor: C.blue, borderColor: C.blue },
+  typePillText: { fontSize: 11, fontFamily: F.semibold, color: C.muted },
+  typePillTextActive: { color: C.onBlue },
+  tierCard: { backgroundColor: C.sunk, borderRadius: 8, padding: 10, marginBottom: 8, borderWidth: 1, borderColor: C.line },
+  tierLabel: { fontSize: 11, fontFamily: F.semibold, color: C.muted, textTransform: "uppercase", marginBottom: 4 },
+  tierInput: { backgroundColor: C.surface, borderRadius: 7, paddingHorizontal: 10, paddingVertical: 8, fontFamily: F.regular, fontSize: 13, color: C.ink, borderWidth: 1, borderColor: C.line, textAlign: "center" },
+  addTierBtn: { paddingVertical: 10, alignItems: "center", borderWidth: 1, borderColor: C.line, borderRadius: 8, borderStyle: "dashed", marginBottom: 8 },
+  addTierBtnText: { fontSize: 12, fontFamily: F.semibold, color: C.blue },
   modalBtns: { flexDirection: "row", gap: 10, marginTop: 20 },
-  modalCancelBtn: { flex: 1, paddingVertical: 12, borderRadius: 9, borderWidth: 1.5, borderColor: C.border, alignItems: "center" },
-  modalCancelText: { fontSize: 14, fontWeight: "700", color: C.muted },
-  modalSaveBtn: { flex: 2, paddingVertical: 12, borderRadius: 9, backgroundColor: C.espresso, alignItems: "center" },
-  modalSaveText: { fontSize: 14, fontWeight: "800", color: C.cream },
-  barberChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.white },
-  barberChipActive: { backgroundColor: C.espresso, borderColor: C.espresso },
-  barberChipText: { fontSize: 12, fontWeight: "700", color: C.muted },
-  barberChipTextActive: { color: C.cream },
+  modalCancelBtn: { flex: 1, paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: C.line, alignItems: "center" },
+  modalCancelText: { fontSize: 14, fontFamily: F.semibold, color: C.muted },
+  modalSaveBtn: { flex: 2, paddingVertical: 12, borderRadius: 12, backgroundColor: C.blue, alignItems: "center" },
+  modalSaveText: { fontSize: 14, fontFamily: F.semibold, color: C.paper },
+  barberChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface },
+  barberChipActive: { backgroundColor: C.blueSoft, borderColor: C.blueSoft },
+  barberChipText: { fontSize: 12, fontFamily: F.semibold, color: C.muted },
+  barberChipTextActive: { color: C.blue },
 });

@@ -5,7 +5,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../../lib/api";
-import { C, serif, fmtMoney } from "../../../lib/theme";
+import { F, C, fmtMoney } from "../../../lib/theme";
 import { success as hapticSuccess } from "../../../lib/haptics";
 import { useToast, Toast } from "../../../components/Toast";
 
@@ -48,7 +48,7 @@ export default function ServicesScreen() {
     try {
       await api.adminAddService({ name: name.trim(), duration_min: durMin, price: priceNum, description: desc.trim() });
       setName(""); setDuration(""); setPrice(""); setDesc("");
-      hapticSuccess(); showToast("Service added!");
+      hapticSuccess(); showToast("Service added");
       load(true);
     } catch (err) { setAddError(err.message); }
     finally { setAdding(false); }
@@ -94,7 +94,7 @@ export default function ServicesScreen() {
   }
 
   async function deleteService(id, svcName) {
-    Alert.alert("Delete Service", `Delete "${svcName}"?`, [
+    Alert.alert("Delete service", `Delete "${svcName}"?`, [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: async () => {
         try { await api.adminDeleteService(id); load(true); }
@@ -106,15 +106,15 @@ export default function ServicesScreen() {
   return (
     <ScrollView
       style={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={C.espresso} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={C.ink} />}
       keyboardShouldPersistTaps="handled"
     >
       {/* Add Service form */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Add Service</Text>
+        <Text style={styles.cardTitle}>Add service</Text>
         <View style={styles.formRow}>
           <View style={{ flex: 2 }}>
-            <Text style={styles.label}>Service Name</Text>
+            <Text style={styles.label}>Service name</Text>
             <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="e.g. Haircut & Fade" placeholderTextColor={C.muted} />
           </View>
         </View>
@@ -136,15 +136,15 @@ export default function ServicesScreen() {
         </View>
         {addError ? <Text style={styles.error}>{addError}</Text> : null}
         <TouchableOpacity style={[styles.addBtn, adding && { opacity: 0.6 }]} onPress={addService} disabled={adding}>
-          <Text style={styles.addBtnText}>{adding ? "Adding…" : "Add Service →"}</Text>
+          <Text style={styles.addBtnText}>{adding ? "Adding…" : "Add service"}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Service list */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Your Services</Text>
+        <Text style={styles.sectionTitle}>Your services</Text>
         {loading ? (
-          <ActivityIndicator color={C.espresso} style={{ marginTop: 20 }} />
+          <ActivityIndicator color={C.ink} style={{ marginTop: 20 }} />
         ) : services.length === 0 ? (
           <Text style={styles.empty}>No services yet.</Text>
         ) : (
@@ -237,39 +237,39 @@ export default function ServicesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.cream },
-  card: { margin: 16, backgroundColor: C.white, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: C.border },
-  cardTitle: { fontFamily: serif, fontSize: 17, fontWeight: "700", color: C.espresso, marginBottom: 14 },
+  container: { flex: 1, backgroundColor: C.paper },
+  card: { margin: 16, backgroundColor: C.surface, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: C.line },
+  cardTitle: { fontSize: 17, fontFamily: F.regular, color: C.ink, marginBottom: 14 },
   formRow: { flexDirection: "row", marginBottom: 12 },
-  label: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 6 },
-  labelOpt: { fontSize: 10, fontWeight: "400", color: C.muted, textTransform: "none", letterSpacing: 0 },
-  input: { backgroundColor: C.surface, borderRadius: 9, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: C.espresso, borderWidth: 1, borderColor: C.border },
-  error: { fontSize: 13, color: C.terra, fontWeight: "600", marginBottom: 8 },
-  addBtn: { backgroundColor: C.espresso, borderRadius: 9, paddingVertical: 12, alignItems: "center", marginTop: 4 },
-  addBtnText: { fontSize: 14, fontWeight: "800", color: C.cream },
+  label: { fontSize: 14, fontFamily: F.medium, color: C.ink, marginBottom: 6 },
+  labelOpt: { fontSize: 11, fontFamily: F.regular, color: C.muted, textTransform: "none", letterSpacing: 0 },
+  input: { backgroundColor: C.surface, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontFamily: F.regular, fontSize: 15, color: C.ink, borderWidth: 1, borderColor: C.lineStrong },
+  error: { fontSize: 13, color: C.blue, fontFamily: F.semibold, marginBottom: 8 },
+  addBtn: { backgroundColor: C.blue, borderRadius: 12, paddingVertical: 12, alignItems: "center", marginTop: 4 },
+  addBtnText: { fontSize: 14, fontFamily: F.semibold, color: C.paper },
   section: { marginHorizontal: 16 },
-  sectionTitle: { fontFamily: serif, fontSize: 17, fontWeight: "700", color: C.espresso, marginBottom: 12 },
+  sectionTitle: { fontSize: 17, fontFamily: F.regular, color: C.ink, marginBottom: 12 },
   svcRow: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: C.white, borderRadius: 10, padding: 14, marginBottom: 8,
-    borderWidth: 1, borderColor: C.border, gap: 10,
+    backgroundColor: C.surface, borderRadius: 10, padding: 14, marginBottom: 8,
+    borderWidth: 1, borderColor: C.line, gap: 10,
   },
   reorderBtns: { alignItems: "center", gap: 2 },
   reorderArrow: { padding: 4 },
   svcRowEditing: { flexDirection: "column", alignItems: "stretch" },
-  svcName: { fontSize: 15, fontWeight: "700", color: C.espresso },
-  svcMeta: { fontSize: 12, color: C.muted, marginTop: 2 },
-  svcDesc: { fontSize: 11, color: C.muted, marginTop: 2, fontStyle: "italic" },
+  svcName: { fontSize: 15, fontFamily: F.semibold, color: C.ink },
+  svcMeta: { fontFamily: F.regular, fontSize: 12, color: C.muted, marginTop: 2 },
+  svcDesc: { fontFamily: F.regular, fontSize: 11, color: C.muted, marginTop: 2, fontStyle: "italic" },
   svcActions: { flexDirection: "row", alignItems: "center", gap: 4 },
-  editBtn: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 7, borderWidth: 1.5, borderColor: C.border },
-  editBtnText: { fontSize: 12, fontWeight: "700", color: C.espresso },
+  editBtn: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 7, borderWidth: 1, borderColor: C.line },
+  editBtnText: { fontSize: 12, fontFamily: F.semibold, color: C.ink },
   deleteBtn: { padding: 10, minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
-  deleteBtnText: { fontSize: 16, color: C.muted, fontWeight: "600" },
+  deleteBtnText: { fontSize: 16, color: C.muted, fontFamily: F.semibold },
   editInlineRow: { flexDirection: "row" },
   editActions: { flexDirection: "row", gap: 8, marginTop: 12 },
-  editCancelBtn: { flex: 1, paddingVertical: 10, borderRadius: 9, borderWidth: 1.5, borderColor: C.border, alignItems: "center" },
-  editCancelText: { fontSize: 13, fontWeight: "700", color: C.espresso },
-  editSaveBtn: { flex: 2, paddingVertical: 10, borderRadius: 9, backgroundColor: C.espresso, alignItems: "center" },
-  editSaveText: { fontSize: 13, fontWeight: "800", color: C.cream },
-  empty: { color: C.muted, fontSize: 14, paddingTop: 20, textAlign: "center" },
+  editCancelBtn: { flex: 1, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: C.line, alignItems: "center" },
+  editCancelText: { fontSize: 13, fontFamily: F.semibold, color: C.ink },
+  editSaveBtn: { flex: 2, paddingVertical: 10, borderRadius: 12, backgroundColor: C.blue, alignItems: "center" },
+  editSaveText: { fontSize: 13, fontFamily: F.semibold, color: C.paper },
+  empty: { color: C.muted, fontFamily: F.regular, fontSize: 14, paddingTop: 20, textAlign: "center" },
 });

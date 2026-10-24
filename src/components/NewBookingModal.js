@@ -4,8 +4,8 @@ import {
   TextInput, Alert, ActivityIndicator, Switch, KeyboardAvoidingView, Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { api } from "../lib/api";
-import { C, serif, fmtMoney } from "../lib/theme";
+import { api, WALKIN_EMAIL } from "../lib/api";
+import { F, C, fmtMoney } from "../lib/theme";
 import { DCAL_COLORS } from "./DayCalendarView";
 
 function Picker({ label, value, onChange, options, loading }) {
@@ -15,7 +15,7 @@ function Picker({ label, value, onChange, options, loading }) {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pillScroll}>
         <View style={styles.pillRow}>
           {loading ? (
-            <ActivityIndicator color={C.espresso} size="small" style={{ marginLeft: 8 }} />
+            <ActivityIndicator color={C.ink} size="small" style={{ marginLeft: 8 }} />
           ) : (
             options.map(opt => (
               <TouchableOpacity
@@ -174,7 +174,7 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
   async function submit() {
     setError("");
     const effectiveName = isWalkin ? "Walk-in" : name.trim();
-    const effectiveEmail = isWalkin ? "walk-in@getclipd.ca" : email.trim();
+    const effectiveEmail = isWalkin ? WALKIN_EMAIL : email.trim();
     const effectivePhone = isWalkin ? "" : phone.trim();
 
     if (!isWalkin && !effectiveName) { setError("Customer name is required."); return; }
@@ -244,12 +244,12 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
         <View style={styles.sheet}>
           <View style={styles.handle} />
           <View style={styles.titleRow}>
-            <Text style={styles.title}>New Booking</Text>
+            <Text style={styles.title}>New booking</Text>
             <TouchableOpacity onPress={onClose}><Text style={styles.closeX}>✕</Text></TouchableOpacity>
           </View>
 
           {loadingMeta ? (
-            <View style={styles.center}><ActivityIndicator color={C.espresso} /></View>
+            <View style={styles.center}><ActivityIndicator color={C.ink} /></View>
           ) : (
             <ScrollView style={styles.body} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 40 }}>
               {/* Barber — hidden in staff mode */}
@@ -267,7 +267,7 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
                   </TouchableOpacity>
                   <View style={{ flex: 1, alignItems: "center" }}>
                     <Text style={styles.dateLabel}>{dateLabel}</Text>
-                    <Text style={{ fontSize: 10, color: C.muted, marginTop: 2 }}>Tap to pick date</Text>
+                    <Text style={{ fontFamily: F.regular, fontSize: 10, color: C.muted, marginTop: 2 }}>Tap to pick date</Text>
                   </View>
                   <TouchableOpacity style={styles.dateArrow} onPress={() => changeDate(1)}>
                     <Ionicons name="chevron-forward" size={18} color={C.muted} />
@@ -301,17 +301,17 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
                     return { key, day: d.getDate(), isPast };
                   });
                   return (
-                    <View style={{ marginTop: 10, backgroundColor: C.surface, borderRadius: 10, padding: 10, borderWidth: 1, borderColor: C.border }}>
+                    <View style={{ marginTop: 10, backgroundColor: C.sunk, borderRadius: 10, padding: 10, borderWidth: 1, borderColor: C.line }}>
                       <View style={{ flexDirection: "row", marginBottom: 6 }}>
-                        {["S","M","T","W","T","F","S"].map((d, i) => <Text key={i} style={{ flex: 1, textAlign: "center", fontSize: 10, fontWeight: "700", color: C.muted }}>{d}</Text>)}
+                        {["S","M","T","W","T","F","S"].map((d, i) => <Text key={i} style={{ flex: 1, textAlign: "center", fontSize: 10, fontFamily: F.semibold, color: C.muted }}>{d}</Text>)}
                       </View>
                       {Array.from({ length: 6 }, (_, week) => (
                         <View key={week} style={{ flexDirection: "row" }}>
                           {allDays.slice(week * 7, week * 7 + 7).map((dayObj) => {
                             const isSelected = dayObj.key === date;
                             return (
-                              <TouchableOpacity key={dayObj.key} disabled={dayObj.isPast} style={{ flex: 1, height: 36, alignItems: "center", justifyContent: "center", borderRadius: 18, backgroundColor: isSelected ? C.terra : "transparent" }} onPress={() => { setDate(dayObj.key); setShowDatePicker(false); }}>
-                                <Text style={{ fontSize: 13, fontWeight: isSelected ? "800" : "500", color: isSelected ? "#fff" : dayObj.isPast ? C.border : C.espresso }}>{dayObj.day}</Text>
+                              <TouchableOpacity key={dayObj.key} disabled={dayObj.isPast} style={{ flex: 1, height: 36, alignItems: "center", justifyContent: "center", borderRadius: 18, backgroundColor: isSelected ? C.blue : "transparent" }} onPress={() => { setDate(dayObj.key); setShowDatePicker(false); }}>
+                                <Text style={{ fontSize: 14, fontFamily: isSelected ? F.semibold : F.medium, color: isSelected ? C.onBlue : dayObj.isPast ? C.line : C.ink }}>{dayObj.day}</Text>
                               </TouchableOpacity>
                             );
                           })}
@@ -324,11 +324,11 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
 
               {/* Time slot */}
               {loadingSlots ? (
-                <View style={styles.fieldWrap}><ActivityIndicator color={C.espresso} /></View>
+                <View style={styles.fieldWrap}><ActivityIndicator color={C.ink} /></View>
               ) : slotOptions.length === 0 ? (
                 <View style={styles.fieldWrap}>
                   <Text style={styles.fieldLabel}>Time</Text>
-                  <Text style={{ fontSize: 13, color: C.muted, marginTop: 6 }}>No available times — try another day →</Text>
+                  <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.muted, marginTop: 6 }}>No open times. Try another day.</Text>
                 </View>
               ) : (
                 <Picker label="Time" value={slot} onChange={setSlot} options={slotOptions} />
@@ -340,8 +340,8 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
                 <Switch
                   value={isWalkin}
                   onValueChange={v => { setIsWalkin(v); if (v) clearSelectedClient(); }}
-                  trackColor={{ true: C.terra }}
-                  thumbColor={C.white}
+                  trackColor={{ true: C.blue }}
+                  thumbColor="#FFFFFF" activeThumbColor="#FFFFFF"
                 />
               </View>
 
@@ -498,7 +498,7 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
               <Text style={styles.cancelBtnText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.submitBtn, submitting && { opacity: 0.6 }]} onPress={submit} disabled={submitting}>
-              <Text style={styles.submitBtnText}>{submitting ? "Booking…" : "Book →"}</Text>
+              <Text style={styles.submitBtnText}>{submitting ? "Booking…" : "Book"}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -510,28 +510,28 @@ export default function NewBookingModal({ visible, onClose, onSuccess, prefillDa
 const styles = StyleSheet.create({
   overlay: { flex: 1, justifyContent: "flex-end" },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(44,24,16,0.4)" },
-  sheet: { backgroundColor: C.cream, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: "92%", paddingBottom: 32 },
-  handle: { width: 36, height: 4, backgroundColor: C.border, borderRadius: 2, alignSelf: "center", marginTop: 10, marginBottom: 4 },
-  titleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: C.border },
-  title: { fontFamily: serif, fontSize: 20, fontWeight: "700", color: C.espresso },
-  closeX: { fontSize: 18, color: C.muted, padding: 4 },
+  sheet: { backgroundColor: C.paper, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: "92%", paddingBottom: 32 },
+  handle: { width: 36, height: 4, backgroundColor: C.line, borderRadius: 2, alignSelf: "center", marginTop: 10, marginBottom: 4 },
+  titleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: C.line },
+  title: { fontSize: 20, fontFamily: F.regular, color: C.ink },
+  closeX: { fontFamily: F.regular, fontSize: 18, color: C.muted, padding: 4 },
   center: { padding: 40, alignItems: "center" },
   body: { paddingHorizontal: 20 },
   fieldWrap: { marginTop: 18 },
-  fieldLabel: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 },
+  fieldLabel: { fontSize: 14, fontFamily: F.medium, color: C.ink, marginBottom: 8 },
   pillScroll: { marginHorizontal: -4 },
   pillRow: { flexDirection: "row", gap: 6, paddingHorizontal: 4 },
-  pill: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 8, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.white },
-  pillActive: { backgroundColor: C.espresso, borderColor: C.espresso },
-  pillText: { fontSize: 12, fontWeight: "700", color: C.muted },
-  pillTextActive: { color: C.cream },
-  dateRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: C.white, borderRadius: 12, borderWidth: 1, borderColor: C.border, paddingVertical: 14 },
+  pill: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface },
+  pillActive: { backgroundColor: C.blueSoft, borderColor: C.blueSoft },
+  pillText: { fontSize: 13, fontFamily: F.regular, color: C.muted },
+  pillTextActive: { color: C.blue, fontFamily: F.medium },
+  dateRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: C.surface, borderRadius: 12, borderWidth: 1, borderColor: C.line, paddingVertical: 14 },
   dateArrow: { paddingHorizontal: 20, paddingVertical: 4 },
-  dateLabel: { fontSize: 16, fontWeight: "800", color: C.espresso, textAlign: "center" },
-  jumpPill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: C.border, backgroundColor: C.white },
-  jumpPillText: { fontSize: 12, fontWeight: "600", color: C.muted },
+  dateLabel: { fontSize: 16, fontFamily: F.semibold, color: C.ink, textAlign: "center" },
+  jumpPill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface },
+  jumpPillText: { fontSize: 12, fontFamily: F.semibold, color: C.muted },
   walkinRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 20, paddingVertical: 4 },
-  walkinLabel: { fontSize: 14, fontWeight: "700", color: C.espresso },
+  walkinLabel: { fontSize: 14, fontFamily: F.semibold, color: C.ink },
 
   // Customer section
   customerSection: { marginTop: 20 },
@@ -539,40 +539,40 @@ const styles = StyleSheet.create({
   // Selected client chip
   selectedClientRow: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: C.white, borderRadius: 12,
-    borderWidth: 1.5, borderColor: C.espresso,
+    backgroundColor: C.surface, borderRadius: 12,
+    borderWidth: 1, borderColor: C.ink,
     padding: 10, marginTop: 8, gap: 10,
   },
   clientAvatar: {
     width: 38, height: 38, borderRadius: 19,
-    backgroundColor: C.espresso,
+    backgroundColor: C.ink,
     alignItems: "center", justifyContent: "center",
   },
-  clientAvatarText: { fontSize: 14, fontWeight: "800", color: C.cream },
+  clientAvatarText: { fontSize: 14, fontFamily: F.semibold, color: C.paper },
   clientAvatarInfo: { flex: 1 },
-  clientAvatarName: { fontSize: 14, fontWeight: "700", color: C.espresso },
-  clientAvatarMeta: { fontSize: 11, color: C.muted, marginTop: 1 },
+  clientAvatarName: { fontSize: 14, fontFamily: F.semibold, color: C.ink },
+  clientAvatarMeta: { fontFamily: F.regular, fontSize: 11, color: C.muted, marginTop: 1 },
   clientClearBtn: { padding: 6 },
-  clientClearText: { fontSize: 14, color: C.muted },
+  clientClearText: { fontFamily: F.regular, fontSize: 14, color: C.muted },
 
   // Search
   searchWrap: {
     flexDirection: "row", alignItems: "center",
-    backgroundColor: C.white, borderRadius: 10,
-    borderWidth: 1.5, borderColor: C.border,
+    backgroundColor: C.surface, borderRadius: 10,
+    borderWidth: 1, borderColor: C.line,
     paddingHorizontal: 12, marginTop: 8,
   },
-  searchIcon: { fontSize: 14, marginRight: 8 },
-  searchInput: { flex: 1, paddingVertical: 11, fontSize: 14, color: C.espresso },
+  searchIcon: { fontFamily: F.regular, fontSize: 14, marginRight: 8 },
+  searchInput: { flex: 1, fontFamily: F.regular, fontSize: 15, color: C.ink, paddingVertical: 8 },
   searchClear: { padding: 6 },
-  searchClearText: { fontSize: 13, color: C.muted },
+  searchClearText: { fontFamily: F.regular, fontSize: 13, color: C.muted },
 
   // Dropdown
   dropdown: {
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: C.line,
     marginTop: 4,
     overflow: "hidden",
   },
@@ -582,41 +582,41 @@ const styles = StyleSheet.create({
   },
   dropdownDivider: {
     borderTopWidth: 1,
-    borderTopColor: C.border,
+    borderTopColor: C.line,
   },
   dropdownAvatar: {
     width: 32, height: 32, borderRadius: 16,
-    backgroundColor: C.surface,
+    backgroundColor: C.sunk,
     alignItems: "center", justifyContent: "center",
   },
-  dropdownAvatarText: { fontSize: 12, fontWeight: "800", color: C.espresso },
+  dropdownAvatarText: { fontSize: 12, fontFamily: F.semibold, color: C.ink },
   dropdownInfo: { flex: 1 },
-  dropdownName: { fontSize: 13, fontWeight: "700", color: C.espresso },
-  dropdownMeta: { fontSize: 11, color: C.muted, marginTop: 1 },
+  dropdownName: { fontSize: 13, fontFamily: F.semibold, color: C.ink },
+  dropdownMeta: { fontFamily: F.regular, fontSize: 11, color: C.muted, marginTop: 1 },
 
-  noResultsText: { fontSize: 12, color: C.muted, marginTop: 8, fontStyle: "italic" },
+  noResultsText: { fontFamily: F.regular, fontSize: 12, color: C.muted, marginTop: 8, fontStyle: "italic" },
 
   // Manual entry
   manualSection: { marginTop: 12 },
-  manualOrLabel: { fontSize: 11, fontWeight: "600", color: C.muted, marginBottom: 8 },
+  manualOrLabel: { fontSize: 11, fontFamily: F.semibold, color: C.muted, marginBottom: 8 },
   input: {
-    backgroundColor: C.white, borderRadius: 10,
-    borderWidth: 1, borderColor: C.border,
+    backgroundColor: C.surface, borderRadius: 12,
+    borderWidth: 1, borderColor: C.line,
     paddingHorizontal: 14, paddingVertical: 11,
-    fontSize: 14, color: C.espresso,
+    fontFamily: F.regular, fontSize: 14, color: C.ink,
   },
 
   repeatCountRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 },
-  repeatCountLabel: { fontSize: 12, color: C.muted, fontWeight: "600" },
-  repeatCountBtn: { width: 34, height: 34, borderRadius: 17, borderWidth: 1.5, borderColor: C.border, alignItems: "center", justifyContent: "center", backgroundColor: C.white },
-  repeatCountBtnActive: { backgroundColor: C.espresso, borderColor: C.espresso },
-  repeatCountText: { fontSize: 13, fontWeight: "700", color: C.muted },
-  repeatCountTextActive: { color: C.cream },
+  repeatCountLabel: { fontSize: 12, color: C.muted, fontFamily: F.semibold },
+  repeatCountBtn: { width: 34, height: 34, borderRadius: 17, borderWidth: 1, borderColor: C.line, alignItems: "center", justifyContent: "center", backgroundColor: C.surface },
+  repeatCountBtnActive: { backgroundColor: C.blue, borderColor: C.blue },
+  repeatCountText: { fontSize: 13, fontFamily: F.semibold, color: C.muted },
+  repeatCountTextActive: { color: C.onBlue },
 
-  error: { fontSize: 13, color: C.terra, fontWeight: "600", marginTop: 12 },
-  actions: { flexDirection: "row", paddingHorizontal: 16, paddingTop: 12, gap: 10, borderTopWidth: 1, borderTopColor: C.border },
-  cancelBtn: { flex: 1, paddingVertical: 13, borderRadius: 10, borderWidth: 1.5, borderColor: C.border, alignItems: "center" },
-  cancelBtnText: { fontSize: 14, fontWeight: "700", color: C.espresso },
-  submitBtn: { flex: 2, paddingVertical: 13, borderRadius: 10, backgroundColor: C.espresso, alignItems: "center" },
-  submitBtnText: { fontSize: 14, fontWeight: "800", color: C.cream },
+  error: { fontSize: 13, color: C.blue, fontFamily: F.semibold, marginTop: 12 },
+  actions: { flexDirection: "row", paddingHorizontal: 16, paddingTop: 12, gap: 10, borderTopWidth: 1, borderTopColor: C.line },
+  cancelBtn: { flex: 1, paddingVertical: 13, borderRadius: 12, borderWidth: 1, borderColor: C.line, alignItems: "center" },
+  cancelBtnText: { fontSize: 14, fontFamily: F.semibold, color: C.ink },
+  submitBtn: { flex: 2, paddingVertical: 13, borderRadius: 12, backgroundColor: C.blue, alignItems: "center" },
+  submitBtnText: { fontSize: 14, fontFamily: F.semibold, color: C.paper },
 });

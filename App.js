@@ -2,7 +2,14 @@ import React, { useEffect, useState, useRef } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Text, ActivityIndicator, View, TouchableOpacity, StyleSheet, Alert, Animated } from "react-native";
+import { Text, View, ScrollView, TouchableOpacity, StyleSheet, Alert, Animated, Easing, AccessibilityInfo } from "react-native";
+import Svg, { Path, Rect, Line, G } from "react-native-svg";
+import { useFonts } from "expo-font";
+import { Geist_400Regular } from "@expo-google-fonts/geist/400Regular";
+import { Geist_500Medium } from "@expo-google-fonts/geist/500Medium";
+import { Geist_600SemiBold } from "@expo-google-fonts/geist/600SemiBold";
+import { GeistMono_400Regular } from "@expo-google-fonts/geist-mono/400Regular";
+import { GeistMono_500Medium } from "@expo-google-fonts/geist-mono/500Medium";
 import * as Notifications from "expo-notifications";
 
 import { navigationRef } from "./src/lib/navigation";
@@ -20,11 +27,11 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <View style={{ flex: 1, backgroundColor: '#FAFAFA', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
-          <Text style={{ fontFamily: 'serif', fontSize: 24, fontWeight: '900', color: '#111111', marginBottom: 12 }}>Something went wrong</Text>
-          <Text style={{ fontSize: 14, color: '#6B7280', textAlign: 'center', marginBottom: 24, lineHeight: 20 }}>The app ran into an unexpected error. Tap below to try again.</Text>
-          <TouchableOpacity onPress={() => this.setState({ hasError: false })} style={{ backgroundColor: '#C4683E', paddingHorizontal: 28, paddingVertical: 14, borderRadius: 10 }}>
-            <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' }}>Try Again</Text>
+        <View style={{ flex: 1, backgroundColor: C.paper, alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+          <Text style={{ fontSize: 26, fontFamily: F.regular, color: C.ink, letterSpacing: -0.6, marginBottom: 10, textAlign: 'center' }}>Something went wrong.</Text>
+          <Text style={{ fontFamily: F.regular, fontSize: 15, color: C.muted, textAlign: 'center', marginBottom: 24, lineHeight: 22 }}>The app hit an unexpected error. Your bookings are safe. Tap below to try again.</Text>
+          <TouchableOpacity onPress={() => this.setState({ hasError: false })} style={{ backgroundColor: C.blue, paddingHorizontal: 24, paddingVertical: 14, borderRadius: 12 }}>
+            <Text style={{ color: C.onBlue, fontSize: 15, fontFamily: F.medium }}>Try again</Text>
           </TouchableOpacity>
         </View>
       );
@@ -36,8 +43,9 @@ import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-cont
 import { Ionicons } from "@expo/vector-icons";
 import { getSession, clearSession } from "./src/lib/auth";
 import { api } from "./src/lib/api";
-import { C, serif } from "./src/lib/theme";
+import { F, C } from "./src/lib/theme";
 import { RoleProvider } from "./src/lib/RoleContext";
+import { Wordmark, Z_TOP_D, Z_BOTTOM_D } from "./src/components/Brand";
 
 import LoginScreen from "./src/screens/LoginScreen";
 import TodayScreen from "./src/screens/admin/TodayScreen";
@@ -67,54 +75,63 @@ function TabIon({ name, color, size = 22 }) {
   return <Ionicons name={name} size={size} color={color} />;
 }
 
+// Five tabs on a light bar: the selected tab is Klein Blue, the rest ink-muted,
+// always with a label (brand/components/AppNav).
 const tabBarOptions = {
-  tabBarActiveTintColor: C.terra,
-  tabBarInactiveTintColor: "rgba(250,250,250,0.4)",
+  tabBarActiveTintColor: C.blue,
+  tabBarInactiveTintColor: C.muted,
   tabBarStyle: {
-    backgroundColor: C.espresso,
-    borderTopColor: "rgba(255,255,255,0.08)",
-    height: 82,
-    paddingTop: 10,
-    paddingBottom: 16,
+    backgroundColor: C.surface,
+    borderTopColor: C.line,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    height: 84,
+    paddingTop: 8,
+    paddingBottom: 18,
   },
   tabBarLabelStyle: {
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 0.2,
+    fontSize: 11,
+    fontFamily: F.medium,
     marginTop: 2,
   },
   headerShown: false,
 };
 
 // ── More home screen ──────────────────────────────────────────────────────────
+const MORE_GROUPS = [
+  { title: "Shop", items: [
+    { icon: "cut-outline",           label: "Services",      screen: "Services" },
+    { icon: "people-outline",        label: "Team",          screen: "Barbers" },
+    { icon: "wallet-outline",        label: "Compensation",  screen: "Compensation" },
+    { icon: "card-outline",          label: "Payments",      screen: "Payments" },
+  ]},
+  { title: "Grow", items: [
+    { icon: "globe-outline",         label: "Your site",     screen: "BrandedSite" },
+    { icon: "qr-code-outline",       label: "Share your link", screen: "Share" },
+    { icon: "notifications-outline", label: "Notifications", screen: "Notifications" },
+  ]},
+  { title: "Account", items: [
+    { icon: "settings-outline",      label: "Settings",      screen: "Settings" },
+  ]},
+];
+
 function MoreHomeScreen({ navigation }) {
   const insets = useSafeAreaInsets();
-  const items = [
-    { icon: "cut-outline",       label: "Services", screen: "Services" },
-    { icon: "person-add-outline", label: "Team",    screen: "Barbers" },
-    { icon: "globe-outline",     label: "Branded Site", screen: "BrandedSite", badge: "NEW" },
-    { icon: "notifications-outline", label: "Notifications", screen: "Notifications", badge: "NEW" },
-    { icon: "wallet-outline",    label: "Compensation", screen: "Compensation" },
-    { icon: "share-outline",     label: "Share",    screen: "Share" },
-    { icon: "card-outline",      label: "Payments", screen: "Payments" },
-    { icon: "settings-outline",  label: "Settings", screen: "Settings" },
-  ];
 
   function handleDeleteAccount() {
     Alert.alert(
-      "Delete Account",
-      "This will permanently delete your shop, all barbers, bookings, and data. This cannot be undone.\n\nAre you sure?",
+      "Delete your account?",
+      "This permanently deletes your shop, barbers, bookings and data. It can't be undone.",
       [
         { text: "Cancel", style: "cancel" },
         { text: "Delete", style: "destructive", onPress: () => {
           Alert.prompt(
-            "Confirm Deletion",
-            'Type "DELETE" to confirm permanent account deletion.',
+            "Confirm deletion",
+            'Type DELETE to permanently delete your account.',
             [
               { text: "Cancel", style: "cancel" },
-              { text: "Delete Forever", style: "destructive", onPress: async (text) => {
+              { text: "Delete forever", style: "destructive", onPress: async (text) => {
                 if (text !== "DELETE") {
-                  Alert.alert("Error", 'You must type "DELETE" to confirm.');
+                  Alert.alert("Not deleted", "Type DELETE in capitals to confirm.");
                   return;
                 }
                 try {
@@ -122,7 +139,7 @@ function MoreHomeScreen({ navigation }) {
                   await clearSession();
                   navigation.reset({ index: 0, routes: [{ name: "Login" }] });
                 } catch (err) {
-                  Alert.alert("Error", err.message);
+                  Alert.alert("Couldn't delete your account", err.message);
                 }
               }},
             ],
@@ -134,87 +151,79 @@ function MoreHomeScreen({ navigation }) {
   }
 
   return (
-    <View style={[moreStyles.container, { paddingTop: insets.top }]}>
+    <ScrollView style={moreStyles.container} contentContainerStyle={{ paddingTop: insets.top, paddingBottom: 32 }}>
       <View style={moreStyles.header}>
-        <Text style={moreStyles.headerLogo}>CLIPD</Text>
+        <Wordmark height={22} />
         <Text style={moreStyles.headerSub}>More</Text>
       </View>
-      {items.map(item => (
-        <TouchableOpacity key={item.screen} style={moreStyles.row} onPress={() => navigation.navigate(item.screen)}>
-          <Ionicons name={item.icon} size={20} color={C.espresso} style={{ width: 28, textAlign: "center" }} />
-          <Text style={moreStyles.rowLabel}>{item.label}</Text>
-          {item.badge && (
-            <View style={moreStyles.newBadge}>
-              <Text style={moreStyles.newBadgeText}>{item.badge}</Text>
-            </View>
-          )}
-          <Ionicons name="chevron-forward" size={18} color={C.muted} />
-        </TouchableOpacity>
+      {MORE_GROUPS.map(group => (
+        <View key={group.title} style={moreStyles.group}>
+          <Text style={moreStyles.groupLabel}>{group.title}</Text>
+          <View style={moreStyles.card}>
+            {group.items.map((item, i) => (
+              <TouchableOpacity key={item.screen} style={[moreStyles.row, i > 0 && moreStyles.rowDivider]}
+                onPress={() => navigation.navigate(item.screen)} accessibilityRole="button">
+                <View style={moreStyles.iconTile}><Ionicons name={item.icon} size={18} color={C.blue} /></View>
+                <Text style={moreStyles.rowLabel}>{item.label}</Text>
+                <Ionicons name="chevron-forward" size={18} color={C.lineStrong} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
       ))}
-      <View style={{ flex: 1 }} />
-      <TouchableOpacity style={moreStyles.logoutRow} onPress={() => {
-        Alert.alert("Log Out", "Are you sure you want to log out?", [
-          { text: "Cancel", style: "cancel" },
-          { text: "Log Out", style: "destructive", onPress: async () => {
-            try { await api.logout(); } catch {}
-            await clearSession();
-            navigation.reset({ index: 0, routes: [{ name: "Login" }] });
-          }},
-        ]);
-      }}>
-        <Ionicons name="log-out-outline" size={18} color={C.muted} style={{ width: 28, textAlign: "center" }} />
-        <Text style={moreStyles.logoutLabel}>Log Out</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={moreStyles.deleteRow} onPress={handleDeleteAccount}>
-        <Ionicons name="trash-outline" size={18} color="#DC2626" style={{ width: 28, textAlign: "center" }} />
-        <Text style={moreStyles.deleteLabel}>Delete Account</Text>
-      </TouchableOpacity>
-    </View>
+      <View style={[moreStyles.group, { marginTop: 8 }]}>
+        <View style={moreStyles.card}>
+          <TouchableOpacity style={moreStyles.row} accessibilityRole="button" onPress={() => {
+            Alert.alert("Log out?", "You can sign back in any time.", [
+              { text: "Cancel", style: "cancel" },
+              { text: "Log out", style: "destructive", onPress: async () => {
+                try { await api.logout(); } catch {}
+                await clearSession();
+                navigation.reset({ index: 0, routes: [{ name: "Login" }] });
+              }},
+            ]);
+          }}>
+            <View style={[moreStyles.iconTile, { backgroundColor: C.sunk }]}><Ionicons name="log-out-outline" size={18} color={C.ink} /></View>
+            <Text style={moreStyles.rowLabel}>Log out</Text>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity style={moreStyles.deleteRow} onPress={handleDeleteAccount} accessibilityRole="button">
+          <Text style={moreStyles.deleteLabel}>Delete account</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 }
 
 const moreStyles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.cream },
+  container: { flex: 1, backgroundColor: C.paper },
   header: {
-    backgroundColor: C.espresso, paddingHorizontal: 16, paddingBottom: 14, paddingTop: 6,
+    paddingHorizontal: 20, paddingTop: 14, paddingBottom: 10,
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
   },
-  headerLogo: { fontSize: 18, fontWeight: "900", color: C.terra, letterSpacing: -0.5 },
-  headerSub: { fontSize: 11, fontWeight: "700", color: "rgba(250,250,250,0.4)", textTransform: "uppercase", letterSpacing: 2 },
-  row: {
-    flexDirection: "row", alignItems: "center", gap: 16,
-    paddingHorizontal: 20, paddingVertical: 16,
-    backgroundColor: C.white,
-    borderBottomWidth: 1, borderBottomColor: C.border,
-  },
-  rowLabel: { flex: 1, fontSize: 15, fontWeight: "600", color: C.espresso },
-  newBadge: { backgroundColor: C.terra, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, marginRight: 6 },
-  newBadgeText: { color: C.cream, fontSize: 9, fontWeight: "900", letterSpacing: 0.6 },
-  logoutRow: {
-    flexDirection: "row", alignItems: "center", gap: 16,
-    paddingHorizontal: 20, paddingVertical: 16,
-    marginTop: 12, marginHorizontal: 16, borderRadius: 10,
-    borderWidth: 1.5, borderColor: C.border, backgroundColor: C.surface,
-  },
-  logoutLabel: { flex: 1, fontSize: 14, fontWeight: "700", color: C.muted },
-  deleteRow: {
-    flexDirection: "row", alignItems: "center", gap: 16,
-    paddingHorizontal: 20, paddingVertical: 16,
-    marginTop: 8, marginHorizontal: 16, marginBottom: 32, borderRadius: 10,
-    borderWidth: 1.5, borderColor: "#FCA5A5", backgroundColor: "#FEF2F2",
-  },
-  deleteLabel: { flex: 1, fontSize: 14, fontWeight: "700", color: "#DC2626" },
+  headerSub: { fontSize: 12, fontFamily: F.monoMedium, color: C.muted, textTransform: "uppercase", letterSpacing: 1.2 },
+  group: { paddingHorizontal: 16, marginTop: 18 },
+  groupLabel: { fontSize: 12, fontFamily: F.mono, color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 8, marginLeft: 4 },
+  card: { backgroundColor: C.surface, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: C.line, overflow: "hidden" },
+  row: { flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 14, paddingVertical: 12, minHeight: 56 },
+  rowDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.line },
+  iconTile: { width: 32, height: 32, borderRadius: 9, backgroundColor: C.blueSoft, alignItems: "center", justifyContent: "center" },
+  rowLabel: { flex: 1, fontSize: 16, fontFamily: F.regular, color: C.ink },
+  deleteRow: { alignItems: "center", paddingVertical: 16, marginTop: 8 },
+  deleteLabel: { fontSize: 15, fontFamily: F.medium, color: C.danger },
 });
 
 // ── Shared nav header style ───────────────────────────────────────────────────
 const subScreenOptions = (title) => ({
   headerShown: true,
   title,
-  headerStyle: { backgroundColor: C.espresso },
-  headerTintColor: C.cream,
-  headerTitleStyle: { fontFamily: serif, fontSize: 17, fontWeight: "700" },
+  headerStyle: { backgroundColor: C.paper },
+  headerShadowVisible: false,
+  headerTintColor: C.ink,
+  headerTitleStyle: { fontSize: 17, fontFamily: F.medium, color: C.ink },
   headerBackTitle: " ",
   headerBackTitleVisible: false,
+  contentStyle: { backgroundColor: C.paper },
 });
 
 // ── More Navigator ────────────────────────────────────────────────────────────
@@ -228,7 +237,7 @@ function MoreNavigator() {
       <MoreStack.Screen name="Settings"     component={SettingsScreen}  options={subScreenOptions("Settings")} />
       <MoreStack.Screen name="Barbers"      component={BarbersScreen}   options={subScreenOptions("Team")} />
       <MoreStack.Screen name="Compensation" component={CompensationScreen} options={subScreenOptions("Compensation")} />
-      <MoreStack.Screen name="BrandedSite"  component={BrandedSiteScreen} options={subScreenOptions("Branded Site")} />
+      <MoreStack.Screen name="BrandedSite"  component={BrandedSiteScreen} options={subScreenOptions("Your site")} />
       <MoreStack.Screen name="Notifications" options={subScreenOptions("Notifications")}>
         {(props) => <NotificationsScreen {...props} mode="admin" />}
       </MoreStack.Screen>
@@ -275,7 +284,7 @@ function StaffMoreNavigator() {
   return (
     <StaffMoreStack.Navigator screenOptions={{ headerShown: false }}>
       <StaffMoreStack.Screen name="MoreHome" component={StaffMoreScreen} options={{ headerShown: false, title: "More" }} />
-      <StaffMoreStack.Screen name="StaffSettings" component={StaffSettingsScreen} options={subScreenOptions("My Profile")} />
+      <StaffMoreStack.Screen name="StaffSettings" component={StaffSettingsScreen} options={subScreenOptions("My profile")} />
       <StaffMoreStack.Screen name="Share" component={ShareScreen} options={subScreenOptions("Share")} />
       <StaffMoreStack.Screen name="Notifications" options={subScreenOptions("Notifications")}>
         {(props) => <NotificationsScreen {...props} mode="staff" />}
@@ -318,280 +327,71 @@ function StaffTabs() {
   );
 }
 
-/*
- * SPLASH CONCEPTS — pick one:
- *
- * A — "The Breath": CLIPD starts enormous and transparent, slowly pulls into
- *     focus at final size. One continuous cinematic motion. No decoration.
- *
- * B — "The Reveal": Each letter appears one at a time, staggered, precise.
- *     Typewriter energy but slower, more deliberate. Then the whole word
- *     lifts and vanishes.
- *
- * C — "The Cut": Nothing. Beat. CLIPD appears instantly — hard cut, no fade.
- *     Holds with confidence. Then smoothly dissolves. The restraint IS the design.
- */
+// ── Launch: the Zelko symbol motion (brand/motion/zelko-symbol-motion.svg) ──
+// The tile scales in, a spark blade draws along the cut, the halves nudge apart
+// and settle. Plays once, then the screen fades into the app. Static when the
+// owner has Reduce Motion on.
+const AnimatedLine = Animated.createAnimatedComponent(Line);
+const AnimatedG = Animated.createAnimatedComponent(G);
+const Z_WHOLE_D = "M66.78 170.21 L147.53 83.96 L69.67 83.96 L69.67 58.00 L187.12 58.00 L187.12 85.79 L105.32 172.04 L189.22 172.04 L189.22 198.00 L66.78 198.00 Z";
+const ease = Easing.bezier(0.2, 0.8, 0.2, 1);
 
-// ──── CONCEPT A: "The Breath" ────
-function SplashA({ onFinish }) {
-  const scale = useRef(new Animated.Value(4)).current;
-  const opacity = useRef(new Animated.Value(0.06)).current;
-  const exitOpacity = useRef(new Animated.Value(1)).current;
+function LaunchSplash({ onFinish }) {
+  const t = useRef(new Animated.Value(0)).current;
+  const exit = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    // Phase 1: pull into focus — scale 4x→1x, opacity 0.06→1 (1200ms, ease-out)
-    Animated.parallel([
-      Animated.timing(scale, { toValue: 1, duration: 1200, useNativeDriver: true }),
-      Animated.timing(opacity, { toValue: 1, duration: 1200, useNativeDriver: true }),
-    ]).start();
-    // Phase 2: hold (400ms) then dissolve (400ms)
-    setTimeout(() => {
-      Animated.timing(exitOpacity, { toValue: 0, duration: 400, useNativeDriver: true }).start(() => onFinish());
-    }, 1700);
-  }, []);
-
-  return (
-    <Animated.View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, backgroundColor: "#FAFAFA", justifyContent: "center", alignItems: "center", opacity: exitOpacity }}>
-      <Animated.Text style={{ fontSize: 48, fontWeight: "900", color: "#C4683E", letterSpacing: -2, opacity, transform: [{ scale }] }}>
-        CLIPD
-      </Animated.Text>
-    </Animated.View>
-  );
-}
-
-// ──── CONCEPT B: "The Reveal" — Angular Edition ────
-
-// Angular shape: two thin lines meeting at an angle — like open scissors or a V-cut
-function AngularShape({ x, y, size, angle, delay: d, color, pulseAt }) {
-  const opacity = useRef(new Animated.Value(0)).current;
-  const rotation = useRef(new Animated.Value(0)).current;
-  const scale = useRef(new Animated.Value(0.6)).current;
-
-  useEffect(() => {
-    // Fade in + scale up
-    Animated.parallel([
-      Animated.timing(opacity, { toValue: 1, duration: 400, delay: d, useNativeDriver: true }),
-      Animated.timing(scale, { toValue: 1, duration: 600, delay: d, useNativeDriver: true }),
-    ]).start();
-    // Slow continuous rotation
-    Animated.loop(
-      Animated.timing(rotation, { toValue: 1, duration: 8000, useNativeDriver: true })
-    ).start();
-    // Pulse when letters land
-    if (pulseAt) {
-      setTimeout(() => {
-        Animated.sequence([
-          Animated.timing(opacity, { toValue: 1.8, duration: 80, useNativeDriver: true }),
-          Animated.timing(opacity, { toValue: 0.6, duration: 400, useNativeDriver: true }),
-        ]).start();
-      }, pulseAt);
-    }
-  }, []);
-
-  const spin = rotation.interpolate({ inputRange: [0, 1], outputRange: [`${angle}deg`, `${angle + 45}deg`] });
-
-  return (
-    <Animated.View style={{
-      position: "absolute", left: x, top: y,
-      width: size, height: size,
-      opacity,
-      transform: [{ rotate: spin }, { scale }],
-    }}>
-      {/* Two arms forming a V / angular cut shape */}
-      <View style={{ position: "absolute", top: 0, left: "50%", width: 1.5, height: size * 0.6, backgroundColor: color, transform: [{ rotate: "-25deg" }] }} />
-      <View style={{ position: "absolute", top: 0, left: "50%", width: 1.5, height: size * 0.6, backgroundColor: color, transform: [{ rotate: "25deg" }] }} />
-    </Animated.View>
-  );
-}
-
-// Single clean line that slides across — precision, like a razor line
-function SliceLine({ startY, delay: d, speed, color, thickness }) {
-  const translateX = useRef(new Animated.Value(-500)).current;
-  const opacity = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.timing(opacity, { toValue: 1, duration: 200, delay: d, useNativeDriver: true }).start();
-    Animated.loop(
+    let cancelled = false;
+    AccessibilityInfo.isReduceMotionEnabled().then((calm) => {
+      if (cancelled) return;
+      if (calm) {
+        t.setValue(1);
+        setTimeout(() => onFinish(), 500);
+        return;
+      }
       Animated.sequence([
-        Animated.timing(translateX, { toValue: 600, duration: speed, delay: d, useNativeDriver: true }),
-        Animated.timing(translateX, { toValue: -500, duration: 0, useNativeDriver: true }),
-      ])
-    ).start();
-  }, []);
-  return (
-    <Animated.View style={{
-      position: "absolute", top: startY, left: -200, width: "300%", height: thickness,
-      backgroundColor: color, opacity,
-      transform: [{ translateX }, { rotate: "8deg" }],
-    }} />
-  );
-}
-
-function DriftLine({ top, delay, speed, thickness, lineColor, pulseAt }) {
-  const translateX = useRef(new Animated.Value(-400)).current;
-  const lineOpacity = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(translateX, { toValue: 500, duration: speed, delay, useNativeDriver: true }),
-        Animated.timing(translateX, { toValue: -400, duration: 0, useNativeDriver: true }),
-      ])
-    ).start();
-    // Lines pulse brighter when letters land
-    if (pulseAt) {
-      setTimeout(() => {
-        Animated.sequence([
-          Animated.timing(lineOpacity, { toValue: 3, duration: 80, useNativeDriver: true }),
-          Animated.timing(lineOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
-        ]).start();
-      }, pulseAt);
-    }
-  }, []);
-  return (
-    <Animated.View style={{
-      position: "absolute", top, left: -200, width: "300%", height: thickness,
-      backgroundColor: lineColor,
-      opacity: lineOpacity,
-      transform: [{ translateX }, { rotate: "15deg" }],
-    }} />
-  );
-}
-
-function SplashB({ onFinish }) {
-  const letters = "CLIPD".split("");
-  const letterOpacities = useRef(letters.map(() => new Animated.Value(0))).current;
-  const letterYs = useRef(letters.map(() => new Animated.Value(40))).current;
-  const letterScales = useRef(letters.map(() => new Animated.Value(0.85))).current;
-  const exitScale = useRef(new Animated.Value(1)).current;
-  const exitOpacity = useRef(new Animated.Value(1)).current;
-  const linesOpacity = useRef(new Animated.Value(0)).current;
-  const bgFlash = useRef(new Animated.Value(0)).current;
-  const breathScale = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    // Phase 0: angular shapes + slice lines fade in
-    Animated.timing(linesOpacity, { toValue: 1, duration: 300, useNativeDriver: true }).start();
-
-    // Phase 1: stagger letters — each fades in + slides up + scales to 1
-    // Timing: 140ms stagger, each letter takes 220ms
-    setTimeout(() => {
-      letters.forEach((_, i) => {
-        setTimeout(() => {
-          Animated.parallel([
-            Animated.timing(letterOpacities[i], { toValue: 1, duration: 220, useNativeDriver: true }),
-            Animated.timing(letterYs[i], { toValue: 0, duration: 280, useNativeDriver: true }),
-            Animated.timing(letterScales[i], { toValue: 1, duration: 280, useNativeDriver: true }),
-          ]).start();
-        }, i * 140);
-      });
-    }, 400);
-
-    // Phase 2: all letters landed — flash + breathe
-    setTimeout(() => {
-      // Flash
-      Animated.sequence([
-        Animated.timing(bgFlash, { toValue: 1, duration: 60, useNativeDriver: true }),
-        Animated.timing(bgFlash, { toValue: 0, duration: 250, useNativeDriver: true }),
-      ]).start();
-      // Breathe: subtle pulse 1→1.03→1
-      Animated.sequence([
-        Animated.timing(breathScale, { toValue: 1.03, duration: 200, useNativeDriver: true }),
-        Animated.timing(breathScale, { toValue: 1, duration: 200, useNativeDriver: true }),
-      ]).start();
-    }, 1200);
-
-    // Phase 3: cinematic exit — letters scatter outward + scale up + dissolve
-    setTimeout(() => {
-      // Each letter drifts in a different direction as it fades
-      const scatterDirections = [-30, -12, 0, 12, 30];
-      letters.forEach((_, i) => {
-        Animated.parallel([
-          Animated.timing(letterYs[i], { toValue: -20, duration: 400, useNativeDriver: true }),
-          Animated.timing(letterOpacities[i], { toValue: 0, duration: 400, useNativeDriver: true }),
-        ]).start();
-      });
-      Animated.parallel([
-        Animated.timing(exitScale, { toValue: 1.2, duration: 400, useNativeDriver: true }),
-        Animated.timing(exitOpacity, { toValue: 0, duration: 400, useNativeDriver: true }),
+        Animated.timing(t, { toValue: 1, duration: 1200, easing: Easing.linear, useNativeDriver: false }),
+        Animated.delay(250),
+        Animated.timing(exit, { toValue: 0, duration: 300, easing: ease, useNativeDriver: false }),
       ]).start(() => onFinish());
-    }, 1800);
+    });
+    return () => { cancelled = true; };
   }, []);
 
-  const PULSE_TIME = 1200; // when letters finish landing
+  const tileScale = t.interpolate({ inputRange: [0, 0.22, 1], outputRange: [0.86, 1, 1], easing: ease });
+  const tileOpacity = t.interpolate({ inputRange: [0, 0.22, 1], outputRange: [0, 1, 1] });
+  const whole = t.interpolate({ inputRange: [0, 0.635, 0.64, 1], outputRange: [1, 1, 0, 0] });
+  const cut = t.interpolate({ inputRange: [0, 0.635, 0.64, 1], outputRange: [0, 0, 1, 1] });
+  const nudge = t.interpolate({ inputRange: [0, 0.64, 0.78, 0.92, 1], outputRange: [0, 0, 1, 0, 0], easing: ease });
+  const upX = Animated.multiply(nudge, -2.68), upY = Animated.multiply(nudge, -2.51);
+  const loX = Animated.multiply(nudge, 2.68), loY = Animated.multiply(nudge, 2.51);
+  const dash = t.interpolate({ inputRange: [0, 0.3, 0.62, 1], outputRange: [204.5, 204.5, 0, 0], easing: ease });
+  const blade = t.interpolate({ inputRange: [0, 0.66, 0.92, 1], outputRange: [1, 1, 0, 0] });
 
   return (
-    <Animated.View style={{
-      position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
-      backgroundColor: "#FAFAFA", justifyContent: "center", alignItems: "center",
-      opacity: exitOpacity, overflow: "hidden",
-    }}>
-      {/* Drift lines — react to letter landing with opacity pulse */}
-      <Animated.View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: linesOpacity }}>
-        <DriftLine top="6%"  delay={0}   speed={3500} thickness={2} lineColor="rgba(196,104,62,0.10)" pulseAt={PULSE_TIME} />
-        <DriftLine top="16%" delay={200} speed={4500} thickness={1} lineColor="rgba(17,17,17,0.07)"   pulseAt={PULSE_TIME + 40} />
-        <DriftLine top="26%" delay={100} speed={3000} thickness={3} lineColor="rgba(196,104,62,0.08)" pulseAt={PULSE_TIME + 80} />
-        <DriftLine top="36%" delay={400} speed={4000} thickness={1} lineColor="rgba(17,17,17,0.05)"   pulseAt={null} />
-        <DriftLine top="46%" delay={150} speed={5000} thickness={2} lineColor="rgba(196,104,62,0.09)" pulseAt={PULSE_TIME + 20} />
-        <DriftLine top="56%" delay={300} speed={3200} thickness={1} lineColor="rgba(17,17,17,0.06)"   pulseAt={PULSE_TIME + 60} />
-        <DriftLine top="66%" delay={100} speed={3800} thickness={3} lineColor="rgba(196,104,62,0.07)" pulseAt={null} />
-        <DriftLine top="76%" delay={500} speed={4600} thickness={1} lineColor="rgba(17,17,17,0.07)"   pulseAt={PULSE_TIME + 100} />
-        <DriftLine top="86%" delay={200} speed={3100} thickness={2} lineColor="rgba(196,104,62,0.10)" pulseAt={PULSE_TIME + 30} />
-        <DriftLine top="94%" delay={350} speed={4300} thickness={1} lineColor="rgba(17,17,17,0.05)"   pulseAt={null} />
-      </Animated.View>
-
-      {/* Flash overlay */}
-      <Animated.View style={{
-        position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-        backgroundColor: "#FFFFFF",
-        opacity: bgFlash.interpolate({ inputRange: [0, 1], outputRange: [0, 0.5] }),
-      }} />
-
-      {/* Letters */}
-      <Animated.View style={{ flexDirection: "row", alignItems: "center", transform: [{ scale: exitScale }, { scale: breathScale }] }}>
-        {letters.map((letter, i) => (
-          <Animated.Text key={i} style={{
-            fontSize: 58, fontWeight: "900", color: "#C4683E",
-            opacity: letterOpacities[i],
-            transform: [
-              { translateY: letterYs[i] },
-              { scale: letterScales[i] },
-            ],
-          }}>
-            {letter}
-          </Animated.Text>
-        ))}
+    <Animated.View style={[splashStyles.wrap, { opacity: exit }]} accessibilityLabel="Zelko">
+      <Animated.View style={{ opacity: tileOpacity, transform: [{ scale: tileScale }] }}>
+        <Svg width={96} height={96} viewBox="0 0 256 256">
+          <Rect width={256} height={256} rx={60} fill={C.blue} />
+          <AnimatedG opacity={whole}><Path fill={C.onBlue} d={Z_WHOLE_D} /></AnimatedG>
+          <AnimatedG opacity={cut}>
+            <AnimatedG x={upX} y={upY}><Path fill={C.onBlue} d={Z_TOP_D} /></AnimatedG>
+            <AnimatedG x={loX} y={loY}><Path fill={C.onBlue} d={Z_BOTTOM_D} /></AnimatedG>
+          </AnimatedG>
+          <AnimatedLine x1={60.97} y1={197.92} x2={200.72} y2={48.64} stroke={C.spark} strokeWidth={8.8}
+            strokeDasharray={[204.5, 204.5]} strokeDashoffset={dash} opacity={blade} />
+        </Svg>
       </Animated.View>
     </Animated.View>
   );
 }
 
-// ──── CONCEPT C: "The Cut" ────
-function SplashC({ onFinish }) {
-  const wordOpacity = useRef(new Animated.Value(0)).current;
-  const exitOpacity = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    // Phase 1: silence (500ms) then instant appear (50ms — near-instant but not jarring)
-    setTimeout(() => {
-      Animated.timing(wordOpacity, { toValue: 1, duration: 50, useNativeDriver: true }).start();
-    }, 500);
-    // Phase 2: hold with confidence (800ms) then smooth dissolve (400ms)
-    setTimeout(() => {
-      Animated.timing(exitOpacity, { toValue: 0, duration: 400, useNativeDriver: true }).start(() => onFinish());
-    }, 1800);
-  }, []);
-
-  return (
-    <Animated.View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, backgroundColor: "#FAFAFA", justifyContent: "center", alignItems: "center", opacity: exitOpacity }}>
-      <Animated.Text style={{ fontSize: 48, fontWeight: "900", color: "#C4683E", letterSpacing: -2, opacity: wordOpacity }}>
-        CLIPD
-      </Animated.Text>
-    </Animated.View>
-  );
-}
-
-// ── Active splash — change this to SplashA, SplashB, or SplashC ──
-const SplashAnimation = SplashB;
+const splashStyles = StyleSheet.create({
+  wrap: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, backgroundColor: C.paper, justifyContent: "center", alignItems: "center" },
+});
 
 export default function App() {
+  const [fontsLoaded] = useFonts({ Geist_400Regular, Geist_500Medium, Geist_600SemiBold, GeistMono_400Regular, GeistMono_500Medium });
   const [initialRoute, setInitialRoute] = useState(null);
   const [splashDone, setSplashDone] = useState(false);
 
@@ -645,9 +445,9 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      {!splashDone && <SplashAnimation onFinish={() => setSplashDone(true)} />}
+      {!splashDone && <LaunchSplash onFinish={() => setSplashDone(true)} />}
       {!initialRoute ? (
-        <View style={{ flex: 1, backgroundColor: "#FAFAFA" }} />
+        <View style={{ flex: 1, backgroundColor: C.paper }} />
       ) : (
         <NavigationContainer ref={navigationRef}>
           <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>

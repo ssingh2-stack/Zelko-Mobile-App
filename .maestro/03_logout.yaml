@@ -20,5 +20,5 @@ env:
     text: "Log out"    # confirm dialog
 - extendedWaitUntil:
     visible:
-      text: "Sign In"
+      text: "Sign in"
     timeout: 10000

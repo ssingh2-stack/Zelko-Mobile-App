@@ -1,9 +1,10 @@
 import React, { useRef, useState, useCallback } from "react";
+import { C, F } from "../lib/theme";
 import { Animated, Text, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ICONS = { success: "✓", error: "✕", info: "ℹ" };
-const BG    = { success: "#333333", error: "#991B1B", info: "#1E3A5F" };
+const BG    = { success: C.night, error: C.danger, info: C.night };
 
 export function useToast() {
   const [state, setState] = useState({ msg: "", type: "success" });
@@ -54,6 +55,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     shadowColor: "#000", shadowOpacity: 0.25, shadowRadius: 12, shadowOffset: { width: 0, height: 4 },
   },
-  icon: { fontSize: 16, color: "#fff", fontWeight: "800" },
-  text: { flex: 1, fontSize: 14, fontWeight: "700", color: "#fff" },
+  icon: { fontSize: 16, color: "#fff", fontFamily: F.semibold },
+  text: { flex: 1, fontSize: 14, fontFamily: F.semibold, color: "#fff" },
 });

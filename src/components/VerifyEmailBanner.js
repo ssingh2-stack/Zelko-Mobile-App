@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { C, F } from "../lib/theme";
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
 import { api } from "../lib/api";
 import { getSession, saveSession } from "../lib/auth";
@@ -68,7 +69,7 @@ export default function VerifyEmailBanner() {
       <Text style={styles.body}>Public bookings are paused until you confirm your signup email.</Text>
       <View style={styles.row}>
         <TouchableOpacity style={styles.btn} onPress={onResend} disabled={sending}>
-          {sending ? <ActivityIndicator color="#991B1B" /> : <Text style={styles.btnText}>Resend email</Text>}
+          {sending ? <ActivityIndicator color={C.onBlue} /> : <Text style={styles.btnText}>Resend email</Text>}
         </TouchableOpacity>
         <TouchableOpacity style={styles.ghostBtn} onPress={refreshFromServer}>
           <Text style={styles.ghostBtnText}>I've verified</Text>
@@ -81,31 +82,40 @@ export default function VerifyEmailBanner() {
 
 const styles = StyleSheet.create({
   wrap: {
-    backgroundColor: "#991B1B",
+    backgroundColor: C.surface,
+    marginHorizontal: 12,
+    marginTop: 4,
+    marginBottom: 8,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: C.line,
+    borderLeftWidth: 4,
+    borderLeftColor: C.danger,
   },
-  title: { color: "#fff", fontSize: 14, fontWeight: "700" },
-  body: { color: "rgba(255,255,255,0.85)", fontSize: 12, marginTop: 2 },
-  row: { flexDirection: "row", gap: 8, marginTop: 10 },
+  title: { color: C.ink, fontSize: 15, fontFamily: F.medium },
+  body: { color: C.muted, fontFamily: F.regular, fontSize: 13, lineHeight: 19, marginTop: 2 },
+  row: { flexDirection: "row", gap: 8, marginTop: 12 },
   btn: {
-    backgroundColor: "#fff",
-    paddingVertical: 8,
+    backgroundColor: C.blue,
+    paddingVertical: 9,
     paddingHorizontal: 14,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
   },
-  btnText: { color: "#991B1B", fontWeight: "700", fontSize: 13 },
+  btnText: { color: C.onBlue, fontFamily: F.medium, fontSize: 14 },
   ghostBtn: {
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.4)",
-    paddingVertical: 8,
+    borderColor: C.lineStrong,
+    backgroundColor: C.surface,
+    paddingVertical: 9,
     paddingHorizontal: 14,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
   },
-  ghostBtnText: { color: "#fff", fontWeight: "600", fontSize: 13 },
-  msg: { color: "#fff", fontSize: 12, marginTop: 8, opacity: 0.9 },
+  ghostBtnText: { color: C.ink, fontFamily: F.medium, fontSize: 14 },
+  msg: { color: C.muted, fontFamily: F.regular, fontSize: 13, marginTop: 8 },
 });

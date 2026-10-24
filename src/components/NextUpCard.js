@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { C, serif } from "../lib/theme";
+import { F, C } from "../lib/theme";
 import { fmtTime, tMin } from "./DayCalendarView";
 
 function getCountdown(startTime) {
@@ -53,13 +53,13 @@ export default function NextUpCard({ bookings, onPress }) {
       <TouchableOpacity style={[styles.card, styles.cardActive]} onPress={() => onPress?.(inProgress)} activeOpacity={0.85}>
         <View style={styles.pulseBar} />
         <View style={styles.left}>
-          <Text style={styles.badgeActive}>● IN SERVICE</Text>
-          <Text style={styles.name}>{inProgress.customer_name}</Text>
-          <Text style={styles.meta}>{inProgress.service_name}{inProgress.barber_name ? ` · ${inProgress.barber_name}` : ""}</Text>
+          <Text style={styles.badgeActive}>In the chair</Text>
+          <Text style={[styles.name, { color: C.onNight }]}>{inProgress.customer_name}</Text>
+          <Text style={[styles.meta, { color: C.nightMuted }]}>{inProgress.service_name}{inProgress.barber_name ? ` · ${inProgress.barber_name}` : ""}</Text>
         </View>
         <View style={styles.right}>
-          <Text style={styles.time}>{fmtTime(inProgress.start_time)}</Text>
-          <Text style={styles.timeLabel}>started</Text>
+          <Text style={[styles.time, { color: C.onNight }]}>{fmtTime(inProgress.start_time)}</Text>
+          <Text style={styles.timeLabel}>Started</Text>
         </View>
       </TouchableOpacity>
     );
@@ -83,7 +83,7 @@ export default function NextUpCard({ bookings, onPress }) {
   return (
     <TouchableOpacity style={styles.card} onPress={() => onPress?.(next)} activeOpacity={0.85}>
       <View style={styles.left}>
-        <Text style={styles.badge}>NEXT UP</Text>
+        <Text style={styles.badge}>Next up</Text>
         <Text style={styles.name}>{next.customer_name}</Text>
         <Text style={styles.meta}>{next.service_name}{next.barber_name ? ` · ${next.barber_name}` : ""}</Text>
       </View>
@@ -99,72 +99,27 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: C.espresso,
+    backgroundColor: C.surface,
+    marginHorizontal: 12,
+    marginBottom: 8,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.08)",
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: C.line,
     position: "relative",
     overflow: "hidden",
   },
-  cardActive: {
-    backgroundColor: "#1A2E1A",
-    borderBottomColor: "rgba(16,185,129,0.3)",
-  },
-  pulseBar: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 3,
-    backgroundColor: "#10B981",
-  },
+  // In the chair reads as night, like its status badge.
+  cardActive: { backgroundColor: C.night, borderColor: C.night },
+  pulseBar: { position: "absolute", left: 0, top: 0, bottom: 0, width: 4, backgroundColor: C.blue },
   left: { flex: 1 },
   right: { alignItems: "flex-end" },
-  badge: {
-    fontSize: 9,
-    fontWeight: "800",
-    color: C.terra,
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
-    marginBottom: 3,
-  },
-  badgeActive: {
-    fontSize: 9,
-    fontWeight: "800",
-    color: "#10B981",
-    letterSpacing: 1.5,
-    marginBottom: 3,
-  },
-  name: {
-    fontFamily: serif,
-    fontSize: 17,
-    fontWeight: "700",
-    color: C.cream,
-    marginBottom: 2,
-  },
-  meta: {
-    fontSize: 12,
-    color: "rgba(250,250,250,0.5)",
-    fontWeight: "500",
-  },
-  countdown: {
-    fontFamily: serif,
-    fontSize: 18,
-    fontWeight: "900",
-    color: C.terra,
-  },
-  time: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "rgba(250,250,250,0.45)",
-    marginTop: 2,
-  },
-  timeLabel: {
-    fontSize: 9,
-    color: "#10B981",
-    fontWeight: "700",
-    letterSpacing: 0.5,
-    marginTop: 2,
-  },
+  badge: { fontSize: 11, fontFamily: F.monoMedium, color: C.blue, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 },
+  badgeActive: { fontSize: 11, fontFamily: F.monoMedium, color: C.onNight, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 },
+  name: { fontSize: 18, fontFamily: F.medium, color: C.ink, marginBottom: 2 },
+  meta: { fontSize: 14, color: C.muted, fontFamily: F.regular },
+  countdown: { fontSize: 20, fontFamily: F.regular, color: C.ink, letterSpacing: -0.3, fontVariant: ["tabular-nums"] },
+  time: { fontSize: 13, fontFamily: F.regular, color: C.muted, marginTop: 2, fontVariant: ["tabular-nums"] },
+  timeLabel: { fontSize: 12, color: C.nightMuted, fontFamily: F.regular, marginTop: 2 },
 });

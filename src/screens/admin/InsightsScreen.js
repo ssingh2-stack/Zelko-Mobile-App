@@ -3,7 +3,8 @@ import { View, Text, ScrollView, StyleSheet, RefreshControl, Alert, ActivityIndi
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../../lib/api";
-import { C, serif, fmtMoney } from "../../lib/theme";
+import ScreenTitle from "../../components/ScreenTitle";
+import { F, C, fmtMoney } from "../../lib/theme";
 import { DCAL_COLORS } from "../../components/DayCalendarView";
 import { SkeletonKPI, SkeletonCard } from "../../components/Skeleton";
 import ErrorState from "../../components/ErrorState";
@@ -67,30 +68,31 @@ function getPriorDateRange(period) {
 }
 
 const PERIODS = [
-  { key: "week",       label: "This Week" },
-  { key: "month",      label: "This Month" },
-  { key: "last_month", label: "Last Month" },
-  { key: "year",       label: "This Year" },
-  { key: "all",        label: "All Time" },
+  { key: "week",       label: "This week" },
+  { key: "month",      label: "This month" },
+  { key: "last_month", label: "Last month" },
+  { key: "year",       label: "This year" },
+  { key: "all",        label: "All time" },
 ];
 
 
 // ── KPI Card ──────────────────────────────────────────────────────────────────
-function KPICard({ icon, value, label, accent, trend }) {
+// Stat card: a mono label, one big number, one line of context (brand/components/StatCards).
+// Up is success with an arrow, never colour alone. A rising cancel rate is not good news.
+function KPICard({ value, label, trend, night, lowerIsBetter }) {
+  const good = trend == null ? null : (lowerIsBetter ? trend <= 0 : trend >= 0);
   return (
-    <View style={styles.kpi}>
-      <View style={[styles.kpiAccent, { backgroundColor: accent || C.terra }]} />
-      <Ionicons name={icon} size={20} color={accent || C.terra} style={styles.kpiIcon} />
-      <Text style={styles.kpiValue}>{value}</Text>
+    <View style={[styles.kpi, night && styles.kpiNight]}>
+      <Text style={[styles.kpiLabel, night && { color: C.nightMuted }]}>{label}</Text>
+      <Text style={[styles.kpiValue, night && { color: C.onNight }]} numberOfLines={1} adjustsFontSizeToFit>{value}</Text>
       {trend !== null && trend !== undefined && (
         <View style={styles.kpiTrendRow}>
-          <Ionicons name={trend >= 0 ? "caret-up" : "caret-down"} size={11} color={trend >= 0 ? "#059669" : "#DC2626"} />
-          <Text style={[styles.kpiTrend, trend >= 0 ? styles.kpiTrendUp : styles.kpiTrendDown]}>
-            {Math.abs(trend)}%
+          <Ionicons name={trend >= 0 ? "arrow-up" : "arrow-down"} size={12} color={night ? C.onNight : good ? C.success : C.danger} />
+          <Text style={[styles.kpiTrend, { color: night ? C.onNight : good ? C.success : C.danger }]}>
+            {Math.abs(trend)}% <Text style={{ color: night ? C.nightMuted : C.muted, fontFamily: F.regular }}>vs last period</Text>
           </Text>
         </View>
       )}
-      <Text style={styles.kpiLabel}>{label}</Text>
     </View>
   );
 }
@@ -137,7 +139,7 @@ function RevenueChart({ data }) {
             return (
               <View key={i} style={{ alignItems: "center", width: barW }}>
                 <Text style={[styles.barValue, { width: barW + 12, marginBottom: 3 }]}>{item.revenue > 0 ? shortMoney(item.revenue) : ""}</Text>
-                <View style={[styles.bar, { width: barW - 8, height: barH, backgroundColor: C.terra }]} />
+                <View style={[styles.bar, { width: barW - 8, height: barH, backgroundColor: C.blue }]} />
                 <Text style={[styles.barLabel, { width: barW, marginTop: 4 }]}>{item.label}</Text>
               </View>
             );
@@ -227,8 +229,9 @@ export default function InsightsScreen() {
   return (
     <ScrollView
       style={[styles.container, { paddingTop: insets.top }]}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={C.espresso} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={C.ink} />}
     >
+      <ScreenTitle title="Insights" />
       {/* Period selector */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.periodScroll}>
         <View style={styles.periodRow}>
@@ -249,11 +252,11 @@ export default function InsightsScreen() {
               const toDate = to || isoToday();
               try {
                 const csv = await api.adminExportCsv(fromDate, toDate);
-                await Share.share({ message: csv, title: `clipd-export-${fromDate}-${toDate}.csv` });
+                await Share.share({ message: csv, title: `zelko-export-${fromDate}-${toDate}.csv` });
               } catch (err) { Alert.alert("Error", err.message); }
             }}
           >
-            <Ionicons name="download-outline" size={14} color={C.terra} />
+            <Ionicons name="download-outline" size={14} color={C.blue} />
             <Text style={styles.exportBtnText}>Export CSV</Text>
           </TouchableOpacity>
         </View>
@@ -267,16 +270,16 @@ export default function InsightsScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Overview</Text>
             <View style={styles.kpiGrid}>
-              <KPICard icon="cash-outline" value={fmtMoney(data.total_revenue)} label="Total Revenue" accent={C.terra} trend={trends.revenue} />
-              <KPICard icon="calendar-outline" value={data.total_bookings ?? 0} label="Bookings" accent="#555555" trend={trends.bookings} />
-              <KPICard icon="star-outline" value={fmtMoney(data.avg_booking_value)} label="Avg Value" accent="#C4683E" trend={trends.avg} />
-              <KPICard icon="close-circle-outline" value={`${data.cancellation_rate ?? 0}%`} label="Cancel Rate" accent="#888888" trend={trends.cancel} />
+              <KPICard night value={fmtMoney(data.total_revenue)} label="Revenue" trend={trends.revenue} />
+              <KPICard value={data.total_bookings ?? 0} label="Bookings" trend={trends.bookings} />
+              <KPICard value={fmtMoney(data.avg_booking_value)} label="Average ticket" trend={trends.avg} />
+              <KPICard value={`${data.cancellation_rate ?? 0}%`} label="Cancel rate" trend={trends.cancel} lowerIsBetter />
             </View>
           </View>
 
           {/* Revenue chart */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Revenue Over Time</Text>
+            <Text style={styles.sectionTitle}>Revenue over time</Text>
             <RevenueChart data={chartData} />
           </View>
 
@@ -286,7 +289,7 @@ export default function InsightsScreen() {
             const maxBks = Math.max(...data.top_barbers.map(b => b.count || 0), 1);
             return (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Barber Performance</Text>
+                <Text style={styles.sectionTitle}>Barber performance</Text>
                 {data.top_barbers.map((b, i) => {
                   const avgVal = b.count > 0 ? Math.round(b.revenue / b.count) : 0;
                   const revPct = (b.revenue || 0) / maxRev;
@@ -319,7 +322,7 @@ export default function InsightsScreen() {
           {/* Service breakdown */}
           {data.service_breakdown?.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>By Service</Text>
+              <Text style={styles.sectionTitle}>By service</Text>
               {data.service_breakdown.map((s) => (
                 <View key={s.service_name} style={styles.breakdownRow}>
                   <View style={styles.breakdownLeft}>
@@ -391,88 +394,78 @@ export default function InsightsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.cream },
+  container: { flex: 1, backgroundColor: C.paper },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   loadingInline: { padding: 40, alignItems: "center" },
 
   // Period selector
-  periodScroll: { backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border },
+  periodScroll: { backgroundColor: C.paper, flexGrow: 0 },
   periodRow: { flexDirection: "row", paddingHorizontal: 12, paddingVertical: 10, gap: 6 },
-  periodBtn: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 999, borderWidth: 1.5, borderColor: C.border },
-  periodBtnActive: { backgroundColor: C.espresso, borderColor: C.espresso },
-  periodBtnText: { fontSize: 12, fontWeight: "700", color: C.muted },
-  periodBtnTextActive: { color: C.cream },
-  exportBtn: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1.5, borderColor: C.terra },
-  exportBtnText: { fontSize: 12, fontWeight: "700", color: C.terra },
+  periodBtn: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface },
+  periodBtnActive: { backgroundColor: C.blueSoft, borderColor: C.blueSoft },
+  periodBtnText: { fontSize: 13, fontFamily: F.regular, color: C.muted },
+  periodBtnTextActive: { color: C.blue, fontFamily: F.medium },
+  exportBtn: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: C.lineStrong, backgroundColor: C.surface },
+  exportBtnText: { fontSize: 13, fontFamily: F.medium, color: C.ink },
 
   section: { margin: 16, marginBottom: 0 },
-  sectionTitle: { fontFamily: serif, fontSize: 18, fontWeight: "700", color: C.espresso, marginBottom: 12 },
+  sectionTitle: { fontSize: 20, fontFamily: F.regular, color: C.ink, letterSpacing: -0.4, marginBottom: 12 },
 
   // KPIs
-  kpiGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  kpi: { width: "47%", backgroundColor: C.white, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: C.border, overflow: "hidden" },
-  kpiAccent: { position: "absolute", top: 0, left: 0, right: 0, height: 3 },
+  kpiGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  kpi: { width: "48.6%", backgroundColor: C.surface, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: C.line, overflow: "hidden" },
+  kpiNight: { backgroundColor: C.night, borderColor: C.night },
+  kpiAccent: { display: "none" },
   kpiIcon: { marginBottom: 8 },
-  kpiValue: { fontFamily: serif, fontSize: 26, fontWeight: "900", color: C.espresso, marginBottom: 2 },
+  kpiValue: { fontSize: 28, fontFamily: F.regular, color: C.ink, letterSpacing: -0.7, marginTop: 8, marginBottom: 4, fontVariant: ["tabular-nums"] },
   kpiTrendRow: { flexDirection: "row", alignItems: "center", gap: 2, marginBottom: 2 },
-  kpiTrend: { fontSize: 11, fontWeight: "800" },
-  kpiTrendUp: { color: "#059669" },
-  kpiTrendDown: { color: "#DC2626" },
-  kpiLabel: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1.5 },
+  kpiTrend: { fontSize: 12, fontFamily: F.medium },
+  kpiTrendUp: { color: C.success },
+  kpiTrendDown: { color: C.danger },
+  kpiLabel: { fontSize: 11, fontFamily: F.monoMedium, color: C.muted, textTransform: "uppercase", letterSpacing: 1 },
 
   // Revenue chart
-  chartWrap: { backgroundColor: C.white, borderRadius: 14, borderWidth: 1, borderColor: C.border, padding: 12 },
-  chartEmpty: { backgroundColor: C.white, borderRadius: 14, borderWidth: 1, borderColor: C.border, padding: 32, alignItems: "center" },
-  chartEmptyText: { color: C.muted, fontSize: 13 },
+  chartWrap: { backgroundColor: C.surface, borderRadius: 16, borderWidth: 1, borderColor: C.line, padding: 12 },
+  chartEmpty: { backgroundColor: C.surface, borderRadius: 14, borderWidth: 1, borderColor: C.line, padding: 32, alignItems: "center" },
+  chartEmptyText: { color: C.muted, fontFamily: F.regular, fontSize: 13 },
   bar: { borderRadius: 4, minHeight: 4 },
-  barValue: { fontSize: 9, fontWeight: "700", color: C.espresso, textAlign: "center" },
-  barLabel: { fontSize: 8, color: C.muted, textAlign: "center" },
+  barValue: { fontSize: 11, fontFamily: F.medium, color: C.ink, textAlign: "center", fontVariant: ["tabular-nums"] },
+  barLabel: { fontFamily: F.mono, fontSize: 11, color: C.muted, textAlign: "center" },
 
   // Clients
-  clientRow: {
-    flexDirection: "row", alignItems: "center", gap: 10,
-    backgroundColor: C.white, borderRadius: 10, padding: 12, marginBottom: 6,
-    borderWidth: 1, borderColor: C.border,
-  },
-  clientAvatar: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: C.surface, alignItems: "center", justifyContent: "center",
-    borderWidth: 1, borderColor: C.border,
-  },
-  clientInitials: { fontSize: 13, fontWeight: "800", color: C.espresso },
+  clientRow: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: C.surface, borderRadius: 14, padding: 12, marginBottom: 6, borderWidth: 1, borderColor: C.line },
+  clientAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: C.blueSoft, alignItems: "center", justifyContent: "center" },
+  clientInitials: { fontSize: 13, fontFamily: F.medium, color: C.blue },
   clientInfo: { flex: 1 },
-  clientName: { fontSize: 13, fontWeight: "700", color: C.espresso },
-  clientSub: { fontSize: 11, color: C.muted, marginTop: 1 },
-  clientDate: { fontSize: 10, color: C.muted, fontWeight: "600" },
-  moreClients: { fontSize: 12, color: C.muted, textAlign: "center", paddingVertical: 8, fontWeight: "600" },
+  clientName: { fontSize: 15, fontFamily: F.medium, color: C.ink },
+  clientSub: { fontFamily: F.regular, fontSize: 13, color: C.muted, marginTop: 1 },
+  clientDate: { fontSize: 12, color: C.muted, fontFamily: F.mono },
+  moreClients: { fontSize: 12, color: C.muted, textAlign: "center", paddingVertical: 8, fontFamily: F.semibold },
 
   // Barber performance
-  perfCard: {
-    backgroundColor: C.white, borderRadius: 12, padding: 14, marginBottom: 8,
-    borderWidth: 1, borderColor: C.border,
-  },
+  perfCard: { backgroundColor: C.surface, borderRadius: 16, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: C.line },
   perfHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 8 },
   perfAvatar: {
     width: 34, height: 34, borderRadius: 17, borderWidth: 2,
     alignItems: "center", justifyContent: "center",
   },
-  perfInitials: { fontSize: 12, fontWeight: "800" },
-  perfName: { flex: 1, fontSize: 14, fontWeight: "700", color: C.espresso },
-  perfRevenue: { fontFamily: serif, fontSize: 16, fontWeight: "700", color: C.espresso },
-  perfBar: { height: 5, backgroundColor: C.border, borderRadius: 3, overflow: "hidden", marginBottom: 8 },
-  perfBarFill: { height: 5, backgroundColor: C.terra, borderRadius: 3 },
+  perfInitials: { fontSize: 12, fontFamily: F.semibold },
+  perfName: { flex: 1, fontSize: 16, fontFamily: F.medium, color: C.ink },
+  perfRevenue: { fontSize: 18, fontFamily: F.regular, color: C.ink, fontVariant: ["tabular-nums"] },
+  perfBar: { height: 6, backgroundColor: C.sunk, borderRadius: 3, overflow: "hidden", marginBottom: 8 },
+  perfBarFill: { height: 6, backgroundColor: C.blue, borderRadius: 3 },
   perfStats: { flexDirection: "row", justifyContent: "space-between" },
-  perfStat: { fontSize: 11, color: C.muted, fontWeight: "600" },
+  perfStat: { fontSize: 13, color: C.muted, fontFamily: F.regular },
 
   // Breakdowns
-  breakdownRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: C.white, borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: C.border },
+  breakdownRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: C.surface, borderRadius: 14, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: C.line },
   breakdownLeft: {},
-  breakdownName: { fontSize: 14, fontWeight: "700", color: C.espresso },
-  breakdownSub: { fontSize: 12, color: C.muted, marginTop: 1 },
-  breakdownVal: { fontFamily: serif, fontSize: 16, fontWeight: "700", color: C.espresso },
+  breakdownName: { fontSize: 15, fontFamily: F.medium, color: C.ink },
+  breakdownSub: { fontFamily: F.regular, fontSize: 13, color: C.muted, marginTop: 1 },
+  breakdownVal: { fontSize: 17, fontFamily: F.regular, color: C.ink, fontVariant: ["tabular-nums"] },
 
   // Upcoming
-  upcomingRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: C.border },
-  upcomingDate: { fontSize: 14, fontWeight: "600", color: C.espresso },
-  upcomingCount: { fontSize: 13, color: C.muted },
+  upcomingRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: C.line },
+  upcomingDate: { fontSize: 15, fontFamily: F.medium, color: C.ink },
+  upcomingCount: { fontFamily: F.regular, fontSize: 13, color: C.muted },
 });

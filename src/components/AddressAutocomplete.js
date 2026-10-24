@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
-import { C } from "../lib/theme";
+import { F, C } from "../lib/theme";
 
 const GOOGLE_PLACES_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_KEY || "";
 
@@ -103,22 +103,22 @@ export default function AddressAutocomplete({ value, onChange, placeholder, styl
 const styles = StyleSheet.create({
   inputRow: { position: "relative" },
   input: {
-    backgroundColor: C.white, borderRadius: 10,
+    backgroundColor: C.surface, borderRadius: 12,
     paddingHorizontal: 14, paddingVertical: 12,
-    fontSize: 15, color: C.espresso,
-    borderWidth: 1, borderColor: C.border,
+    fontFamily: F.regular, fontSize: 15, color: C.ink,
+    borderWidth: 1, borderColor: C.line,
   },
   spinner: { position: "absolute", right: 12, top: 14 },
   dropdown: {
-    backgroundColor: C.white, borderRadius: 10,
-    borderWidth: 1, borderColor: C.border,
+    backgroundColor: C.surface, borderRadius: 10,
+    borderWidth: 1, borderColor: C.line,
     marginTop: 4, overflow: "hidden",
   },
   suggestion: {
     paddingHorizontal: 14, paddingVertical: 10,
-    borderBottomWidth: 1, borderBottomColor: C.border,
+    borderBottomWidth: 1, borderBottomColor: C.line,
   },
-  suggestionMain: { fontSize: 14, fontWeight: "600", color: C.espresso },
-  suggestionSub: { fontSize: 11, color: C.muted, marginTop: 1 },
-  powered: { fontSize: 9, color: C.muted, textAlign: "right", padding: 6 },
+  suggestionMain: { fontSize: 14, fontFamily: F.semibold, color: C.ink },
+  suggestionSub: { fontFamily: F.regular, fontSize: 11, color: C.muted, marginTop: 1 },
+  powered: { fontFamily: F.regular, fontSize: 11, color: C.muted, textAlign: "right", padding: 6 },
 });

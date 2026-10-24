@@ -1,35 +1,38 @@
 {
   "expo": {
-    "name": "Clipd",
+    "name": "Zelko",
     "slug": "clipd-app",
-    "version": "1.0.8",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "scheme": "clipd",
+    "scheme": [
+      "zelko",
+      "clipd"
+    ],
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FFFFFF"
+      "backgroundColor": "#F7F6F1"
     },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "ca.getclipd.app",
       "infoPlist": {
-        "CFBundleDisplayName": "Clipd",
+        "CFBundleDisplayName": "Zelko",
         "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": [
           "remote-notification"
         ]
       },
-      "buildNumber": "18"
+      "buildNumber": "19"
     },
     "android": {
       "package": "ca.getclipd.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFFFFF"
+        "backgroundColor": "#1A24C9"
       }
     },
     "web": {
@@ -41,15 +44,17 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/icon.png",
-          "color": "#C4683E"
+          "icon": "./assets/notification-icon.png",
+          "color": "#1A24C9"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "eas": {
         "projectId": "0dae66a6-5feb-46b5-baa5-0abaab88fe12"
-      }
+      },
+      "apiUrl": "https://app.zelko.ca"
     },
     "owner": "sukhpreetsinghv",
     "runtimeVersion": {

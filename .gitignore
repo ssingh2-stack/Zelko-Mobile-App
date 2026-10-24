@@ -39,3 +39,9 @@ credentials/
 *.tsbuildinfo
 credentials-production.json
 credentials.json
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.p8

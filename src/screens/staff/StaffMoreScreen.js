@@ -3,7 +3,7 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from "rea
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import { C, serif } from "../../lib/theme";
+import { F, C } from "../../lib/theme";
 import { clearSession } from "../../lib/auth";
 import { api } from "../../lib/api";
 
@@ -11,7 +11,7 @@ function MenuItem({ icon, label, onPress, color }) {
   return (
     <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
       <View style={[styles.menuIcon, color && { backgroundColor: color + "18" }]}>
-        <Ionicons name={icon} size={20} color={color || C.espresso} />
+        <Ionicons name={icon} size={20} color={color || C.ink} />
       </View>
       <Text style={styles.menuLabel}>{label}</Text>
       <Ionicons name="chevron-forward" size={16} color={C.muted} />
@@ -24,9 +24,9 @@ export default function StaffMoreScreen() {
   const navigation = useNavigation();
 
   async function handleLogout() {
-    Alert.alert("Log Out", "Are you sure?", [
+    Alert.alert("Log out", "Are you sure?", [
       { text: "Cancel", style: "cancel" },
-      { text: "Log Out", style: "destructive", onPress: async () => {
+      { text: "Log out", style: "destructive", onPress: async () => {
         await clearSession();
         navigation.reset({ index: 0, routes: [{ name: "Login" }] });
       }},
@@ -35,7 +35,7 @@ export default function StaffMoreScreen() {
 
   function handleDeleteAccount() {
     Alert.alert(
-      "Delete Account",
+      "Delete account",
       "This will permanently delete your staff account and remove your profile. This cannot be undone.\n\nAre you sure?",
       [
         { text: "Cancel", style: "cancel" },
@@ -45,7 +45,7 @@ export default function StaffMoreScreen() {
             'Type "DELETE" to confirm permanent account deletion.',
             [
               { text: "Cancel", style: "cancel" },
-              { text: "Delete Forever", style: "destructive", onPress: async (text) => {
+              { text: "Delete forever", style: "destructive", onPress: async (text) => {
                 if (text !== "DELETE") {
                   Alert.alert("Error", 'You must type "DELETE" to confirm.');
                   return;
@@ -72,22 +72,21 @@ export default function StaffMoreScreen() {
         <Text style={styles.title}>More</Text>
 
         <View style={styles.group}>
-          <MenuItem icon="person-outline" label="My Profile" color="#6366F1"
+          <MenuItem icon="person-outline" label="My profile" color={C.blue}
             onPress={() => navigation.navigate("StaffSettings")} />
-          <MenuItem icon="notifications-outline" label="Notifications" color="#C4683E"
+          <MenuItem icon="notifications-outline" label="Notifications" color={C.blue}
             onPress={() => navigation.navigate("Notifications")} />
-          <MenuItem icon="share-social-outline" label="Share Booking Link" color="#059669"
+          <MenuItem icon="share-social-outline" label="Share your link" color={C.blue}
             onPress={() => navigation.navigate("Share")} />
         </View>
 
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={18} color="#DC2626" />
-          <Text style={styles.logoutText}>Log Out</Text>
+          <Ionicons name="log-out-outline" size={18} color={C.ink} />
+          <Text style={styles.logoutText}>Log out</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.logoutBtn, { marginTop: 12, borderColor: "#E5E7EB", backgroundColor: C.white }]} onPress={handleDeleteAccount}>
-          <Ionicons name="trash-outline" size={18} color="#9CA3AF" />
-          <Text style={[styles.logoutText, { color: "#9CA3AF" }]}>Delete Account</Text>
+        <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteAccount}>
+          <Text style={styles.deleteText}>Delete account</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -95,26 +94,15 @@ export default function StaffMoreScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.cream },
+  container: { flex: 1, backgroundColor: C.paper },
   scroll: { flex: 1, padding: 20 },
-  title: { fontFamily: serif, fontSize: 28, fontWeight: "900", color: C.espresso, marginBottom: 20 },
-  group: {
-    backgroundColor: C.white, borderRadius: 14, borderWidth: 1, borderColor: C.border,
-    overflow: "hidden", marginBottom: 20,
-  },
-  menuItem: {
-    flexDirection: "row", alignItems: "center", padding: 14,
-    borderBottomWidth: 1, borderBottomColor: C.border,
-  },
-  menuIcon: {
-    width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center",
-    backgroundColor: C.surface, marginRight: 12,
-  },
-  menuLabel: { flex: 1, fontSize: 15, fontWeight: "600", color: C.espresso },
-  logoutBtn: {
-    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
-    paddingVertical: 14, borderRadius: 10,
-    borderWidth: 1.5, borderColor: "#FCA5A5", backgroundColor: "#FEF2F2",
-  },
-  logoutText: { fontSize: 14, fontWeight: "700", color: "#DC2626" },
+  title: { fontSize: 30, fontFamily: F.regular, color: C.ink, letterSpacing: -0.9, marginBottom: 20 },
+  group: { backgroundColor: C.surface, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: C.line, overflow: "hidden", marginBottom: 20 },
+  menuItem: { flexDirection: "row", alignItems: "center", padding: 12, minHeight: 56, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.line },
+  menuIcon: { width: 32, height: 32, borderRadius: 9, alignItems: "center", justifyContent: "center", backgroundColor: C.blueSoft, marginRight: 14 },
+  menuLabel: { flex: 1, fontSize: 16, fontFamily: F.regular, color: C.ink },
+  logoutBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 50, borderRadius: 12, borderWidth: 1, borderColor: C.lineStrong, backgroundColor: C.surface },
+  logoutText: { fontSize: 15, fontFamily: F.medium, color: C.ink },
+  deleteBtn: { alignItems: "center", paddingVertical: 16, marginTop: 8 },
+  deleteText: { fontSize: 15, fontFamily: F.medium, color: C.danger },
 });

@@ -1,77 +1,79 @@
-# App Store Listing — Clipd
+# App Store listing: Zelko
 
-## App Name
-Clipd
+The App Store record keeps its bundle ID (`ca.getclipd.app`) and App Store ID. Change the name, subtitle, icon, screenshots and URLs in App Store Connect when build 1.1.0 is submitted.
 
-## Subtitle
-Barbershop Booking & Management
+## App name
+Zelko
 
-## Promotional Text (170 chars, can be updated without review)
-The booking platform built for barbershops. Manage your schedule, clients, and team from your phone.
+## Subtitle (30 chars)
+Booking and payments for shops
+
+## Promotional text (170 chars, can change without review)
+Run the shop. Not the paperwork. Bookings, payments, tip splits and commission for barbershops, in one app.
 
 ## Description
-Clipd is the all-in-one booking and management platform built specifically for barbershops. Whether you're a solo barber or running a multi-chair shop, Clipd gives you everything you need to manage your day — right from your phone.
+Zelko runs the shop: bookings, payments, tips, payouts and clients in one place, built for barbershops.
 
-SCHEDULING MADE SIMPLE
-- Day calendar with per-barber columns
-- Create, edit, reschedule, and cancel bookings in seconds
-- Recurring appointments for regular clients
-- Block time for breaks, lunch, or personal time
-- Swipe between days, filter by barber
+YOUR DAY AT A GLANCE
+- Today's revenue, bookings and no-shows the moment you open the app
+- A calendar with a column for each barber
+- Walk-ins in one tap, rebooking in one more
+- Block time for lunch, breaks or a day off
 
-CLIENT MANAGEMENT
-- Full client profiles with visit history and spending
-- Private notes for each client (preferences, allergies, style notes)
-- VIP tagging for your best clients
-- Search and filter by name, tag, or visit frequency
+GET PAID AT THE CHAIR
+- Collect card or cash from any booking
+- Tips go to the barber who earned them
+- Deposits hold the chair when clients book online
+- Payouts go straight to your bank through Stripe, with the date Stripe expects them to land
+
+CLIENTS
+- Visit history, spend and private notes for every client
+- VIP and new client tags
+- Call, text or book again from their profile
 
 YOUR TEAM
-- Add barbers with individual availability and working hours
-- Per-barber service menus
-- Staff invite system — barbers get their own login
-- Photo and bio for each barber's profile
+- Each barber gets their own login, schedule and earnings
+- Commission splits, tiered plans or booth rent, worked out on every ticket
+- Hours and services per barber
 
-INSIGHTS & ANALYTICS
-- Revenue tracking with period-over-period trends
-- Barber performance dashboard
-- Service breakdown and client analytics
-- End-of-day summary
+INSIGHTS
+- Revenue against the previous period
+- Performance by barber and by service
+- An end-of-day summary when you lock up
 
-COMPENSATION
-- Commission splits, tiered plans, or chair rent
-- Automatic earnings calculation per barber
-- Weekly, bi-weekly, or monthly pay periods
+SHARE YOUR LINK
+- A booking page at yourshop.zelko.ca
+- A QR code for the mirror, the window and your cards
+- A link for each barber
 
-SHARE YOUR BOOKING LINK
-- QR code for your shop mirror, business cards, or window
-- Individual booking links per barber
-- Ready-to-send message for clients
+Clients book from a link. No app to download and no account to make.
 
-Built by barbers, for barbers. Start your 14-day free trial at getclipd.ca.
+Start a 14-day free trial at zelko.ca. No credit card.
 
 ## Keywords (100 chars max)
-barbershop,booking,barber,appointments,scheduling,salon,haircut,clients,management,chair
+barbershop,barber,booking,appointments,tips,commission,payments,clients,schedule,chair
 
 ## Support URL
-https://getclipd.ca
+https://zelko.ca
 
-## Privacy Policy URL
-https://getclipd.ca/privacy
+## Marketing URL
+https://zelko.ca
+
+## Privacy policy URL
+https://zelko.ca/privacy
 
 ## Category
 Primary: Business
-Secondary: Lifestyle
+Secondary: Productivity
 
-## Age Rating
-4+ (no objectionable content)
+## Age rating
+4+
 
-## Screenshots needed (6.7" iPhone — iPhone 15 Pro Max / 14 Pro Max)
-1. Today screen with calendar view (shows bookings, service colors)
-2. Schedule screen with day navigation
-3. Client profile modal (notes, history, VIP badge)
-4. Insights screen (KPIs with trends, revenue chart)
-5. New booking flow
-6. More menu or onboarding welcome screen
-
-## Also needed (5.5" — iPhone 8 Plus, optional but recommended)
-Same 6 screenshots at smaller size
+## Screenshots (6.9" iPhone, 1320 x 2868)
+Capture from build 1.1.0 with the demo shop ("Your shop", barbers Marcus, Jordan and Ash), never a real shop's clients.
+1. Today: the day's revenue card and calendar
+2. Booking detail: rebook and collect
+3. Collect payment: amount, tip and charge
+4. Client profile: visits, notes and history
+5. Insights: revenue and barber performance
+6. Share your link: booking page and QR code

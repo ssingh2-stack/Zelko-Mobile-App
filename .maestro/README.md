@@ -17,10 +17,10 @@ i.e., the code bundles fine but crashes on a real JS engine.
    These exports are appended to `~/.zshrc` so new shells pick them up
    automatically.
 
-2. **Boot the iOS Simulator and install the dev build** of Clipd:
+2. **Boot the iOS Simulator and install the dev build** of Zelko:
 
    ```bash
-   cd ~/clipd-app
+   cd ~/zelko-mobile-app
    npm run ios            # expo prebuild + run on simulator
    ```
 
@@ -29,7 +29,7 @@ i.e., the code bundles fine but crashes on a real JS engine.
 
    ```bash
    curl -X POST \
-     "https://staging.getclipd.ca/clipd-admin/seed-trial-demo?password=<STAGING_SUPER_ADMIN_KEY>&slug=maestro-smoke"
+     "https://staging.zelko.ca/zelko-admin/seed-trial-demo?password=<STAGING_SUPER_ADMIN_KEY>&slug=maestro-smoke"
    ```
 
    Note the slug + password that seeds returns. Export them for the

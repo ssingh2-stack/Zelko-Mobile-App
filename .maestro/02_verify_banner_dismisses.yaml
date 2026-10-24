@@ -4,7 +4,7 @@
 # server has already flipped email_verified=1.
 #
 # Run this only against a test shop you've toggled unverified via
-# /clipd-admin/shops/<id>/expire-trial etc. — see .maestro/README.md.
+# /zelko-admin/shops/<id>/expire-trial etc. — see .maestro/README.md.
 appId: ca.getclipd.app
 env:
   TEST_SHOP_SLUG: ${MAESTRO_TEST_SHOP_SLUG}

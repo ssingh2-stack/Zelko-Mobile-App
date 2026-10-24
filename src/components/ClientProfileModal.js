@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
   View, Text, Modal, StyleSheet, ScrollView, TouchableOpacity,
@@ -5,14 +6,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../lib/api";
-import { C, serif, fmtMoney } from "../lib/theme";
+import { F, C, fmtMoney, CLIENT_TAGS } from "../lib/theme";
 
-const TAG_STYLES = {
-  vip:     { bg: "rgba(196,104,62,0.08)", text: "#C4683E", border: "rgba(196,104,62,0.25)" },
-  new:     { bg: "rgba(17,17,17,0.05)", text: "#333333", border: "rgba(17,17,17,0.15)" },
-  regular: { bg: "rgba(107,114,128,0.06)", text: "#6B7280", border: "rgba(107,114,128,0.2)" },
-  lapsed:  { bg: "#F3F4F6", text: "#6B7280", border: "#D1D5DB" },
-};
+const TAG_STYLES = CLIENT_TAGS;
 
 function fmtDate(d) {
   if (!d) return "—";
@@ -35,9 +31,9 @@ function initials(name) {
 }
 
 const STATUS_COLORS = {
-  confirmed: { bg: "rgba(17,17,17,0.05)", text: "#333333" },
-  cancelled: { bg: "#F3F4F6", text: "#6B7280" },
-  no_show:   { bg: "rgba(196,104,62,0.08)", text: "#C4683E" },
+  confirmed: { bg: C.blueSoft, text: C.blue },
+  cancelled: { bg: C.sunk, text: C.muted },
+  no_show:   { bg: C.surface, text: C.danger },
 };
 
 export default function ClientProfileModal({ client, visible, onClose, onNewBooking, onClientUpdate }) {
@@ -112,12 +108,12 @@ export default function ClientProfileModal({ client, visible, onClose, onNewBook
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.avatarWrap}>
-              <View style={[styles.avatar, primaryTag && { borderColor: tagStyle?.border || C.border }]}>
+              <View style={[styles.avatar, primaryTag && { borderColor: tagStyle?.border || C.line }]}>
                 <Text style={styles.avatarText}>{initials(client.name)}</Text>
               </View>
               {primaryTag && tagStyle && (
                 <View style={[styles.tag, { backgroundColor: tagStyle.bg, borderColor: tagStyle.border }]}>
-                  <Text style={[styles.tagText, { color: tagStyle.text }]}>{primaryTag.toUpperCase()}</Text>
+                  <Text style={[styles.tagText, { color: tagStyle.text }]}>{tagStyle.label}</Text>
                 </View>
               )}
             </View>
@@ -129,10 +125,11 @@ export default function ClientProfileModal({ client, visible, onClose, onNewBook
             </View>
             <View style={styles.headerActions}>
               <TouchableOpacity onPress={toggleVip} style={[styles.vipBtn, isVip && styles.vipBtnActive]}>
-                <Text style={[styles.vipBtnText, isVip && styles.vipBtnTextActive]}>{isVip ? "★ VIP" : "☆ VIP"}</Text>
+                <Ionicons name={isVip ? "star" : "star-outline"} size={13} color={isVip ? C.blue : C.muted} />
+                <Text style={[styles.vipBtnText, isVip && styles.vipBtnTextActive]}>VIP</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-                <Text style={styles.closeBtnText}>✕</Text>
+              <TouchableOpacity onPress={onClose} style={styles.closeBtn} accessibilityLabel="Close">
+                <Ionicons name="close" size={22} color={C.muted} />
               </TouchableOpacity>
             </View>
           </View>
@@ -160,11 +157,11 @@ export default function ClientProfileModal({ client, visible, onClose, onNewBook
             {client.phone ? (
               <>
                 <TouchableOpacity style={styles.contactBtn} onPress={callClient}>
-                  <Text style={styles.contactBtnIcon}>📞</Text>
+                  <Ionicons name="call-outline" size={17} color={C.ink} />
                   <Text style={styles.contactBtnText}>Call</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.contactBtn} onPress={textClient}>
-                  <Text style={styles.contactBtnIcon}>💬</Text>
+                  <Ionicons name="chatbubble-outline" size={17} color={C.ink} />
                   <Text style={styles.contactBtnText}>Text</Text>
                 </TouchableOpacity>
               </>
@@ -173,22 +170,22 @@ export default function ClientProfileModal({ client, visible, onClose, onNewBook
               style={[styles.contactBtn, styles.contactBtnPrimary]}
               onPress={() => { onClose(); onNewBooking?.(client); }}
             >
-              <Text style={styles.contactBtnIcon}>➕</Text>
-              <Text style={[styles.contactBtnText, { color: C.cream }]}>New Booking</Text>
+              <Ionicons name="add" size={18} color={C.onBlue} />
+              <Text style={[styles.contactBtnText, { color: C.onBlue }]}>Book</Text>
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.body} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             {/* Private notes — shown first for quick access */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Private Notes</Text>
+              <Text style={styles.sectionTitle}>Private notes</Text>
               <TextInput
                 style={styles.notesInput}
                 value={notes}
                 onChangeText={setNotes}
                 onBlur={saveNotes}
                 multiline
-                placeholder="Add notes about this client…"
+                placeholder="Only your team sees these. Preferences, allergies, how they like it."
                 placeholderTextColor={C.muted}
                 textAlignVertical="top"
               />
@@ -207,7 +204,7 @@ export default function ClientProfileModal({ client, visible, onClose, onNewBook
                   </View>
                 )}
                 {client.phone && (
-                  <View style={[styles.contactDetail, { borderTopWidth: client.email ? 1 : 0, borderTopColor: C.border }]}>
+                  <View style={[styles.contactDetail, { borderTopWidth: client.email ? 1 : 0, borderTopColor: C.line }]}>
                     <Text style={styles.contactDetailLabel}>Phone</Text>
                     <Text style={styles.contactDetailValue}>{client.phone}</Text>
                   </View>
@@ -217,11 +214,11 @@ export default function ClientProfileModal({ client, visible, onClose, onNewBook
 
             {/* Booking history */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Booking History</Text>
+              <Text style={styles.sectionTitle}>Booking history</Text>
               {bookings === null ? (
-                <ActivityIndicator color={C.espresso} size="small" style={{ marginVertical: 16 }} />
+                <ActivityIndicator color={C.ink} size="small" style={{ marginVertical: 16 }} />
               ) : bookings.length === 0 ? (
-                <Text style={styles.emptyText}>No past bookings</Text>
+                <Text style={styles.emptyText}>No bookings yet.</Text>
               ) : (
                 bookings.map((b, i) => {
                   const sc = STATUS_COLORS[b.status] || STATUS_COLORS.confirmed;
@@ -236,7 +233,7 @@ export default function ClientProfileModal({ client, visible, onClose, onNewBook
                         <Text style={styles.historyPrice}>{fmtMoney(b.service_price ?? b.price ?? 0)}</Text>
                         <View style={[styles.historyStatus, { backgroundColor: sc.bg }]}>
                           <Text style={[styles.historyStatusText, { color: sc.text }]}>
-                            {b.status === "no_show" ? "No-show" : b.status}
+                            {b.status === "no_show" ? "No-show" : b.status === "cancelled" ? "Cancelled" : b.status === "confirmed" ? "Booked" : b.status}
                           </Text>
                         </View>
                       </View>
@@ -256,105 +253,87 @@ export default function ClientProfileModal({ client, visible, onClose, onNewBook
 
 const styles = StyleSheet.create({
   overlay: { flex: 1, justifyContent: "flex-end" },
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(44,24,16,0.45)" },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(14,14,12,0.45)" },
   sheet: {
-    backgroundColor: C.cream,
+    backgroundColor: C.paper,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: "90%",
   },
-  handle: { width: 36, height: 4, backgroundColor: C.border, borderRadius: 2, alignSelf: "center", marginTop: 10 },
+  handle: { width: 36, height: 4, backgroundColor: C.line, borderRadius: 2, alignSelf: "center", marginTop: 10 },
 
   // Header
   header: {
     flexDirection: "row", alignItems: "flex-start",
     paddingHorizontal: 20, paddingTop: 16, paddingBottom: 14,
-    borderBottomWidth: 1, borderBottomColor: C.border,
+    borderBottomWidth: 1, borderBottomColor: C.line,
     gap: 14,
   },
   avatarWrap: { alignItems: "center", gap: 6 },
-  avatar: {
-    width: 56, height: 56, borderRadius: 28,
-    backgroundColor: C.espresso,
-    alignItems: "center", justifyContent: "center",
-    borderWidth: 2, borderColor: C.border,
-  },
-  avatarText: { fontFamily: serif, fontSize: 20, fontWeight: "900", color: C.cream },
-  tag: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, borderWidth: 1 },
-  tagText: { fontSize: 8, fontWeight: "800", letterSpacing: 0.8 },
+  avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: C.blueSoft, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: C.surface },
+  avatarText: { fontSize: 20, fontFamily: F.medium, color: C.blue },
+  tag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, borderWidth: 1 },
+  tagText: { fontSize: 12, fontFamily: F.medium },
   headerInfo: { flex: 1, paddingTop: 4 },
-  clientName: { fontFamily: serif, fontSize: 22, fontWeight: "700", color: C.espresso },
-  clientSub: { fontSize: 12, color: C.muted, marginTop: 3 },
+  clientName: { fontSize: 26, fontFamily: F.regular, color: C.ink, letterSpacing: -0.6 },
+  clientSub: { fontFamily: F.regular, fontSize: 14, color: C.muted, marginTop: 3 },
   headerActions: { alignItems: "flex-end", gap: 6 },
-  vipBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 1.5, borderColor: "rgba(196,104,62,0.25)", backgroundColor: C.white },
-  vipBtnActive: { backgroundColor: "rgba(196,104,62,0.08)", borderColor: "#F59E0B" },
-  vipBtnText: { fontSize: 11, fontWeight: "800", color: C.muted },
-  vipBtnTextActive: { color: "#C4683E" },
-  closeBtn: { padding: 4 },
-  closeBtnText: { fontSize: 18, color: C.muted },
+  vipBtn: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: C.lineStrong, backgroundColor: C.surface },
+  vipBtnActive: { backgroundColor: C.blueSoft, borderColor: C.blueSoft },
+  vipBtnText: { fontSize: 13, fontFamily: F.medium, color: C.muted },
+  vipBtnTextActive: { color: C.blue },
+  closeBtn: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
+  closeBtnText: { fontFamily: F.regular, fontSize: 18, color: C.muted },
 
   // Stats
-  statsStrip: {
-    flexDirection: "row",
-    backgroundColor: C.espresso,
-    paddingVertical: 14,
-  },
-  statItem: { flex: 1, alignItems: "center" },
-  statDivider: { width: 1, backgroundColor: "rgba(255,255,255,0.12)" },
-  statVal: { fontFamily: serif, fontSize: 16, fontWeight: "900", color: C.terra },
-  statLbl: { fontSize: 9, fontWeight: "700", color: "rgba(250,250,250,0.4)", textTransform: "uppercase", letterSpacing: 1.2, marginTop: 2 },
+  statsStrip: { flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingBottom: 4 },
+  statItem: { flex: 1, backgroundColor: C.surface, borderRadius: 14, borderWidth: 1, borderColor: C.line, padding: 12 },
+  statDivider: { display: "none" },
+  statVal: { fontSize: 18, fontFamily: F.regular, color: C.ink, letterSpacing: -0.3, fontVariant: ["tabular-nums"] },
+  statLbl: { fontSize: 11, fontFamily: F.monoMedium, color: C.muted, textTransform: "uppercase", letterSpacing: 1, marginTop: 4 },
 
   // Contact actions
-  contactRow: {
-    flexDirection: "row", gap: 8, padding: 14,
-    borderBottomWidth: 1, borderBottomColor: C.border,
-    backgroundColor: C.white,
-  },
-  contactBtn: {
-    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
-    paddingVertical: 10, borderRadius: 10,
-    borderWidth: 1.5, borderColor: C.border,
-    backgroundColor: C.cream,
-  },
-  contactBtnPrimary: { backgroundColor: C.espresso, borderColor: C.espresso },
-  contactBtnIcon: { fontSize: 14 },
-  contactBtnText: { fontSize: 13, fontWeight: "700", color: C.espresso },
+  contactRow: { flexDirection: "row", gap: 8, padding: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.line },
+  contactBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, height: 46, borderRadius: 12, borderWidth: 1, borderColor: C.lineStrong, backgroundColor: C.surface },
+  contactBtnPrimary: { backgroundColor: C.blue, borderColor: C.blue },
+  contactBtnIcon: { fontFamily: F.regular, fontSize: 14 },
+  contactBtnText: { fontSize: 15, fontFamily: F.medium, color: C.ink },
 
   // Body
   body: { paddingHorizontal: 16 },
   section: { marginTop: 20 },
-  sectionTitle: { fontFamily: serif, fontSize: 15, fontWeight: "700", color: C.espresso, marginBottom: 10 },
+  sectionTitle: { fontSize: 12, fontFamily: F.monoMedium, color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 10 },
 
   // Contact info card
   contactCard: {
-    backgroundColor: C.white, borderRadius: 12,
-    borderWidth: 1, borderColor: C.border, overflow: "hidden",
+    backgroundColor: C.surface, borderRadius: 12,
+    borderWidth: 1, borderColor: C.line, overflow: "hidden",
   },
   contactDetail: { paddingHorizontal: 14, paddingVertical: 10 },
-  contactDetailLabel: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 2 },
-  contactDetailValue: { fontSize: 14, fontWeight: "600", color: C.espresso },
+  contactDetailLabel: { fontSize: 12, fontFamily: F.regular, color: C.muted, marginBottom: 2 },
+  contactDetailValue: { fontSize: 16, fontFamily: F.regular, color: C.ink },
 
   // History
   historyRow: {
     flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between",
-    backgroundColor: C.white, borderRadius: 10, padding: 12, marginBottom: 6,
-    borderWidth: 1, borderColor: C.border,
+    backgroundColor: C.surface, borderRadius: 10, padding: 12, marginBottom: 6,
+    borderWidth: 1, borderColor: C.line,
   },
   historyLeft: { flex: 1 },
-  historyDate: { fontSize: 11, fontWeight: "700", color: C.muted, marginBottom: 2 },
-  historyService: { fontSize: 13, fontWeight: "700", color: C.espresso, marginBottom: 1 },
-  historyBarber: { fontSize: 11, color: C.muted },
+  historyDate: { fontSize: 11, fontFamily: F.semibold, color: C.muted, marginBottom: 2 },
+  historyService: { fontSize: 13, fontFamily: F.semibold, color: C.ink, marginBottom: 1 },
+  historyBarber: { fontFamily: F.regular, fontSize: 11, color: C.muted },
   historyRight: { alignItems: "flex-end", gap: 4 },
-  historyPrice: { fontSize: 14, fontWeight: "800", color: C.espresso },
+  historyPrice: { fontSize: 14, fontFamily: F.semibold, color: C.ink },
   historyStatus: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 },
-  historyStatusText: { fontSize: 9, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 },
+  historyStatusText: { fontSize: 11, fontFamily: F.monoMedium, textTransform: "uppercase", letterSpacing: 0.5 },
 
   // Notes
   notesInput: {
-    backgroundColor: C.white, borderRadius: 10, borderWidth: 1, borderColor: C.border,
-    padding: 12, fontSize: 13, color: C.espresso, minHeight: 80,
+    backgroundColor: C.surface, borderRadius: 12, borderWidth: 1, borderColor: C.line,
+    padding: 12, fontFamily: F.regular, fontSize: 13, color: C.ink, minHeight: 80,
   },
-  savingText: { fontSize: 11, color: C.muted, marginTop: 4 },
-  savedText: { fontSize: 11, color: "#059669", fontWeight: "600", marginTop: 4 },
-  emptyText: { fontSize: 13, color: C.muted, fontStyle: "italic", paddingVertical: 8 },
+  savingText: { fontFamily: F.regular, fontSize: 11, color: C.muted, marginTop: 4 },
+  savedText: { fontSize: 11, color: C.success, fontFamily: F.semibold, marginTop: 4 },
+  emptyText: { fontFamily: F.regular, fontSize: 13, color: C.muted, fontStyle: "italic", paddingVertical: 8 },
 });

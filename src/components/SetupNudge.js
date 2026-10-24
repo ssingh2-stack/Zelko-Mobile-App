@@ -1,7 +1,8 @@
+import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { api } from "../lib/api";
-import { C, serif } from "../lib/theme";
+import { F, C } from "../lib/theme";
 
 const CHECKS = [
   {
@@ -12,7 +13,7 @@ const CHECKS = [
       return Object.values(h).some(d => d.open);
     },
     label: "Set your business hours",
-    hint: "Let clients know when you're open",
+    hint: "Clients can only book when you're open.",
     screen: "Settings",
   },
   {
@@ -22,7 +23,7 @@ const CHECKS = [
       return (Array.isArray(b) ? b : []).length > 0;
     },
     label: "Add your first barber",
-    hint: "Your team needs at least one barber to accept bookings",
+    hint: "You need at least one barber to take bookings.",
     screen: "Barbers",
   },
   {
@@ -32,7 +33,7 @@ const CHECKS = [
       return (Array.isArray(s) ? s : []).length > 0;
     },
     label: "Add a service",
-    hint: "Clients need to know what you offer",
+    hint: "Clients pick a service when they book.",
     screen: "Services",
   },
 ];
@@ -69,10 +70,10 @@ export default function SetupNudge({ navigation }) {
           navigation?.navigate("More", { screen: nudge.screen });
         }}
       >
-        <Text style={styles.goBtnText}>Set up →</Text>
+        <Text style={styles.goBtnText}>Set up</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.dismiss} onPress={() => setDismissed(true)}>
-        <Text style={styles.dismissText}>✕</Text>
+      <TouchableOpacity style={styles.dismiss} onPress={() => setDismissed(true)} accessibilityLabel="Dismiss">
+        <Ionicons name="close" size={18} color={C.muted} />
       </TouchableOpacity>
     </View>
   );
@@ -81,19 +82,16 @@ export default function SetupNudge({ navigation }) {
 const styles = StyleSheet.create({
   wrap: {
     flexDirection: "row", alignItems: "center",
-    marginHorizontal: 12, marginTop: 8, marginBottom: 0,
-    backgroundColor: "rgba(196,104,62,0.05)", borderRadius: 12,
-    padding: 12, borderWidth: 1, borderColor: "rgba(196,104,62,0.25)",
+    marginHorizontal: 12, marginBottom: 8,
+    backgroundColor: C.surface, borderRadius: 16,
+    paddingVertical: 12, paddingLeft: 16, paddingRight: 4,
+    borderWidth: 1, borderColor: C.lineStrong, borderStyle: "dashed",
     gap: 10,
   },
   content: { flex: 1 },
-  label: { fontSize: 13, fontWeight: "700", color: "#C4683E", marginBottom: 2 },
-  hint: { fontSize: 11, color: "#B45309" },
-  goBtn: {
-    paddingHorizontal: 14, paddingVertical: 8,
-    backgroundColor: C.espresso, borderRadius: 8,
-  },
-  goBtnText: { fontSize: 12, fontWeight: "800", color: C.cream },
-  dismiss: { padding: 10, minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
-  dismissText: { fontSize: 14, color: "#B45309" },
+  label: { fontSize: 15, fontFamily: F.medium, color: C.ink, marginBottom: 2 },
+  hint: { fontFamily: F.regular, fontSize: 13, color: C.muted },
+  goBtn: { paddingHorizontal: 14, paddingVertical: 9, backgroundColor: C.blue, borderRadius: 10 },
+  goBtnText: { fontSize: 14, fontFamily: F.medium, color: C.onBlue },
+  dismiss: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
 });

@@ -3,7 +3,7 @@
 # Run the whole suite: `npm run maestro:test`
 #
 # Test shop credentials live in env vars so they don't get committed:
-#   MAESTRO_TEST_SHOP_SLUG=clipd-smoke
+#   MAESTRO_TEST_SHOP_SLUG=zelko-smoke
 #   MAESTRO_TEST_SHOP_PASSWORD=…
 # See .maestro/README.md for how to create the test shop on staging.
 appId: ca.getclipd.app

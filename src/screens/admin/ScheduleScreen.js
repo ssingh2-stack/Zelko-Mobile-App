@@ -7,7 +7,8 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../lib/api";
-import { C, serif, fmtMoney } from "../../lib/theme";
+import ScreenTitle from "../../components/ScreenTitle";
+import { F, C, fmtMoney } from "../../lib/theme";
 import { success as hapticSuccess, warn as hapticWarn } from "../../lib/haptics";
 import { useToast, Toast } from "../../components/Toast";
 import BookingDetailModal from "../../components/BookingDetailModal";
@@ -107,7 +108,7 @@ function StatusBadge({ label, color }) {
 }
 const badgeStyles = StyleSheet.create({
   badge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, borderWidth: 1 },
-  text: { fontSize: 9, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 },
+  text: { fontSize: 11, fontFamily: F.monoMedium, textTransform: "uppercase", letterSpacing: 0.5 },
 });
 
 export default function ScheduleScreen() {
@@ -306,7 +307,7 @@ export default function ScheduleScreen() {
 
   async function handleNoShow(code) {
     hapticWarn();
-    Alert.alert("Mark No-Show", "Mark this booking as a no-show?", [
+    Alert.alert("Mark no-show", "Mark this booking as a no-show?", [
       { text: "Cancel", style: "cancel" },
       { text: "Confirm", style: "destructive", onPress: async () => {
         try { await api.adminNoShow(code); hapticSuccess(); showToast("Marked as no-show"); load(true); }
@@ -317,7 +318,7 @@ export default function ScheduleScreen() {
 
   async function handleCancel(code) {
     hapticWarn();
-    Alert.alert("Cancel Booking", "Cancel this booking?", [
+    Alert.alert("Cancel booking", "Cancel this booking?", [
       { text: "Cancel", style: "cancel" },
       { text: "Confirm", style: "destructive", onPress: async () => {
         try { await api.adminCancelBooking(code); hapticSuccess(); showToast("Booking cancelled"); load(true); }
@@ -390,11 +391,11 @@ export default function ScheduleScreen() {
 
   function handleSlotTap({ barberId, barberName, time }) {
     Alert.alert(`${barberName} · ${fmtTime(time)}`, null, [
-      { text: "New Booking", onPress: () => {
+      { text: "New booking", onPress: () => {
         setNewBookingPrefill({ barberId: String(barberId), time });
         setShowNewBooking(true);
       }},
-      { text: "Block Time", onPress: () => {
+      { text: "Block time", onPress: () => {
         setBlockInfo({ barberId, barberName, time });
         setBlockDuration(30);
         setBlockReason("");
@@ -426,7 +427,7 @@ export default function ScheduleScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Schedule mode toggle */}
+      <ScreenTitle title="Schedule" right={(
       <View style={styles.modeToggleRow}>
         <TouchableOpacity
           style={[styles.modeToggleBtn, scheduleMode === "week" && styles.modeToggleBtnActive]}
@@ -441,6 +442,7 @@ export default function ScheduleScreen() {
           <Text style={[styles.modeToggleText, scheduleMode === "month" && styles.modeToggleTextActive]}>Month</Text>
         </TouchableOpacity>
       </View>
+      )} />
 
       {/* Day nav (week mode) */}
       {scheduleMode === "week" && (
@@ -452,7 +454,7 @@ export default function ScheduleScreen() {
           <Text style={styles.navLabel}>{dayLabel}</Text>
           {!isToday && (
             <TouchableOpacity onPress={goToToday} style={styles.todayPill}>
-              <Text style={styles.todayPillText}>← Back to today</Text>
+              <Text style={styles.todayPillText}>Back to today</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -474,7 +476,7 @@ export default function ScheduleScreen() {
               <Text style={styles.navLabel}>{monthLabel}</Text>
               {monthOffset !== 0 && (
                 <TouchableOpacity onPress={() => setMonthOffset(0)} style={styles.todayPill}>
-                  <Text style={styles.todayPillText}>← This month</Text>
+                  <Text style={styles.todayPillText}>This month</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -504,7 +506,7 @@ export default function ScheduleScreen() {
           </View>
         </View>
         <TouchableOpacity style={styles.newBtn} onPress={() => { setNewBookingPrefill({}); setShowNewBooking(true); }}>
-          <Ionicons name="add" size={18} color={C.cream} />
+          <Ionicons name="add" size={18} color={C.onBlue} />
           <Text style={styles.newBtnText}>New</Text>
         </TouchableOpacity>
       </View>
@@ -516,7 +518,7 @@ export default function ScheduleScreen() {
           style={styles.searchInput}
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholder="Search bookings by name or phone…"
+          placeholder="Search by client name or phone"
           placeholderTextColor={C.muted}
           returnKeyType="search"
         />
@@ -535,19 +537,19 @@ export default function ScheduleScreen() {
             style={[styles.toggleBtn, view === "cal" && styles.toggleBtnActive]}
             onPress={() => setView("cal")}
           >
-            <View style={styles.toggleBtnInner}><Ionicons name="calendar-outline" size={14} color={view === "cal" ? C.cream : C.muted} /><Text style={[styles.toggleBtnText, view === "cal" && styles.toggleBtnTextActive]}> Calendar</Text></View>
+            <View style={styles.toggleBtnInner}><Ionicons name="calendar-outline" size={14} color={view === "cal" ? C.paper : C.muted} /><Text style={[styles.toggleBtnText, view === "cal" && styles.toggleBtnTextActive]}> Calendar</Text></View>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.toggleBtn, view === "list" && styles.toggleBtnActive]}
             onPress={() => setView("list")}
           >
-            <View style={styles.toggleBtnInner}><Ionicons name="menu" size={14} color={view === "list" ? C.cream : C.muted} /><Text style={[styles.toggleBtnText, view === "list" && styles.toggleBtnTextActive]}> List</Text></View>
+            <View style={styles.toggleBtnInner}><Ionicons name="menu" size={14} color={view === "list" ? C.paper : C.muted} /><Text style={[styles.toggleBtnText, view === "list" && styles.toggleBtnTextActive]}> List</Text></View>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.toggleBtn, view === "week" && styles.toggleBtnActive]}
             onPress={() => setView("week")}
           >
-            <View style={styles.toggleBtnInner}><Ionicons name="grid-outline" size={14} color={view === "week" ? C.cream : C.muted} /><Text style={[styles.toggleBtnText, view === "week" && styles.toggleBtnTextActive]}> Week</Text></View>
+            <View style={styles.toggleBtnInner}><Ionicons name="grid-outline" size={14} color={view === "week" ? C.paper : C.muted} /><Text style={[styles.toggleBtnText, view === "week" && styles.toggleBtnTextActive]}> Week</Text></View>
           </TouchableOpacity>
         </View>
         )}
@@ -595,7 +597,7 @@ export default function ScheduleScreen() {
         const { weeks } = getMonthGrid(monthOffset);
         return loadingMonth ? (
           <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingTop: 60 }}>
-            <ActivityIndicator size="large" color={C.terra} />
+            <ActivityIndicator size="large" color={C.blue} />
           </View>
         ) : (
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 12, paddingTop: 16 }}>
@@ -683,7 +685,7 @@ export default function ScheduleScreen() {
                     <View style={styles.listCardHeader}>
                       <Text style={[styles.listTime, { color: c.tx }]}>{dateLbl} · {fmtTime(b.start_time)}</Text>
                       {b.status === "cancelled" && <StatusBadge label="Cancelled" color={C.muted} />}
-                      {b.status === "no_show" && <StatusBadge label="No-show" color="#F59E0B" />}
+                      {b.status === "no_show" && <StatusBadge label="No-show" color={C.danger} />}
                     </View>
                     <Text style={styles.listName}>{b.customer_name}</Text>
                     <Text style={styles.listSvc} numberOfLines={1}>{b.service_name} · {b.barber_name}</Text>
@@ -721,7 +723,7 @@ export default function ScheduleScreen() {
       ) : view === "week" ? (
         <ScrollView
           style={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={C.espresso} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={C.ink} />}
         >
           {weekDates.map((wd, wi) => {
             const allDayBks = schedule[wd] || [];
@@ -774,14 +776,14 @@ export default function ScheduleScreen() {
       ) : (
         <ScrollView
           style={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={C.espresso} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={C.ink} />}
         >
           {sortedBookings.length === 0 ? (
             <View style={styles.empty}>
               <Ionicons name="calendar-outline" size={40} color={C.muted} />
               <Text style={styles.emptyTitle}>No bookings</Text>
               <TouchableOpacity style={styles.emptyBtn} onPress={() => { setNewBookingPrefill({}); setShowNewBooking(true); }}>
-                <Text style={styles.emptyBtnText}>+ New Booking</Text>
+                <Text style={styles.emptyBtnText}>New booking</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -811,7 +813,7 @@ export default function ScheduleScreen() {
                   >
                     <View style={styles.listCardHeader}>
                       <Text style={[styles.listTime, { color: c.tx }]}>{fmtTime(b.start_time)} – {fmtTime(b.end_time)}</Text>
-                      {b.status === "no_show" && <StatusBadge label="No-show" color="#F59E0B" />}
+                      {b.status === "no_show" && <StatusBadge label="No-show" color={C.danger} />}
                       {b.status === "cancelled" && <StatusBadge label="Cancelled" color={C.muted} />}
                       {b.status === "confirmed" && isPast && <StatusBadge label="Past" color={C.muted} />}
                     </View>
@@ -843,12 +845,12 @@ export default function ScheduleScreen() {
         booking={paymentBooking}
         visible={showPayment}
         onClose={() => { setShowPayment(false); setPaymentBooking(null); }}
-        onSuccess={() => { hapticSuccess(); showToast("Payment collected!"); load(true); }}
+        onSuccess={() => { hapticSuccess(); showToast("Payment collected"); load(true); }}
       />
       <NewBookingModal
         visible={showNewBooking}
         onClose={() => setShowNewBooking(false)}
-        onSuccess={() => { hapticSuccess(); showToast("Booking confirmed!"); load(true); }}
+        onSuccess={() => { hapticSuccess(); showToast("Booking confirmed"); load(true); }}
         prefillDate={newBookingPrefill.date || selectedDate}
         prefillBarberId={newBookingPrefill.barberId}
         prefillTime={newBookingPrefill.time}
@@ -861,7 +863,7 @@ export default function ScheduleScreen() {
       <Modal visible={blockModal} transparent animationType="slide">
         <View style={styles.blockOverlay}>
           <View style={styles.blockContent}>
-            <Text style={styles.blockTitle}>Block Time</Text>
+            <Text style={styles.blockTitle}>Block time</Text>
             <Text style={styles.blockSub}>{blockInfo.barberName} · {fmtTime(blockInfo.time || "00:00")}</Text>
 
             <Text style={styles.blockLabel}>Duration</Text>
@@ -908,172 +910,144 @@ export default function ScheduleScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.cream },
+  container: { flex: 1, backgroundColor: C.paper },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
 
   // Search
-  searchBar: {
-    flexDirection: "row", alignItems: "center",
-    backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border,
-    paddingHorizontal: 12, paddingVertical: 6,
-  },
-  searchIcon: { fontSize: 14, marginRight: 8 },
-  searchInput: { flex: 1, fontSize: 14, color: C.espresso, paddingVertical: 8 },
+  searchBar: { flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: 12, marginVertical: 8, paddingHorizontal: 12, height: 44, backgroundColor: C.surface, borderRadius: 12, borderWidth: 1, borderColor: C.lineStrong },
+  searchIcon: { fontFamily: F.regular, fontSize: 14, marginRight: 8 },
+  searchInput: { flex: 1, fontFamily: F.regular, fontSize: 15, color: C.ink, paddingVertical: 8 },
   searchClear: { padding: 6 },
-  searchClearText: { fontSize: 14, color: C.muted },
-  searchCount: { fontSize: 12, fontWeight: "700", color: C.muted, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 },
+  searchClearText: { fontFamily: F.regular, fontSize: 14, color: C.muted },
+  searchCount: { fontSize: 12, fontFamily: F.monoMedium, color: C.muted, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 },
 
-  dayNav: {
-    flexDirection: "row", alignItems: "center", paddingHorizontal: 4, paddingVertical: 10,
-    borderBottomWidth: 1, borderBottomColor: C.border, backgroundColor: C.white,
-  },
+  dayNav: { flexDirection: "row", alignItems: "center", paddingHorizontal: 4, paddingVertical: 8, backgroundColor: C.paper },
   navBtn: { width: 48, alignItems: "center", justifyContent: "center", paddingVertical: 4 },
-  navArrow: { fontSize: 28, color: C.espresso, fontWeight: "300", lineHeight: 32 },
+  navArrow: { fontSize: 30, color: C.ink, fontFamily: F.regular, lineHeight: 34 },
   navCenter: { flex: 1, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 10 },
-  navLabel: { fontFamily: serif, fontSize: 15, fontWeight: "700", color: C.espresso },
-  todayPill: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 8, borderWidth: 1.5, borderColor: C.terra },
-  todayPillText: { fontSize: 11, fontWeight: "700", color: C.terra },
+  navLabel: { fontSize: 20, fontFamily: F.regular, color: C.ink, letterSpacing: -0.4 },
+  todayPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: C.blueSoft },
+  todayPillText: { fontSize: 12, fontFamily: F.medium, color: C.blue },
 
-  statsBar: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 14, paddingVertical: 10, gap: 10,
-    backgroundColor: C.espresso, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.06)",
-  },
+  statsBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 12, gap: 10, backgroundColor: C.paper, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.line },
   statsLeft: { flexDirection: "row", alignItems: "center", flexShrink: 1 },
   stat: {},
-  statVal: { fontFamily: serif, fontSize: 16, fontWeight: "900", color: C.terra },
-  statLbl: { fontSize: 9, fontWeight: "700", color: "rgba(250,250,250,0.4)", textTransform: "uppercase", letterSpacing: 1.2, marginTop: 1 },
-  statDivider: { width: 1, height: 26, backgroundColor: "rgba(255,255,255,0.1)", marginHorizontal: 10 },
-  newBtn: { flexDirection: "row", alignItems: "center", gap: 2, paddingHorizontal: 10, paddingVertical: 7, borderRadius: 8, backgroundColor: C.terra },
-  newBtnText: { fontSize: 12, fontWeight: "800", color: C.cream },
+  statVal: { fontSize: 20, fontFamily: F.regular, color: C.ink, letterSpacing: -0.3, fontVariant: ["tabular-nums"] },
+  statLbl: { fontSize: 11, fontFamily: F.monoMedium, color: C.muted, textTransform: "uppercase", letterSpacing: 1, marginTop: 2 },
+  statDivider: { width: StyleSheet.hairlineWidth, height: 28, backgroundColor: C.line, marginHorizontal: 14 },
+  newBtn: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, backgroundColor: C.blue },
+  newBtnText: { fontSize: 14, fontFamily: F.medium, color: C.onBlue },
 
-  controls: { backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border },
+  controls: { backgroundColor: C.paper, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.line },
   controlsRow: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingTop: 10, paddingBottom: 6 },
-  toggleBtn: { paddingHorizontal: 11, paddingVertical: 6, borderRadius: 8, borderWidth: 1.5, borderColor: C.border },
-  toggleBtnActive: { backgroundColor: C.espresso, borderColor: C.espresso },
+  toggleBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface },
+  toggleBtnActive: { backgroundColor: C.blueSoft, borderColor: C.blueSoft },
   toggleBtnInner: { flexDirection: "row", alignItems: "center" },
-  toggleBtnText: { fontSize: 12, fontWeight: "700", color: C.muted },
-  toggleBtnTextActive: { color: C.cream },
+  toggleBtnText: { fontSize: 13, fontFamily: F.medium, color: C.muted },
+  toggleBtnTextActive: { color: C.blue },
   filterScroll: { paddingBottom: 10, marginTop: 12 },
   filterRow: { flexDirection: "row", gap: 6, paddingHorizontal: 10, paddingBottom: 8 },
-  pill: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.white },
-  pillActive: { backgroundColor: C.espresso, borderColor: C.espresso },
+  pill: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface },
+  pillActive: { backgroundColor: C.blueSoft, borderColor: C.blueSoft },
   pillDot: { width: 7, height: 7, borderRadius: 4 },
-  pillText: { fontSize: 11, fontWeight: "700", color: C.muted },
-  pillTextActive: { color: C.cream },
+  pillText: { fontSize: 13, fontFamily: F.regular, color: C.muted },
+  pillTextActive: { color: C.blue, fontFamily: F.medium },
 
   list: { flex: 1, padding: 12 },
-  listCard: {
-    borderRadius: 10, padding: 10, paddingLeft: 12,
-    borderWidth: 1, borderColor: "transparent", borderLeftWidth: 3,
-  },
+  listCard: { borderRadius: 14, padding: 12, paddingLeft: 14, backgroundColor: C.surface, borderWidth: 1, borderColor: C.line, borderLeftWidth: 4, overflow: "hidden" },
   listCardCancelled: { opacity: 0.4 },
   listCardPast: { opacity: 0.55 },
   listCardHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 3 },
-  listTime: { fontSize: 10, fontWeight: "800", letterSpacing: 0.3 },
-  listName: { fontSize: 13, fontWeight: "700", color: C.espresso, marginBottom: 1 },
+  listTime: { fontSize: 12, fontFamily: F.mono, color: C.muted, fontVariant: ["tabular-nums"] },
+  listName: { fontSize: 16, fontFamily: F.medium, color: C.ink, marginBottom: 1 },
   listNameMuted: { color: C.muted, textDecorationLine: "line-through" },
-  listSvc: { fontSize: 11, color: C.muted, marginBottom: 5 },
+  listSvc: { fontFamily: F.regular, fontSize: 14, color: C.muted, marginBottom: 4 },
   listFooter: { flexDirection: "row", alignItems: "center" },
-  listPrice: { fontSize: 12, fontWeight: "700", color: C.espresso },
-  listMeta: { fontSize: 10, color: C.muted },
+  listPrice: { fontSize: 14, fontFamily: F.medium, color: C.ink, fontVariant: ["tabular-nums"] },
+  listMeta: { fontFamily: F.regular, fontSize: 13, color: C.muted },
 
   // Service legend
-  svcLegend: {
-    flexDirection: "row", flexWrap: "wrap", gap: 8,
-    paddingHorizontal: 12, paddingVertical: 6,
-    backgroundColor: C.surface, borderBottomWidth: 1, borderBottomColor: C.border,
-  },
+  svcLegend: { flexDirection: "row", flexWrap: "wrap", gap: 12, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: C.paper },
   svcLegendItem: { flexDirection: "row", alignItems: "center", gap: 4 },
-  svcLegendDot: { width: 8, height: 8, borderRadius: 2 },
-  svcLegendText: { fontSize: 10, fontWeight: "600", color: C.muted },
+  svcLegendDot: { width: 10, height: 10, borderRadius: 3 },
+  svcLegendText: { fontSize: 12, fontFamily: F.regular, color: C.muted },
 
   // Week view
   weekRow: {
     flexDirection: "row", alignItems: "center", gap: 12,
     paddingHorizontal: 16, paddingVertical: 14,
-    backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border,
+    backgroundColor: C.surface, borderBottomWidth: 1, borderBottomColor: C.line,
   },
-  weekRowActive: { backgroundColor: "#F5F1ED" },
+  weekRowActive: { backgroundColor: C.blueSoft },
   weekLeft: { width: 56 },
-  weekDay: { fontSize: 13, fontWeight: "800", color: C.espresso },
-  weekDate: { fontSize: 11, color: C.muted, marginTop: 1 },
-  weekDayToday: { color: C.terra },
+  weekDay: { fontSize: 15, fontFamily: F.medium, color: C.ink },
+  weekDate: { fontFamily: F.regular, fontSize: 13, color: C.muted, marginTop: 1 },
+  weekDayToday: { color: C.blue },
   weekRight: { flex: 1 },
   weekBarTrack: {
-    height: 6, backgroundColor: C.border, borderRadius: 3,
+    height: 6, backgroundColor: C.line, borderRadius: 3,
     overflow: "hidden", marginBottom: 6,
   },
-  weekBarFill: { height: 6, backgroundColor: C.terra, borderRadius: 3 },
+  weekBarFill: { height: 6, backgroundColor: C.blue, borderRadius: 3 },
   weekStats: { flexDirection: "row", justifyContent: "space-between" },
-  weekCount: { fontSize: 12, fontWeight: "600", color: C.espresso },
-  weekRev: { fontSize: 12, fontWeight: "700", color: C.terra },
-  weekClosed: { flex: 1, fontSize: 12, color: C.muted, fontStyle: "italic" },
+  weekCount: { fontSize: 12, fontFamily: F.semibold, color: C.ink },
+  weekRev: { fontSize: 12, fontFamily: F.semibold, color: C.blue },
+  weekClosed: { flex: 1, fontFamily: F.regular, fontSize: 12, color: C.muted, fontStyle: "italic" },
 
   // Block modal
-  blockOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
-  blockContent: { backgroundColor: C.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 40 },
-  blockTitle: { fontFamily: serif, fontSize: 20, fontWeight: "800", color: C.espresso, marginBottom: 2 },
-  blockSub: { fontSize: 13, color: C.muted, marginBottom: 18 },
-  blockLabel: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 8 },
-  blockPill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.white },
-  blockPillActive: { backgroundColor: C.espresso, borderColor: C.espresso },
-  blockPillText: { fontSize: 13, fontWeight: "700", color: C.muted },
-  blockPillTextActive: { color: C.cream },
-  blockInput: { backgroundColor: C.surface, borderRadius: 9, paddingHorizontal: 12, paddingVertical: 11, fontSize: 14, color: C.espresso, borderWidth: 1, borderColor: C.border, marginBottom: 20 },
+  blockOverlay: { flex: 1, backgroundColor: "rgba(14,14,12,0.45)", justifyContent: "flex-end" },
+  blockContent: { backgroundColor: C.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 40 },
+  blockTitle: { fontSize: 24, fontFamily: F.regular, color: C.ink, letterSpacing: -0.5, marginBottom: 2 },
+  blockSub: { fontFamily: F.regular, fontSize: 13, color: C.muted, marginBottom: 18 },
+  blockLabel: { fontSize: 14, fontFamily: F.medium, color: C.ink, marginBottom: 8 },
+  blockPill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface },
+  blockPillActive: { backgroundColor: C.blue, borderColor: C.blue },
+  blockPillText: { fontSize: 13, fontFamily: F.semibold, color: C.muted },
+  blockPillTextActive: { color: C.onBlue },
+  blockInput: { backgroundColor: C.surface, borderRadius: 12, paddingHorizontal: 12, height: 44, fontFamily: F.regular, fontSize: 15, color: C.ink, borderWidth: 1, borderColor: C.lineStrong, marginBottom: 20 },
   blockBtns: { flexDirection: "row", gap: 10 },
-  blockCancelBtn: { flex: 1, paddingVertical: 12, borderRadius: 9, borderWidth: 1.5, borderColor: C.border, alignItems: "center" },
-  blockCancelText: { fontSize: 14, fontWeight: "700", color: C.muted },
-  blockSaveBtn: { flex: 1, paddingVertical: 12, borderRadius: 9, backgroundColor: C.espresso, alignItems: "center" },
-  blockSaveText: { fontSize: 14, fontWeight: "800", color: C.cream },
+  blockCancelBtn: { flex: 1, paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: C.line, alignItems: "center" },
+  blockCancelText: { fontSize: 14, fontFamily: F.semibold, color: C.muted },
+  blockSaveBtn: { flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: C.blue, alignItems: "center" },
+  blockSaveText: { fontSize: 14, fontFamily: F.semibold, color: C.paper },
 
   // Schedule mode toggle
-  modeToggleRow: {
-    flexDirection: "row", alignItems: "center", justifyContent: "center",
-    paddingHorizontal: 16, paddingVertical: 8, gap: 10,
-    backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border,
-  },
-  modeToggleBtn: {
-    paddingHorizontal: 22, paddingVertical: 7, borderRadius: 999,
-    backgroundColor: C.surface, borderWidth: 1.5, borderColor: C.border,
-  },
-  modeToggleBtnActive: { backgroundColor: C.espresso, borderColor: C.espresso },
-  modeToggleText: { fontSize: 12, fontWeight: "700", color: C.muted },
-  modeToggleTextActive: { color: C.cream },
+  modeToggleRow: { flexDirection: "row", backgroundColor: C.sunk, borderRadius: 12, padding: 3 },
+  modeToggleBtn: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 9 },
+  modeToggleBtnActive: { backgroundColor: C.surface },
+  modeToggleText: { fontSize: 14, fontFamily: F.medium, color: C.muted },
+  modeToggleTextActive: { color: C.ink },
 
   // Month nav
-  monthNav: {
-    flexDirection: "row", alignItems: "center", paddingHorizontal: 4, paddingVertical: 10,
-    borderBottomWidth: 1, borderBottomColor: C.border, backgroundColor: C.white,
-  },
+  monthNav: { flexDirection: "row", alignItems: "center", paddingHorizontal: 4, paddingVertical: 8, backgroundColor: C.paper },
 
   // Month grid
   monthGridHeader: { flexDirection: "row", marginBottom: 4 },
   monthGridHeaderText: {
-    flex: 1, textAlign: "center", fontSize: 10, fontWeight: "700",
+    flex: 1, textAlign: "center", fontSize: 11, fontFamily: F.monoMedium,
     color: C.muted, textTransform: "uppercase", letterSpacing: 1, paddingVertical: 6,
   },
   monthGridRow: { flexDirection: "row" },
   monthCell: {
     flex: 1, minHeight: 72, padding: 6,
-    borderWidth: 0.5, borderColor: C.border, borderRadius: 6,
-    backgroundColor: C.white, margin: 1,
+    borderWidth: 0.5, borderColor: C.line, borderRadius: 6,
+    backgroundColor: C.surface, margin: 1,
   },
-  monthCellToday: { backgroundColor: C.terra + "18", borderColor: C.terra + "60" },
-  monthCellOutside: { backgroundColor: C.surface, opacity: 0.5 },
-  monthDayNum: { fontSize: 16, fontWeight: "700", color: C.espresso, marginBottom: 2 },
-  monthDayNumToday: { color: C.terra },
+  monthCellToday: { backgroundColor: C.blue + "18", borderColor: C.blue + "60" },
+  monthCellOutside: { backgroundColor: C.sunk, opacity: 0.5 },
+  monthDayNum: { fontSize: 16, fontFamily: F.semibold, color: C.ink, marginBottom: 2 },
+  monthDayNumToday: { color: C.blue },
   monthDayNumOutside: { color: C.muted },
   monthCount: {
     alignSelf: "flex-start", paddingHorizontal: 5, paddingVertical: 1,
-    borderRadius: 6, backgroundColor: C.terra + "20", marginBottom: 2,
+    borderRadius: 6, backgroundColor: C.blue + "20", marginBottom: 2,
   },
-  monthCountText: { fontSize: 10, fontWeight: "800", color: C.terra },
-  monthRevenue: { fontSize: 9, fontWeight: "600", color: C.muted },
+  monthCountText: { fontSize: 11, fontFamily: F.semibold, color: C.blue },
+  monthRevenue: { fontSize: 11, fontFamily: F.semibold, color: C.muted },
 
   empty: { paddingTop: 60, alignItems: "center", gap: 10 },
   emptyIcon: {},
-  emptyTitle: { fontSize: 16, fontWeight: "700", color: C.muted },
-  emptyBtn: { marginTop: 4, paddingHorizontal: 20, paddingVertical: 10, backgroundColor: C.espresso, borderRadius: 10 },
-  emptyBtnText: { fontSize: 14, fontWeight: "700", color: C.cream },
+  emptyTitle: { fontSize: 17, fontFamily: F.regular, color: C.muted },
+  emptyBtn: { marginTop: 4, paddingHorizontal: 20, paddingVertical: 12, backgroundColor: C.blue, borderRadius: 12 },
+  emptyBtnText: { fontSize: 15, fontFamily: F.medium, color: C.onBlue },
 });
