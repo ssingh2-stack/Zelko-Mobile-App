@@ -9,22 +9,18 @@ env:
 - launchApp:
     clearState: true
     clearKeychain: true
-- assertVisible: "Clip"    # brand header ("Clipd")
+- assertVisible: "Run the shop.*"    # sign-in headline
 
 # Log in as admin.
 - tapOn:
-    text: "Shop ID"
-    optional: true
-- tapOn:
     id: "field1"
-    optional: true
 - inputText: ${TEST_SHOP_SLUG}
 - tapOn:
-    text: "Password"
+    id: "password"
 - inputText: ${TEST_SHOP_PASSWORD}
 - hideKeyboard
 - tapOn:
-    text: "Sign In"
+    text: "Sign in"
 
 # After login we land on TodayScreen. Its "Today" strip label is the
 # quickest screen marker to assert — it's rendered above any async data,

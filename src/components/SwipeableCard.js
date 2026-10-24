@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { Animated, View, Text, StyleSheet, TouchableOpacity, PanResponder } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { C } from "../lib/theme";
+import { F, C } from "../lib/theme";
 
 const SWIPE_THRESHOLD = 60;
 const ACTION_WIDTH = 130; // total width of revealed actions
@@ -52,7 +52,7 @@ export default function SwipeableCard({ children, onNoShow, onCancel, disabled }
       {/* Action buttons revealed on swipe */}
       <View style={[styles.actions, { width: ACTION_WIDTH }]}>
         <TouchableOpacity style={styles.noShowBtn} onPress={() => { close(); onNoShow?.(); }}>
-          <Ionicons name="eye-off-outline" size={18} color="#F59E0B" />
+          <Ionicons name="eye-off-outline" size={18} color={C.danger} />
           <Text style={styles.noShowText}>No-show</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.cancelBtn} onPress={() => { close(); onCancel?.(); }}>
@@ -63,7 +63,7 @@ export default function SwipeableCard({ children, onNoShow, onCancel, disabled }
 
       {/* Card — slides left */}
       <Animated.View
-        style={{ transform: [{ translateX }], backgroundColor: C.cream, overflow: "hidden" }}
+        style={{ transform: [{ translateX }], backgroundColor: C.paper, overflow: "hidden" }}
         {...panResponder.panHandlers}
       >
         {children}
@@ -83,23 +83,23 @@ const styles = StyleSheet.create({
   },
   noShowBtn: {
     flex: 1,
-    backgroundColor: "#F59E0B",
+    backgroundColor: C.danger,
     alignItems: "center",
     justifyContent: "center",
     gap: 3,
-    borderRadius: 10,
+    borderRadius: 12,
     margin: 0,
   },
   cancelBtn: {
     flex: 1,
-    backgroundColor: C.terra,
+    backgroundColor: C.blue,
     alignItems: "center",
     justifyContent: "center",
     gap: 3,
-    borderRadius: 10,
+    borderRadius: 12,
     margin: 0,
   },
-  actionIcon: { fontSize: 16 },
-  noShowText: { fontSize: 10, fontWeight: "800", color: "#fff", letterSpacing: 0.3 },
-  cancelText: { fontSize: 10, fontWeight: "800", color: "#fff", letterSpacing: 0.3 },
+  actionIcon: { fontFamily: F.regular, fontSize: 16 },
+  noShowText: { fontSize: 11, fontFamily: F.semibold, color: "#fff", letterSpacing: 0.3 },
+  cancelText: { fontSize: 11, fontFamily: F.semibold, color: "#fff", letterSpacing: 0.3 },
 });

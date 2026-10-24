@@ -6,8 +6,8 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import { api } from "../../lib/api";
-import { C, serif, fmtMoney } from "../../lib/theme";
+import { api, WALKIN_EMAIL } from "../../lib/api";
+import { F, C, fmtMoney, CLIENT_TAGS } from "../../lib/theme";
 import { light as hapticLight, success as hapticSuccess, warn as hapticWarn } from "../../lib/haptics";
 import { useToast, Toast } from "../../components/Toast";
 import Header from "../../components/Header";
@@ -27,13 +27,10 @@ import ErrorState from "../../components/ErrorState";
 import SetupNudge from "../../components/SetupNudge";
 import { getCached, setCache } from "../../lib/cache";
 
-const CLIENT_TAG_STYLES = {
-  vip:     { backgroundColor: "rgba(196,104,62,0.08)", borderColor: "rgba(196,104,62,0.25)", color: "#C4683E" },
-  new:     { backgroundColor: "rgba(17,17,17,0.05)", borderColor: "rgba(17,17,17,0.15)", color: "#333333" },
-  regular: { backgroundColor: "rgba(107,114,128,0.06)", borderColor: "rgba(107,114,128,0.2)", color: "#6B7280" },
-  lapsed:  { backgroundColor: "#F3F4F6", borderColor: "#D1D5DB", color: "#6B7280" },
-};
-function clientTagStyle(tag) { return CLIENT_TAG_STYLES[tag] || CLIENT_TAG_STYLES.regular; }
+function clientTagStyle(tag) {
+  const t = CLIENT_TAGS[tag] || CLIENT_TAGS.regular;
+  return { backgroundColor: t.bg, borderColor: t.border, color: t.text, label: t.label };
+}
 
 export default function TodayScreen() {
   const navigation = useNavigation();
@@ -58,7 +55,7 @@ export default function TodayScreen() {
   const [barberAvail, setBarberAvail] = useState({});
   const [error, setError] = useState(null);
   const [trialExpired, setTrialExpired] = useState(false);
-  const [trialUpgradeUrl, setTrialUpgradeUrl] = useState("https://getclipd.ca/pricing");
+  const [trialUpgradeUrl, setTrialUpgradeUrl] = useState("https://zelko.ca/pricing");
   const [blockModal, setBlockModal] = useState(false);
   const [blockInfo, setBlockInfo] = useState({});
   const [blockDuration, setBlockDuration] = useState(30);
@@ -190,7 +187,7 @@ export default function TodayScreen() {
 
   async function handleNoShow(code) {
     hapticWarn();
-    Alert.alert("Mark No-Show", "Mark this booking as a no-show?", [
+    Alert.alert("Mark no-show", "Mark this booking as a no-show?", [
       { text: "Cancel", style: "cancel" },
       { text: "Confirm", style: "destructive", onPress: async () => {
         try { await api.adminNoShow(code); hapticSuccess(); showToast("Marked as no-show"); load(true); }
@@ -201,7 +198,7 @@ export default function TodayScreen() {
 
   async function handleCancel(code) {
     hapticWarn();
-    Alert.alert("Cancel Booking", "Cancel this booking?", [
+    Alert.alert("Cancel booking", "Cancel this booking?", [
       { text: "Cancel", style: "cancel" },
       { text: "Confirm", style: "destructive", onPress: async () => {
         try { await api.adminCancelBooking(code); hapticSuccess(); showToast("Booking cancelled"); load(true); }
@@ -253,7 +250,7 @@ export default function TodayScreen() {
         date: todayStr,
         start_time: time,
         customer_name: "Walk-in",
-        customer_email: "walk-in@getclipd.ca",
+        customer_email: WALKIN_EMAIL,
         customer_phone: "",
       });
       hapticSuccess();
@@ -316,11 +313,11 @@ export default function TodayScreen() {
 
   function handleSlotTap({ barberId, barberName, time }) {
     Alert.alert(`${barberName} · ${fmtTime(time)}`, null, [
-      { text: "New Booking", onPress: () => {
+      { text: "New booking", onPress: () => {
         setNewBookingPrefill({ barberId: String(barberId), time });
         setShowNewBooking(true);
       }},
-      { text: "Block Time", onPress: () => {
+      { text: "Block time", onPress: () => {
         setBlockInfo({ barberId, barberName, time });
         setBlockDuration(30);
         setBlockReason("");
@@ -359,19 +356,19 @@ export default function TodayScreen() {
       <View style={styles.container}>
         <Header />
         <View style={styles.trialExpiredContainer}>
-          <Text style={styles.trialExpiredIcon}>&#128274;</Text>
+          <View style={styles.trialExpiredIcon}><Ionicons name="lock-closed-outline" size={26} color={C.blue} /></View>
           <Text style={styles.trialExpiredTitle}>Your free trial has ended</Text>
           <Text style={styles.trialExpiredMsg}>
-            Your 14-day trial is over. Subscribe to keep managing your bookings, clients, and schedule.
+            Pick a plan to keep your bookings, clients and schedule running. Everything you set up is still here.
           </Text>
           <Text style={[styles.trialExpiredNote, { marginBottom: 20 }]}>
-            Essentials (up to 3 barbers) $29/mo{"\n"}Pro (unlimited barbers) $49/mo
+            Essentials, up to 3 barbers: $29/month{"\n"}Pro, unlimited barbers: $49/month
           </Text>
           <TouchableOpacity
             style={styles.trialExpiredBtn}
             onPress={() => Linking.openURL(trialUpgradeUrl)}
           >
-            <Text style={styles.trialExpiredBtnText}>View Plans at getclipd.ca →</Text>
+            <Text style={styles.trialExpiredBtnText}>See plans</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -383,26 +380,22 @@ export default function TodayScreen() {
       <Header />
       <VerifyEmailBanner />
 
-      {/* Today strip */}
+      {/* Today: the day's numbers (brand/components/StatCards) */}
       <View style={styles.strip}>
-        <View style={{ marginBottom: 12 }}>
-          <Text style={styles.stripLabel}>Today</Text>
-          <Text style={styles.stripDate}>{dateLabel}</Text>
-        </View>
+        <Text style={styles.stripLabel}>Today</Text>
+        <Text style={styles.stripDate}>{dateLabel}</Text>
         <View style={styles.statsGroup}>
+          <View style={[styles.stat, styles.statNight]}>
+            <Text style={[styles.statLbl, styles.statLblNight]}>Revenue</Text>
+            <Text style={[styles.statVal, styles.statValNight]} numberOfLines={1} adjustsFontSizeToFit>{fmtMoney(revenue)}</Text>
+          </View>
           <View style={styles.stat}>
-            <Text style={styles.statVal}>{confirmed.length}</Text>
             <Text style={styles.statLbl}>Bookings</Text>
+            <Text style={styles.statVal}>{confirmed.length}</Text>
           </View>
-          <View style={styles.statDivider} />
           <View style={styles.stat}>
-            <Text style={styles.statVal}>{fmtMoney(revenue)}</Text>
-            <Text style={styles.statLbl}>Revenue</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.stat}>
-            <Text style={styles.statVal}>{noShows}</Text>
             <Text style={styles.statLbl}>No-shows</Text>
+            <Text style={styles.statVal}>{noShows}</Text>
           </View>
         </View>
         {/* Payment breakdown */}
@@ -413,17 +406,12 @@ export default function TodayScreen() {
           const unpaid = confirmed.filter(b => !b.payment_status || b.payment_status === "unpaid");
           const cashTotal = cashPaid.reduce((s, b) => s + (b.amount_paid ? b.amount_paid / 100 : (b.service_price || 0)), 0);
           const cardTotal = cardPaid.reduce((s, b) => s + (b.amount_paid ? b.amount_paid / 100 : (b.service_price || 0)), 0);
-          return (
-            <Text style={styles.paymentBreakdown}>
-              {cashPaid.length > 0 ? `Cash: ${fmtMoney(cashTotal)}` : ""}
-              {cashPaid.length > 0 && cardPaid.length > 0 ? "  ·  " : ""}
-              {cardPaid.length > 0 ? `Card: ${fmtMoney(cardTotal)}` : ""}
-              {(cashPaid.length > 0 || cardPaid.length > 0) && unpaid.length > 0 ? "  ·  " : ""}
-              {unpaid.length > 0 ? `Unpaid: ${unpaid.length}` : ""}
-              {cashPaid.length === 0 && cardPaid.length === 0 && unpaid.length > 0 ? `${unpaid.length} unpaid` : ""}
-              {depositPaid.length > 0 ? `  ·  ${depositPaid.length} deposit` : ""}
-            </Text>
-          );
+          const parts = [];
+          if (cardPaid.length) parts.push(`Card ${fmtMoney(cardTotal)}`);
+          if (cashPaid.length) parts.push(`Cash ${fmtMoney(cashTotal)}`);
+          if (depositPaid.length) parts.push(`${depositPaid.length} deposit${depositPaid.length !== 1 ? "s" : ""} held`);
+          if (unpaid.length) parts.push(`${unpaid.length} to collect`);
+          return <Text style={styles.paymentBreakdown}>{parts.join("  ·  ")}</Text>;
         })()}
         {/* Occupancy bar */}
         <View style={styles.occRow}>
@@ -443,7 +431,7 @@ export default function TodayScreen() {
       {/* End-of-day summary */}
       {showEOD && (
         <View style={styles.eodCard}>
-          <Text style={styles.eodTitle}>Day Wrap-Up</Text>
+          <Text style={styles.eodTitle}>End of day</Text>
           <View style={styles.eodGrid}>
             <View style={styles.eodStat}>
               <Text style={styles.eodStatVal}>{confirmed.length}</Text>
@@ -458,7 +446,7 @@ export default function TodayScreen() {
               <Text style={styles.eodStatLbl}>No-shows</Text>
             </View>
             <View style={styles.eodStat}>
-              <Text style={[styles.eodStatVal, cancelled > 0 && { color: "#DC2626" }]}>{cancelled}</Text>
+              <Text style={[styles.eodStatVal, cancelled > 0 && { color: C.danger }]}>{cancelled}</Text>
               <Text style={styles.eodStatLbl}>Cancelled</Text>
             </View>
           </View>
@@ -483,7 +471,7 @@ export default function TodayScreen() {
               </View>
             ) : null;
           })()}
-          <Text style={styles.eodOcc}>{Math.round(occupancy * 100)}% chair utilization today</Text>
+          <Text style={styles.eodOcc}>{Math.round(occupancy * 100)}% of chair time booked today</Text>
         </View>
       )}
 
@@ -494,13 +482,13 @@ export default function TodayScreen() {
             style={[styles.toggleBtn, view === "cal" && styles.toggleBtnActive]}
             onPress={() => setViewMode("cal")}
           >
-            <View style={styles.toggleBtnInner}><Ionicons name="calendar-outline" size={14} color={view === "cal" ? C.cream : C.muted} /><Text style={[styles.toggleBtnText, view === "cal" && styles.toggleBtnTextActive]}> Calendar</Text></View>
+            <View style={styles.toggleBtnInner}><Ionicons name="calendar-outline" size={14} color={view === "cal" ? C.blue : C.muted} /><Text style={[styles.toggleBtnText, view === "cal" && styles.toggleBtnTextActive]}> Calendar</Text></View>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.toggleBtn, view === "list" && styles.toggleBtnActive]}
             onPress={() => setViewMode("list")}
           >
-            <View style={styles.toggleBtnInner}><Ionicons name="menu" size={14} color={view === "list" ? C.cream : C.muted} /><Text style={[styles.toggleBtnText, view === "list" && styles.toggleBtnTextActive]}> List</Text></View>
+            <View style={styles.toggleBtnInner}><Ionicons name="menu" size={14} color={view === "list" ? C.blue : C.muted} /><Text style={[styles.toggleBtnText, view === "list" && styles.toggleBtnTextActive]}> List</Text></View>
           </TouchableOpacity>
           <View style={{ flex: 1 }} />
           <TouchableOpacity
@@ -509,10 +497,10 @@ export default function TodayScreen() {
             onLongPress={() => { setNewBookingPrefill({ walkin: true }); setShowNewBooking(true); }}
             delayLongPress={400}
           >
-            <Text style={styles.walkInBtnText}>+ Walk-in</Text>
+            <Text style={styles.walkInBtnText}>Walk-in</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.newBtn} onPress={() => { setNewBookingPrefill({}); setShowNewBooking(true); }}>
-            <Text style={styles.newBtnText}>+ New</Text>
+            <Text style={styles.newBtnText}>New booking</Text>
           </TouchableOpacity>
         </View>
 
@@ -581,14 +569,14 @@ export default function TodayScreen() {
       ) : (
         <ScrollView
           style={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={C.espresso} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={C.ink} />}
         >
           {sortedBookings.length === 0 ? (
             <View style={styles.empty}>
               <Ionicons name="calendar-outline" size={40} color={C.muted} />
-              <Text style={styles.emptyTitle}>No bookings today</Text>
+              <Text style={styles.emptyTitle}>No bookings yet today.</Text>
               <TouchableOpacity style={styles.emptyBtn} onPress={() => { setNewBookingPrefill({ date: todayStr }); setShowNewBooking(true); }}>
-                <Text style={styles.emptyBtnText}>+ New Booking</Text>
+                <Text style={styles.emptyBtnText}>New booking</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -609,7 +597,7 @@ export default function TodayScreen() {
                   <TouchableOpacity
                     style={[
                       styles.listCard,
-                      { backgroundColor: c.bg, borderLeftColor: c.bd },
+                      { borderLeftColor: c.bd },
                       isCancelled && styles.listCardCancelled,
                       isPast && !isCancelled && styles.listCardPast,
                     ]}
@@ -617,8 +605,8 @@ export default function TodayScreen() {
                     activeOpacity={0.8}
                   >
                     <View style={styles.listCardHeader}>
-                      <Text style={[styles.listTime, { color: c.tx }]}>{fmtTime(b.start_time)} – {fmtTime(b.end_time)}</Text>
-                      {b.status === "no_show" && <StatusBadge label="No-show" color="#F59E0B" />}
+                      <Text style={styles.listTime}>{fmtTime(b.start_time)} – {fmtTime(b.end_time)}</Text>
+                      {b.status === "no_show" && <StatusBadge label="No-show" color={C.danger} />}
                       {b.status === "cancelled" && <StatusBadge label="Cancelled" color={C.muted} />}
                       {b.status === "confirmed" && isPast && <StatusBadge label="Past" color={C.muted} />}
                     </View>
@@ -627,7 +615,7 @@ export default function TodayScreen() {
                       {clientTags[b.customer_email] && (
                         <View style={[styles.clientTag, clientTagStyle(clientTags[b.customer_email])]}>
                           <Text style={[styles.clientTagText, { color: clientTagStyle(clientTags[b.customer_email]).color }]}>
-                            {clientTags[b.customer_email]}
+                            {clientTagStyle(clientTags[b.customer_email]).label}
                           </Text>
                         </View>
                       )}
@@ -635,7 +623,7 @@ export default function TodayScreen() {
                     <Text style={styles.listSvc} numberOfLines={1}>{b.service_name}</Text>
                     {clientNotes[b.customer_email] ? (
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 3, marginBottom: 4, overflow: "hidden" }}>
-                        <Ionicons name="document-text-outline" size={10} color="#C4683E" style={{ flexShrink: 0 }} />
+                        <Ionicons name="document-text-outline" size={10} color={C.blue} style={{ flexShrink: 0 }} />
                         <Text style={styles.listNote} numberOfLines={1}>{clientNotes[b.customer_email]}</Text>
                       </View>
                     ) : null}
@@ -665,12 +653,12 @@ export default function TodayScreen() {
         booking={paymentBooking}
         visible={showPayment}
         onClose={() => setShowPayment(false)}
-        onSuccess={() => { showToast("Payment collected!"); load(true); }}
+        onSuccess={() => { showToast("Payment collected"); load(true); }}
       />
       <NewBookingModal
         visible={showNewBooking}
         onClose={() => setShowNewBooking(false)}
-        onSuccess={() => { hapticSuccess(); showToast("Booking confirmed!"); load(true); }}
+        onSuccess={() => { hapticSuccess(); showToast("Booking confirmed"); load(true); }}
         prefillDate={newBookingPrefill.date || todayStr}
         prefillBarberId={newBookingPrefill.barberId}
         prefillTime={newBookingPrefill.time}
@@ -684,7 +672,7 @@ export default function TodayScreen() {
       <Modal visible={blockModal} transparent animationType="slide">
         <View style={styles.blockOverlay}>
           <View style={styles.blockContent}>
-            <Text style={styles.blockTitle}>Block Time</Text>
+            <Text style={styles.blockTitle}>Block time</Text>
             <Text style={styles.blockSub}>{blockInfo.barberName} · {fmtTime(blockInfo.time || "00:00")}</Text>
 
             <Text style={styles.blockLabel}>Duration</Text>
@@ -709,7 +697,7 @@ export default function TodayScreen() {
               style={styles.blockInput}
               value={blockReason}
               onChangeText={setBlockReason}
-              placeholder="e.g. Lunch, Personal, Break"
+              placeholder="Lunch"
               placeholderTextColor={C.muted}
             />
 
@@ -730,152 +718,133 @@ export default function TodayScreen() {
   );
 }
 
+// Word first, colour second (brand/components/StatusBadge).
 function StatusBadge({ label, color }) {
+  const tone = color === C.danger
+    ? { backgroundColor: C.surface, borderColor: C.line, color: C.danger }
+    : { backgroundColor: C.sunk, borderColor: C.sunk, color: C.muted };
   return (
-    <View style={[badgeStyles.badge, { borderColor: color + "40", backgroundColor: color + "18" }]}>
-      <Text style={[badgeStyles.text, { color }]}>{label}</Text>
+    <View style={[badgeStyles.badge, { backgroundColor: tone.backgroundColor, borderColor: tone.borderColor }]}>
+      <Text style={[badgeStyles.text, { color: tone.color }]}>{label}</Text>
     </View>
   );
 }
 const badgeStyles = StyleSheet.create({
-  badge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, borderWidth: 1 },
-  text: { fontSize: 9, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 },
+  badge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, borderWidth: 1 },
+  text: { fontSize: 12, fontFamily: F.medium },
 });
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.cream },
+  container: { flex: 1, backgroundColor: C.paper },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
 
   // Trial expired
   trialExpiredContainer: { flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 32 },
-  trialExpiredIcon: { fontSize: 48, marginBottom: 16 },
-  trialExpiredTitle: { fontFamily: serif, fontSize: 24, fontWeight: "900", color: C.espresso, marginBottom: 12, textAlign: "center" },
-  trialExpiredMsg: { fontSize: 15, color: C.muted, lineHeight: 22, textAlign: "center", marginBottom: 28 },
-  trialExpiredBtn: { backgroundColor: C.terra, paddingVertical: 16, paddingHorizontal: 40, borderRadius: 12, marginBottom: 16 },
-  trialExpiredBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  trialExpiredNote: { fontSize: 12, color: C.muted, textAlign: "center" },
+  trialExpiredIcon: { width: 56, height: 56, borderRadius: 16, backgroundColor: C.blueSoft, alignItems: "center", justifyContent: "center", marginBottom: 18 },
+  trialExpiredTitle: { fontSize: 28, fontFamily: F.regular, color: C.ink, letterSpacing: -0.7, marginBottom: 10, textAlign: "center" },
+  trialExpiredMsg: { fontFamily: F.regular, fontSize: 15, color: C.muted, lineHeight: 22, textAlign: "center", marginBottom: 28 },
+  trialExpiredBtn: { backgroundColor: C.blue, paddingVertical: 16, paddingHorizontal: 40, borderRadius: 12, marginBottom: 16 },
+  trialExpiredBtnText: { color: C.onBlue, fontSize: 16, fontFamily: F.medium },
+  trialExpiredNote: { fontFamily: F.regular, fontSize: 12, color: C.muted, textAlign: "center" },
 
   // Strip
-  strip: {
-    backgroundColor: C.espresso,
-    paddingHorizontal: 16, paddingBottom: 12, paddingTop: 6,
-    borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.06)",
-  },
-  stripLabel: { fontSize: 11, fontWeight: "700", color: "rgba(250,250,250,0.45)", textTransform: "uppercase", letterSpacing: 2, marginBottom: 2 },
-  stripDate: { fontFamily: serif, fontSize: 20, fontWeight: "900", color: C.cream },
-  statsGroup: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
-  stat: { flex: 1, alignItems: "center" },
-  statVal: { fontFamily: serif, fontSize: 15, fontWeight: "900", color: C.terra },
-  statLbl: { fontSize: 9, fontWeight: "700", color: "rgba(250,250,250,0.4)", textTransform: "uppercase", letterSpacing: 1.2, marginTop: 1 },
-  statDivider: { width: 1, height: 28, backgroundColor: "rgba(255,255,255,0.1)", marginHorizontal: 12 },
+  strip: { backgroundColor: C.paper, paddingHorizontal: 16, paddingBottom: 14, paddingTop: 2 },
+  stripLabel: { fontSize: 12, fontFamily: F.monoMedium, color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 2 },
+  stripDate: { fontSize: 28, fontFamily: F.regular, color: C.ink, letterSpacing: -0.8, marginBottom: 14 },
+  statsGroup: { flexDirection: "row", gap: 8, marginBottom: 10 },
+  stat: { flex: 1, backgroundColor: C.surface, borderRadius: 16, borderWidth: 1, borderColor: C.line, paddingHorizontal: 12, paddingVertical: 12 },
+  statVal: { fontSize: 24, fontFamily: F.regular, color: C.ink, letterSpacing: -0.5, marginTop: 6, fontVariant: ["tabular-nums"] },
+  statLbl: { fontSize: 11, fontFamily: F.monoMedium, color: C.muted, textTransform: "uppercase", letterSpacing: 1 },
+  statNight: { flex: 1.4, backgroundColor: C.night, borderColor: C.night },
+  statLblNight: { color: C.nightMuted },
+  statValNight: { color: C.onNight },
+  statDivider: { display: "none" },
 
   // Occupancy bar
-  paymentBreakdown: { fontSize: 10, fontWeight: "600", color: "rgba(250,250,250,0.45)", marginBottom: 6, marginTop: 2 },
+  paymentBreakdown: { fontSize: 13, fontFamily: F.regular, color: C.muted, marginBottom: 8 },
   occRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  occTrack: { flex: 1, height: 4, backgroundColor: "rgba(255,255,255,0.12)", borderRadius: 2, overflow: "hidden" },
-  occFill: { height: 4, backgroundColor: C.terra, borderRadius: 2, minWidth: 4 },
-  occLabel: { fontSize: 10, fontWeight: "700", color: "rgba(250,250,250,0.4)", width: 68, textAlign: "right" },
+  occTrack: { flex: 1, height: 6, backgroundColor: C.sunk, borderRadius: 3, overflow: "hidden" },
+  occFill: { height: 6, backgroundColor: C.blue, borderRadius: 3, minWidth: 6 },
+  occLabel: { fontSize: 13, fontFamily: F.medium, color: C.ink, width: 84, textAlign: "right", fontVariant: ["tabular-nums"] },
 
   // Service legend
-  svcLegend: {
-    flexDirection: "row", flexWrap: "wrap", gap: 8,
-    paddingHorizontal: 12, paddingVertical: 6,
-    backgroundColor: C.surface, borderBottomWidth: 1, borderBottomColor: C.border,
-  },
+  svcLegend: { flexDirection: "row", flexWrap: "wrap", gap: 12, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: C.paper },
   svcLegendItem: { flexDirection: "row", alignItems: "center", gap: 4 },
-  svcLegendDot: { width: 8, height: 8, borderRadius: 2 },
-  svcLegendText: { fontSize: 10, fontWeight: "600", color: C.muted },
+  svcLegendDot: { width: 10, height: 10, borderRadius: 3 },
+  svcLegendText: { fontSize: 12, fontFamily: F.regular, color: C.muted },
 
   // End-of-day summary
-  eodCard: {
-    margin: 12, marginBottom: 0, backgroundColor: C.espresso, borderRadius: 14, padding: 16,
-  },
-  eodTitle: {
-    fontFamily: serif, fontSize: 16, fontWeight: "800", color: C.cream, marginBottom: 12,
-  },
+  eodCard: { marginHorizontal: 12, marginBottom: 8, backgroundColor: C.night, borderRadius: 16, padding: 16 },
+  eodTitle: { fontSize: 20, fontFamily: F.regular, color: C.onNight, letterSpacing: -0.4, marginBottom: 12 },
   eodGrid: {
     flexDirection: "row", justifyContent: "space-between", marginBottom: 12,
   },
   eodStat: { alignItems: "center", flex: 1 },
-  eodStatVal: {
-    fontFamily: serif, fontSize: 22, fontWeight: "900", color: C.terra, marginBottom: 2,
-  },
-  eodStatLbl: {
-    fontSize: 9, fontWeight: "700", color: "rgba(250,250,250,0.5)", textTransform: "uppercase", letterSpacing: 1,
-  },
-  eodCashRow: {
-    marginBottom: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: "rgba(250,250,250,0.15)",
-  },
-  eodCashText: {
-    fontSize: 12, fontWeight: "600", color: "rgba(250,250,250,0.7)", marginBottom: 4,
-  },
-  eodOcc: {
-    fontSize: 11, fontWeight: "600", color: "rgba(250,250,250,0.4)", textAlign: "center",
-  },
+  eodStatVal: { fontSize: 22, fontFamily: F.regular, color: C.onNight, marginBottom: 2, fontVariant: ["tabular-nums"] },
+  eodStatLbl: { fontSize: 11, fontFamily: F.mono, color: C.nightMuted, textTransform: "uppercase", letterSpacing: 1 },
+  eodCashRow: { marginBottom: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: "rgba(243,241,236,0.15)" },
+  eodCashText: { fontSize: 13, fontFamily: F.regular, color: C.onNight, marginBottom: 4 },
+  eodOcc: { fontSize: 12, fontFamily: F.regular, color: C.nightMuted, textAlign: "center" },
 
   // Controls
-  controls: { backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border },
-  controlsRow: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 10 },
-  toggleBtn: { paddingHorizontal: 11, paddingVertical: 6, borderRadius: 8, borderWidth: 1.5, borderColor: C.border },
-  toggleBtnActive: { backgroundColor: C.espresso, borderColor: C.espresso },
+  controls: { backgroundColor: C.paper, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.line },
+  controlsRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingVertical: 10 },
+  toggleBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface },
+  toggleBtnActive: { backgroundColor: C.blueSoft, borderColor: C.blueSoft },
   toggleBtnInner: { flexDirection: "row", alignItems: "center" },
-  toggleBtnText: { fontSize: 12, fontWeight: "700", color: C.muted },
-  toggleBtnTextActive: { color: C.cream },
-  walkInBtn: { paddingHorizontal: 11, paddingVertical: 7, borderRadius: 8, borderWidth: 1.5, borderColor: C.border },
-  walkInBtnText: { fontSize: 12, fontWeight: "700", color: C.espresso },
-  newBtn: { paddingHorizontal: 11, paddingVertical: 7, borderRadius: 8, backgroundColor: C.terra },
-  newBtnText: { fontSize: 12, fontWeight: "800", color: C.cream },
+  toggleBtnText: { fontSize: 13, fontFamily: F.medium, color: C.muted },
+  toggleBtnTextActive: { color: C.blue },
+  walkInBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: C.lineStrong, backgroundColor: C.surface },
+  walkInBtnText: { fontSize: 13, fontFamily: F.medium, color: C.ink },
+  newBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, backgroundColor: C.blue },
+  newBtnText: { fontSize: 13, fontFamily: F.medium, color: C.onBlue },
   filterScroll: { paddingBottom: 10 },
-  filterRow: { flexDirection: "row", gap: 6, paddingHorizontal: 10, paddingBottom: 2 },
-  pill: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.white },
-  pillActive: { backgroundColor: C.espresso, borderColor: C.espresso },
+  filterRow: { flexDirection: "row", gap: 6, paddingHorizontal: 12, paddingBottom: 2 },
+  pill: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface },
+  pillActive: { backgroundColor: C.blueSoft, borderColor: C.blueSoft },
   pillDot: { width: 7, height: 7, borderRadius: 4 },
-  pillText: { fontSize: 11, fontWeight: "700", color: C.muted },
-  pillTextActive: { color: C.cream },
+  pillText: { fontSize: 13, fontFamily: F.regular, color: C.muted },
+  pillTextActive: { color: C.blue, fontFamily: F.medium },
 
   // List view
   list: { flex: 1, padding: 12 },
-  listCard: {
-    borderRadius: 10, padding: 10, paddingLeft: 12,
-    borderWidth: 1, borderColor: "transparent", borderLeftWidth: 3,
-    overflow: "hidden",
-  },
+  listCard: { borderRadius: 14, padding: 12, paddingLeft: 14, backgroundColor: C.surface, borderWidth: 1, borderColor: C.line, borderLeftWidth: 4, overflow: "hidden" },
   listCardCancelled: { opacity: 0.4 },
   listCardPast: { opacity: 0.55 },
   listCardHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 3 },
-  listTime: { fontSize: 10, fontWeight: "800", letterSpacing: 0.3 },
+  listTime: { fontSize: 12, fontFamily: F.mono, color: C.muted, fontVariant: ["tabular-nums"] },
   listNameRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 1 },
-  listName: { fontSize: 13, fontWeight: "700", color: C.espresso },
-  clientTag: { paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4, borderWidth: 1 },
-  clientTagText: { fontSize: 8, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 },
+  listName: { fontSize: 16, fontFamily: F.medium, color: C.ink },
+  clientTag: { paddingHorizontal: 7, paddingVertical: 1, borderRadius: 999, borderWidth: 1 },
+  clientTagText: { fontSize: 11, fontFamily: F.medium },
   listNameMuted: { color: C.muted, textDecorationLine: "line-through" },
-  listSvc: { fontSize: 11, color: C.muted, marginBottom: 3 },
-  listNote: { fontSize: 10, color: "#C4683E", fontStyle: "italic", flex: 1 },
+  listSvc: { fontFamily: F.regular, fontSize: 14, color: C.muted, marginBottom: 4 },
+  listNote: { fontFamily: F.regular, fontSize: 12, color: C.muted, flex: 1 },
   listFooter: { flexDirection: "row", alignItems: "center" },
-  listPrice: { fontSize: 12, fontWeight: "700", color: C.espresso },
-  listMeta: { fontSize: 10, color: C.muted },
+  listPrice: { fontSize: 14, fontFamily: F.medium, color: C.ink, fontVariant: ["tabular-nums"] },
+  listMeta: { fontFamily: F.regular, fontSize: 13, color: C.muted },
 
   // Block modal
-  blockOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
-  blockContent: { backgroundColor: C.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 40 },
-  blockTitle: { fontFamily: serif, fontSize: 20, fontWeight: "800", color: C.espresso, marginBottom: 2 },
-  blockSub: { fontSize: 13, color: C.muted, marginBottom: 18 },
-  blockLabel: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 8 },
-  blockPill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.white },
-  blockPillActive: { backgroundColor: C.espresso, borderColor: C.espresso },
-  blockPillText: { fontSize: 13, fontWeight: "700", color: C.muted },
-  blockPillTextActive: { color: C.cream },
-  blockInput: { backgroundColor: C.surface, borderRadius: 9, paddingHorizontal: 12, paddingVertical: 11, fontSize: 14, color: C.espresso, borderWidth: 1, borderColor: C.border, marginBottom: 20 },
+  blockOverlay: { flex: 1, backgroundColor: "rgba(14,14,12,0.45)", justifyContent: "flex-end" },
+  blockContent: { backgroundColor: C.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 40 },
+  blockTitle: { fontSize: 24, fontFamily: F.regular, color: C.ink, letterSpacing: -0.5, marginBottom: 2 },
+  blockSub: { fontFamily: F.regular, fontSize: 13, color: C.muted, marginBottom: 18 },
+  blockLabel: { fontSize: 14, fontFamily: F.medium, color: C.ink, marginBottom: 8 },
+  blockPill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, borderWidth: 1.5, borderColor: C.line, backgroundColor: C.surface },
+  blockPillActive: { backgroundColor: C.blue, borderColor: C.blue },
+  blockPillText: { fontSize: 14, fontFamily: F.medium, color: C.ink },
+  blockPillTextActive: { color: C.onBlue },
+  blockInput: { backgroundColor: C.surface, borderRadius: 12, paddingHorizontal: 12, height: 44, fontFamily: F.regular, fontSize: 15, color: C.ink, borderWidth: 1, borderColor: C.lineStrong, marginBottom: 20 },
   blockBtns: { flexDirection: "row", gap: 10 },
-  blockCancelBtn: { flex: 1, paddingVertical: 12, borderRadius: 9, borderWidth: 1.5, borderColor: C.border, alignItems: "center" },
-  blockCancelText: { fontSize: 14, fontWeight: "700", color: C.muted },
-  blockSaveBtn: { flex: 1, paddingVertical: 12, borderRadius: 9, backgroundColor: C.espresso, alignItems: "center" },
-  blockSaveText: { fontSize: 14, fontWeight: "800", color: C.cream },
+  blockCancelBtn: { flex: 1, paddingVertical: 13, borderRadius: 12, borderWidth: 1, borderColor: C.lineStrong, alignItems: "center" },
+  blockCancelText: { fontSize: 15, fontFamily: F.medium, color: C.ink },
+  blockSaveBtn: { flex: 1, paddingVertical: 13, borderRadius: 12, backgroundColor: C.blue, alignItems: "center" },
+  blockSaveText: { fontSize: 15, fontFamily: F.medium, color: C.onBlue },
 
   // Empty
   empty: { paddingTop: 60, alignItems: "center", gap: 10 },
   emptyIcon: {},
-  emptyTitle: { fontSize: 16, fontWeight: "700", color: C.muted },
-  emptyBtn: { marginTop: 4, paddingHorizontal: 20, paddingVertical: 10, backgroundColor: C.espresso, borderRadius: 10 },
-  emptyBtnText: { fontSize: 14, fontWeight: "700", color: C.cream },
+  emptyTitle: { fontSize: 17, fontFamily: F.regular, color: C.muted },
+  emptyBtn: { marginTop: 4, paddingHorizontal: 20, paddingVertical: 12, backgroundColor: C.blue, borderRadius: 12 },
+  emptyBtnText: { fontSize: 15, fontFamily: F.medium, color: C.onBlue },
 });

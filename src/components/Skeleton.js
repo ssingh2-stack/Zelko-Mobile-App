@@ -88,12 +88,12 @@ export function SkeletonKPI() {
 }
 
 const styles = StyleSheet.create({
-  bone: { backgroundColor: C.border, borderRadius: 4 },
+  bone: { backgroundColor: C.line, borderRadius: 4 },
 
   // Card
   card: {
-    backgroundColor: C.white, borderRadius: 14, padding: 16,
-    borderWidth: 1, borderColor: C.border, marginBottom: 10, overflow: "hidden",
+    backgroundColor: C.surface, borderRadius: 14, padding: 16,
+    borderWidth: 1, borderColor: C.line, marginBottom: 10, overflow: "hidden",
   },
   cardAccent: { position: "absolute", top: 0, left: 0, right: 0, height: 3, borderRadius: 0 },
 
@@ -105,15 +105,15 @@ const styles = StyleSheet.create({
 
   // Calendar
   calWrap: { padding: 12 },
-  calHeader: { flexDirection: "row", gap: 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: C.border },
-  calRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: C.border },
+  calHeader: { flexDirection: "row", gap: 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: C.line },
+  calRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: C.line },
   calSlots: { flex: 1, flexDirection: "row", height: 32 },
   calBlock: { height: 32, borderRadius: 6 },
 
   // KPI
   kpiGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   kpiCard: {
-    width: "47%", backgroundColor: C.white, borderRadius: 14, padding: 16,
-    borderWidth: 1, borderColor: C.border,
+    width: "47%", backgroundColor: C.surface, borderRadius: 14, padding: 16,
+    borderWidth: 1, borderColor: C.line,
   },
 });

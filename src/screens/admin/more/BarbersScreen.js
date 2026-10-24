@@ -6,7 +6,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../../lib/api";
-import { C, serif, DCAL_COLORS } from "../../../lib/theme";
+import { F, C, DCAL_COLORS } from "../../../lib/theme";
 import { success as hapticSuccess, warn as hapticWarn } from "../../../lib/haptics";
 import { useToast, Toast } from "../../../components/Toast";
 
@@ -57,7 +57,7 @@ export default function BarbersScreen() {
     try {
       await api.adminBarberAdd({ name: name.trim(), email: email.trim().toLowerCase() });
       setName(""); setEmail("");
-      hapticSuccess(); showToast("Barber added!");
+      hapticSuccess(); showToast("Barber added");
       load(true);
     } catch (err) { setAddError(err.message); }
     finally { setAdding(false); }
@@ -65,7 +65,7 @@ export default function BarbersScreen() {
 
   async function deleteBarber(id, barberName) {
     Alert.alert(
-      "Remove Barber",
+      "Remove barber?",
       `Remove ${barberName} from your team? Their past bookings won't be affected.`,
       [
         { text: "Cancel", style: "cancel" },
@@ -207,8 +207,8 @@ export default function BarbersScreen() {
     try {
       const result = await api.adminBarberInvite(barberId);
       hapticSuccess();
-      Alert.alert("Invite Sent", `An invite email has been sent to ${barberName}. They can also use this link:\n\n${result.invite_url}`, [
-        { text: "Copy Link", onPress: () => Share.share({ message: result.invite_url }) },
+      Alert.alert("Invite sent", `An invite email has been sent to ${barberName}. They can also use this link:\n\n${result.invite_url}`, [
+        { text: "Copy link", onPress: () => Share.share({ message: result.invite_url }) },
         { text: "Done" },
       ]);
     } catch (err) { Alert.alert("Error", err.message); }
@@ -236,18 +236,18 @@ export default function BarbersScreen() {
     <ScrollView
       ref={scrollRef}
       style={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={C.espresso} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={C.ink} />}
       keyboardShouldPersistTaps="handled"
     >
       {/* Add Barber */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Add Barber</Text>
+        <Text style={styles.cardTitle}>Add barber</Text>
         <Text style={styles.label}>Name</Text>
         <TextInput
           style={styles.input}
           value={name}
           onChangeText={setName}
-          placeholder="e.g. Marcus Johnson"
+          placeholder="Marcus Williams"
           placeholderTextColor={C.muted}
           autoCapitalize="words"
         />
@@ -264,15 +264,15 @@ export default function BarbersScreen() {
         <Text style={styles.hint}>They'll receive an invite to create their staff account.</Text>
         {addError ? <Text style={styles.error}>{addError}</Text> : null}
         <TouchableOpacity style={[styles.addBtn, adding && { opacity: 0.6 }]} onPress={addBarber} disabled={adding}>
-          <Text style={styles.addBtnText}>{adding ? "Adding…" : "Add Barber →"}</Text>
+          <Text style={styles.addBtnText}>{adding ? "Adding…" : "Add barber"}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Barber list */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Your Team</Text>
+        <Text style={styles.sectionTitle}>Your team</Text>
         {loading ? (
-          <ActivityIndicator color={C.espresso} style={{ marginTop: 20 }} />
+          <ActivityIndicator color={C.ink} style={{ marginTop: 20 }} />
         ) : barbers.length === 0 ? (
           <View style={styles.empty}>
             <Text style={styles.emptyText}>No barbers yet — add your first team member above.</Text>
@@ -340,7 +340,7 @@ export default function BarbersScreen() {
                         />
                       </View>
                     </View>
-                    <Text style={styles.editLabel}>Buffer After Each Booking</Text>
+                    <Text style={styles.editLabel}>Buffer after each booking</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
                       <View style={{ flexDirection: "row", gap: 6 }}>
                         {[0, 5, 10, 15, 20, 30].map(mins => (
@@ -378,7 +378,7 @@ export default function BarbersScreen() {
                         />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.editLabel}>Instagram Handle</Text>
+                        <Text style={styles.editLabel}>Instagram handle</Text>
                         <TextInput
                           style={styles.editInput}
                           value={editIG}
@@ -395,7 +395,7 @@ export default function BarbersScreen() {
 
                     {/* Availability */}
                     <View style={styles.availSection}>
-                      <Text style={styles.availTitle}>Working Hours</Text>
+                      <Text style={styles.availTitle}>Working hours</Text>
                       <Text style={styles.availHint}>Set when this barber is available for bookings</Text>
                       {DAYS.map(day => {
                         const a = editAvail[day] || {};
@@ -407,8 +407,8 @@ export default function BarbersScreen() {
                             <Switch
                               value={!!a.on && !shopClosed}
                               onValueChange={() => !shopClosed && toggleAvailDay(day)}
-                              trackColor={{ true: C.terra }}
-                              thumbColor={C.white}
+                              trackColor={{ true: C.blue }}
+                              thumbColor="#FFFFFF" activeThumbColor="#FFFFFF"
                               disabled={shopClosed}
                             />
                             {a.on && !shopClosed ? (
@@ -443,7 +443,7 @@ export default function BarbersScreen() {
                     {/* Services offered */}
                     {allServices.length > 0 && (
                       <View style={styles.availSection}>
-                        <Text style={styles.availTitle}>Services Offered</Text>
+                        <Text style={styles.availTitle}>Services offered</Text>
                         <Text style={styles.availHint}>Toggle which services this barber performs</Text>
                         {allServices.map(s => {
                           const isOn = editBarberServices.includes(s.id);
@@ -453,8 +453,8 @@ export default function BarbersScreen() {
                               <Switch
                                 value={isOn}
                                 onValueChange={() => toggleBarberService(s.id)}
-                                trackColor={{ true: C.terra }}
-                                thumbColor={C.white}
+                                trackColor={{ true: C.blue }}
+                                thumbColor="#FFFFFF" activeThumbColor="#FFFFFF"
                               />
                             </View>
                           );
@@ -477,7 +477,7 @@ export default function BarbersScreen() {
                         <View>
                           <View style={styles.stripeStatusRow}>
                             <View style={styles.stripeDisconnectedDot} />
-                            <Text style={styles.stripeDisconnectedText}>Not Connected</Text>
+                            <Text style={styles.stripeDisconnectedText}>Not connected</Text>
                           </View>
                           <Text style={styles.availHint}>Connect via web dashboard to enable direct payouts</Text>
                         </View>
@@ -486,10 +486,10 @@ export default function BarbersScreen() {
 
                     {/* Staff invite */}
                     <View style={styles.availSection}>
-                      <Text style={styles.availTitle}>Staff Invite</Text>
+                      <Text style={styles.availTitle}>Staff invite</Text>
                       <Text style={styles.availHint}>Send an invite so this barber can log in to their own staff portal</Text>
                       <TouchableOpacity style={styles.inviteBtn} onPress={() => sendInvite(b.id, b.name)}>
-                        <Text style={styles.inviteBtnText}>Send Invite →</Text>
+                        <Text style={styles.inviteBtnText}>Send invite</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -507,20 +507,20 @@ export default function BarbersScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.cream },
-  card: { margin: 16, backgroundColor: C.white, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: C.border },
-  cardTitle: { fontFamily: serif, fontSize: 17, fontWeight: "700", color: C.espresso, marginBottom: 14 },
-  label: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 6 },
-  input: { backgroundColor: C.surface, borderRadius: 9, paddingHorizontal: 12, paddingVertical: 11, fontSize: 14, color: C.espresso, borderWidth: 1, borderColor: C.border },
-  hint: { fontSize: 11, color: C.muted, marginTop: 8, marginBottom: 4, fontStyle: "italic" },
-  error: { fontSize: 13, color: C.terra, fontWeight: "600", marginBottom: 8 },
-  addBtn: { backgroundColor: C.espresso, borderRadius: 9, paddingVertical: 12, alignItems: "center", marginTop: 12 },
-  addBtnText: { fontSize: 14, fontWeight: "800", color: C.cream },
+  container: { flex: 1, backgroundColor: C.paper },
+  card: { margin: 16, backgroundColor: C.surface, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: C.line },
+  cardTitle: { fontSize: 17, fontFamily: F.regular, color: C.ink, marginBottom: 14 },
+  label: { fontSize: 14, fontFamily: F.medium, color: C.ink, marginBottom: 6 },
+  input: { backgroundColor: C.surface, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 11, fontFamily: F.regular, fontSize: 15, color: C.ink, borderWidth: 1, borderColor: C.lineStrong },
+  hint: { fontFamily: F.regular, fontSize: 11, color: C.muted, marginTop: 8, marginBottom: 4, fontStyle: "italic" },
+  error: { fontSize: 13, color: C.blue, fontFamily: F.semibold, marginBottom: 8 },
+  addBtn: { backgroundColor: C.blue, borderRadius: 12, paddingVertical: 12, alignItems: "center", marginTop: 12 },
+  addBtnText: { fontSize: 14, fontFamily: F.semibold, color: C.paper },
   section: { marginHorizontal: 16 },
-  sectionTitle: { fontFamily: serif, fontSize: 17, fontWeight: "700", color: C.espresso, marginBottom: 12 },
+  sectionTitle: { fontSize: 17, fontFamily: F.regular, color: C.ink, marginBottom: 12 },
   barberCard: {
-    backgroundColor: C.white, borderRadius: 12, marginBottom: 8,
-    borderWidth: 1, borderColor: C.border,
+    backgroundColor: C.surface, borderRadius: 12, marginBottom: 8,
+    borderWidth: 1, borderColor: C.line,
   },
   barberRow: {
     flexDirection: "row", alignItems: "center",
@@ -531,69 +531,61 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
     borderWidth: 2,
   },
-  avatarImg: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, borderColor: C.border },
+  avatarImg: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, borderColor: C.line },
   cameraIcon: {
     position: "absolute", bottom: -2, right: -2,
     width: 18, height: 18, borderRadius: 9,
-    backgroundColor: C.white, borderWidth: 1, borderColor: C.border,
+    backgroundColor: C.surface, borderWidth: 1, borderColor: C.line,
     alignItems: "center", justifyContent: "center",
   },
   cameraText: {},
-  avatarText: { fontFamily: serif, fontSize: 16, fontWeight: "800" },
+  avatarText: { fontSize: 16, fontFamily: F.regular },
   barberInfo: { flex: 1 },
-  barberName: { fontSize: 15, fontWeight: "700", color: C.espresso },
-  barberEmail: { fontSize: 12, color: C.muted, marginTop: 1 },
-  barberBio: { fontSize: 11, color: C.muted, fontStyle: "italic", marginTop: 2 },
+  barberName: { fontSize: 15, fontFamily: F.semibold, color: C.ink },
+  barberEmail: { fontFamily: F.regular, fontSize: 12, color: C.muted, marginTop: 1 },
+  barberBio: { fontFamily: F.regular, fontSize: 11, color: C.muted, fontStyle: "italic", marginTop: 2 },
   barberMeta: { flexDirection: "row", gap: 8, marginTop: 3 },
-  metaTag: { fontSize: 10, fontWeight: "700", color: C.terra },
+  metaTag: { fontSize: 11, fontFamily: F.semibold, color: C.blue },
   barberActions: { gap: 6 },
-  editBtn: {
-    paddingHorizontal: 10, paddingVertical: 6,
-    borderRadius: 7, borderWidth: 1.5, borderColor: C.border,
-    backgroundColor: C.surface,
-  },
-  editBtnText: { fontSize: 12, fontWeight: "700", color: C.espresso },
+  editBtn: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 10, borderWidth: 1, borderColor: C.lineStrong, backgroundColor: C.surface, alignItems: "center" },
+  editBtnText: { fontSize: 14, fontFamily: F.medium, color: C.ink },
   editSection: {
     padding: 14, paddingTop: 0,
-    borderTopWidth: 1, borderTopColor: C.border,
+    borderTopWidth: 1, borderTopColor: C.line,
     marginTop: 0, paddingTop: 14,
   },
-  editLabel: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 6, marginTop: 10 },
-  editInput: { backgroundColor: C.surface, borderRadius: 9, paddingHorizontal: 12, paddingVertical: 10, fontSize: 13, color: C.espresso, borderWidth: 1, borderColor: C.border },
-  editPill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.white },
-  editPillActive: { backgroundColor: C.espresso, borderColor: C.espresso },
-  editPillText: { fontSize: 12, fontWeight: "700", color: C.muted },
-  editPillTextActive: { color: C.cream },
-  saveBioBtn: { backgroundColor: C.espresso, borderRadius: 9, paddingVertical: 11, alignItems: "center", marginTop: 14 },
-  saveBioBtnText: { fontSize: 13, fontWeight: "800", color: C.cream },
+  editLabel: { fontSize: 14, fontFamily: F.medium, color: C.ink, marginBottom: 6, marginTop: 10 },
+  editInput: { backgroundColor: C.surface, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontFamily: F.regular, fontSize: 15, color: C.ink, borderWidth: 1, borderColor: C.lineStrong },
+  editPill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface },
+  editPillActive: { backgroundColor: C.blue, borderColor: C.blue },
+  editPillText: { fontSize: 12, fontFamily: F.semibold, color: C.muted },
+  editPillTextActive: { color: C.onBlue },
+  saveBioBtn: { backgroundColor: C.blue, borderRadius: 12, paddingVertical: 11, alignItems: "center", marginTop: 14 },
+  saveBioBtnText: { fontSize: 13, fontFamily: F.semibold, color: C.paper },
   // Availability
-  availSection: { marginTop: 18, paddingTop: 16, borderTopWidth: 1, borderTopColor: C.border },
-  availTitle: { fontFamily: serif, fontSize: 15, fontWeight: "700", color: C.espresso, marginBottom: 2 },
-  availHint: { fontSize: 11, color: C.muted, marginBottom: 12, fontStyle: "italic" },
-  availRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: C.border },
-  availDay: { width: 30, fontSize: 12, fontWeight: "700", color: C.espresso },
+  availSection: { marginTop: 18, paddingTop: 16, borderTopWidth: 1, borderTopColor: C.line },
+  availTitle: { fontSize: 15, fontFamily: F.regular, color: C.ink, marginBottom: 2 },
+  availHint: { fontFamily: F.regular, fontSize: 11, color: C.muted, marginBottom: 12, fontStyle: "italic" },
+  availRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: C.line },
+  availDay: { width: 30, fontSize: 12, fontFamily: F.semibold, color: C.ink },
   availTimes: { flex: 1, flexDirection: "row", alignItems: "center", gap: 4 },
-  availInput: { flex: 1, backgroundColor: C.surface, borderRadius: 7, paddingHorizontal: 8, paddingVertical: 5, fontSize: 12, color: C.espresso, borderWidth: 1, borderColor: C.border, textAlign: "center" },
-  availDash: { fontSize: 12, color: C.muted },
-  availOff: { flex: 1, fontSize: 11, color: C.muted, fontStyle: "italic" },
+  availInput: { flex: 1, backgroundColor: C.surface, borderRadius: 7, paddingHorizontal: 8, paddingVertical: 5, fontFamily: F.regular, fontSize: 15, color: C.ink, borderWidth: 1, borderColor: C.lineStrong, textAlign: "center" },
+  availDash: { fontFamily: F.regular, fontSize: 12, color: C.muted },
+  availOff: { flex: 1, fontFamily: F.regular, fontSize: 11, color: C.muted, fontStyle: "italic" },
   // Service toggles
-  svcRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: C.border },
-  svcRowName: { fontSize: 13, fontWeight: "600", color: C.espresso },
+  svcRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: C.line },
+  svcRowName: { fontSize: 13, fontFamily: F.semibold, color: C.ink },
   // Invite
-  inviteBtn: { backgroundColor: C.terra, borderRadius: 9, paddingVertical: 11, alignItems: "center", marginTop: 8 },
-  inviteBtnText: { fontSize: 13, fontWeight: "800", color: C.cream },
+  inviteBtn: { backgroundColor: C.blue, borderRadius: 12, paddingVertical: 11, alignItems: "center", marginTop: 8 },
+  inviteBtnText: { fontSize: 13, fontFamily: F.semibold, color: C.paper },
   // Stripe Connect
   stripeStatusRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 6 },
-  stripeConnectedDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#10B981" },
-  stripeConnectedText: { fontSize: 13, fontWeight: "700", color: "#10B981" },
+  stripeConnectedDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.success },
+  stripeConnectedText: { fontSize: 13, fontFamily: F.semibold, color: C.success },
   stripeDisconnectedDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.muted },
-  stripeDisconnectedText: { fontSize: 13, fontWeight: "700", color: C.muted },
-  removeBtn: {
-    paddingHorizontal: 10, paddingVertical: 6,
-    borderRadius: 7, borderWidth: 1.5, borderColor: "#FECACA",
-    backgroundColor: "#FEF2F2",
-  },
-  removeBtnText: { fontSize: 12, fontWeight: "700", color: "#DC2626" },
+  stripeDisconnectedText: { fontSize: 13, fontFamily: F.semibold, color: C.muted },
+  removeBtn: { paddingHorizontal: 14, paddingVertical: 7, alignItems: "center" },
+  removeBtnText: { fontSize: 14, fontFamily: F.medium, color: C.danger },
   empty: { paddingVertical: 24, alignItems: "center" },
-  emptyText: { fontSize: 13, color: C.muted, textAlign: "center", lineHeight: 20 },
+  emptyText: { fontFamily: F.regular, fontSize: 13, color: C.muted, textAlign: "center", lineHeight: 20 },
 });

@@ -11,6 +11,8 @@
     "maestro:lint": "python3 -c 'import yaml, pathlib, sys; errs=0;\nfor p in sorted(pathlib.Path(\".maestro\").glob(\"*.yaml\")):\n  try:\n    docs=list(yaml.safe_load_all(p.read_text())); print(f\"OK  {p}\")\n  except Exception as e:\n    print(f\"ERR {p}: {e}\"); errs+=1\nsys.exit(errs)'"
   },
   "dependencies": {
+    "@expo-google-fonts/geist": "^0.4.2",
+    "@expo-google-fonts/geist-mono": "^0.4.3",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/bottom-tabs": "^7.15.9",
     "@react-navigation/native": "^7.2.2",
@@ -20,6 +22,7 @@
     "expo-asset": "~12.0.12",
     "expo-constants": "~18.0.13",
     "expo-dev-client": "~6.0.20",
+    "expo-font": "~14.0.12",
     "expo-haptics": "~15.0.8",
     "expo-image-picker": "~17.0.10",
     "expo-notifications": "~0.32.16",

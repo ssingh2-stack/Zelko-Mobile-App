@@ -3,7 +3,8 @@ import * as SecureStore from "expo-secure-store";
 
 import Constants from "expo-constants";
 import { navigationRef } from "./navigation";
-const BASE_URL = Constants.expoConfig?.extra?.apiUrl || "https://app.getclipd.ca";
+// EXPO_PUBLIC_API_URL points a dev build at staging or a local backend.
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || Constants.expoConfig?.extra?.apiUrl || "https://app.zelko.ca";
 
 // Clear local session artifacts WITHOUT calling api.logout (which would re-hit a dead token
 // and recurse back through request()). Used by the 401 auto-logout path.
@@ -60,9 +61,9 @@ async function request(path, options = {}) {
         throw err;
       }
       if (data.error === "trial_expired") {
-        const err = new Error(data.message || "Your free trial has ended. Visit getclipd.ca to subscribe.");
+        const err = new Error(data.message || "Your free trial has ended. Choose a plan at zelko.ca to keep going.");
         err.trialExpired = true;
-        err.upgradeUrl = data.upgrade_url || "https://getclipd.ca/pricing";
+        err.upgradeUrl = data.upgrade_url || "https://zelko.ca/pricing";
         throw err;
       }
       throw new Error(data.error || "Request failed");
@@ -70,7 +71,7 @@ async function request(path, options = {}) {
     return data;
   } catch (err) {
     clearTimeout(timeout);
-    if (err.name === "AbortError") throw new Error("Request timed out — check your connection");
+    if (err.name === "AbortError") throw new Error("That took too long. Check your connection and try again.");
     if (err.trialExpired) throw err;
     const msg = err.message || "Something went wrong";
     if (__DEV__) throw err;
@@ -226,3 +227,7 @@ export const api = {
   staffUpdateBio: (data) => request("/api/staff/profile/bio", { method: "POST", body: JSON.stringify(data) }),
   staffSlots: (serviceId, date) => request(`/api/staff/slots?service_id=${serviceId}&date=${date}`),
 };
+
+// Walk-ins are stored with a placeholder email. Older bookings carry the pre-rebrand one.
+export const WALKIN_EMAIL = "walk-in@zelko.ca";
+export const isWalkinEmail = (email) => !email || email === WALKIN_EMAIL || email === "walk-in@getclipd.ca";

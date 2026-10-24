@@ -5,7 +5,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../../lib/api";
-import { C, serif } from "../../../lib/theme";
+import { F, C } from "../../../lib/theme";
 import {
   registerForPushNotifications,
   getCachedPushToken,
@@ -43,7 +43,7 @@ export default function NotificationsScreen({ mode = "admin" }) {
       if (result.reason === "permission_denied") {
         Alert.alert(
           "Notifications blocked",
-          "Enable notifications for Clipd in your iPhone Settings to receive new booking alerts.",
+          "Turn on notifications for Zelko in your iPhone Settings to hear about new bookings.",
           [
             { text: "Cancel", style: "cancel" },
             { text: "Open Settings", onPress: () => Linking.openSettings() },
@@ -96,7 +96,7 @@ export default function NotificationsScreen({ mode = "admin" }) {
   if (loading) {
     return (
       <View style={[styles.container, styles.center, { paddingTop: insets.top }]}>
-        <ActivityIndicator color={C.terra} />
+        <ActivityIndicator color={C.blue} />
       </View>
     );
   }
@@ -105,10 +105,10 @@ export default function NotificationsScreen({ mode = "admin" }) {
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 60 }}>
       <View style={styles.headerBox}>
         <View style={styles.headerIcon}>
-          <Ionicons name="notifications-outline" size={22} color={C.terra} />
+          <Ionicons name="notifications-outline" size={22} color={C.blue} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle}>Push Notifications</Text>
+          <Text style={styles.headerTitle}>Push notifications</Text>
           <Text style={styles.headerSub}>
             Get an instant alert on this device when a new booking comes in.
           </Text>
@@ -133,8 +133,8 @@ export default function NotificationsScreen({ mode = "admin" }) {
                   <Switch
                     value={!!b.notify_new_bookings}
                     onValueChange={(v) => toggleAdminBarber(b, v)}
-                    trackColor={{ false: C.border, true: C.terra }}
-                    thumbColor="#fff"
+                    trackColor={{ false: C.line, true: C.blue }}
+                    thumbColor="#FFFFFF" activeThumbColor="#FFFFFF"
                     disabled={busy}
                   />
                 </View>
@@ -158,8 +158,8 @@ export default function NotificationsScreen({ mode = "admin" }) {
               <Switch
                 value={staffPref}
                 onValueChange={toggleStaff}
-                trackColor={{ false: C.border, true: C.terra }}
-                thumbColor="#fff"
+                trackColor={{ false: C.line, true: C.blue }}
+                thumbColor="#FFFFFF" activeThumbColor="#FFFFFF"
                 disabled={busy}
               />
             </View>
@@ -179,37 +179,37 @@ export default function NotificationsScreen({ mode = "admin" }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.cream },
+  container: { flex: 1, backgroundColor: C.paper },
   center: { alignItems: "center", justifyContent: "center" },
   headerBox: {
     flexDirection: "row", gap: 12, padding: 18,
-    backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border,
+    backgroundColor: C.surface, borderBottomWidth: 1, borderBottomColor: C.line,
   },
   headerIcon: {
-    width: 40, height: 40, borderRadius: 10, backgroundColor: "rgba(196,104,62,0.1)",
+    width: 40, height: 40, borderRadius: 10, backgroundColor: "rgba(26,36,201,0.1)",
     alignItems: "center", justifyContent: "center", flexShrink: 0,
   },
-  headerTitle: { fontFamily: serif, fontSize: 20, fontWeight: "900", color: C.espresso, marginBottom: 4 },
-  headerSub: { fontSize: 12, color: C.muted, lineHeight: 16 },
+  headerTitle: { fontSize: 20, fontFamily: F.regular, color: C.ink, marginBottom: 4 },
+  headerSub: { fontFamily: F.regular, fontSize: 12, color: C.muted, lineHeight: 16 },
   sectionLabel: {
-    fontSize: 11, fontWeight: "800", color: C.muted, letterSpacing: 1.2,
+    fontSize: 11, fontFamily: F.semibold, color: C.muted, letterSpacing: 1.2,
     marginHorizontal: 20, marginTop: 22, marginBottom: 8,
   },
   card: {
-    backgroundColor: C.white, marginHorizontal: 16,
-    borderRadius: 12, borderWidth: 1, borderColor: C.border, overflow: "hidden",
+    backgroundColor: C.surface, marginHorizontal: 16,
+    borderRadius: 12, borderWidth: 1, borderColor: C.line, overflow: "hidden",
   },
   row: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
-  rowBorder: { borderBottomWidth: 1, borderBottomColor: C.border },
-  rowLabel: { fontSize: 15, fontWeight: "700", color: C.espresso },
-  rowSub: { fontSize: 12, color: C.muted, marginTop: 2 },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: C.line },
+  rowLabel: { fontSize: 15, fontFamily: F.semibold, color: C.ink },
+  rowSub: { fontFamily: F.regular, fontSize: 12, color: C.muted, marginTop: 2 },
   emptyBox: { padding: 24, alignItems: "center" },
-  emptyText: { fontSize: 13, color: C.muted },
-  helperText: { fontSize: 11, color: C.muted, lineHeight: 16, marginHorizontal: 20, marginTop: 10 },
+  emptyText: { fontFamily: F.regular, fontSize: 13, color: C.muted },
+  helperText: { fontFamily: F.regular, fontSize: 11, color: C.muted, lineHeight: 16, marginHorizontal: 20, marginTop: 10 },
   infoBox: {
     flexDirection: "row", gap: 8,
     marginHorizontal: 16, marginTop: 24, padding: 14,
-    backgroundColor: C.surface, borderRadius: 10, borderWidth: 1, borderColor: C.border,
+    backgroundColor: C.sunk, borderRadius: 10, borderWidth: 1, borderColor: C.line,
   },
-  infoText: { flex: 1, fontSize: 11, color: C.muted, lineHeight: 16 },
+  infoText: { flex: 1, fontFamily: F.regular, fontSize: 11, color: C.muted, lineHeight: 16 },
 });

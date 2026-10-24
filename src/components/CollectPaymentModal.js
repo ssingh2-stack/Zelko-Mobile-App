@@ -4,7 +4,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "../lib/api";
-import { C, serif, fmtMoney } from "../lib/theme";
+import { F, C, fmtMoney } from "../lib/theme";
 import { success as hapticSuccess, error as hapticError } from "../lib/haptics";
 
 export default function CollectPaymentModal({ booking, visible, onClose, onSuccess }) {
@@ -99,15 +99,15 @@ export default function CollectPaymentModal({ booking, visible, onClose, onSucce
 
           {status === "success" ? (
             <View style={styles.successWrap}>
-              <Ionicons name="checkmark-circle" size={56} color="#059669" />
-              <Text style={styles.successText}>Payment Collected</Text>
-              <Text style={styles.successAmount}>{fmtMoney(total)}</Text>
+              <View style={styles.successTick}><Ionicons name="checkmark" size={30} color={C.onBlue} /></View>
+              <Text style={styles.successText}>{fmtMoney(total)} paid. <Text style={{ color: C.muted }}>Fresh cut, settled.</Text></Text>
+              <Text style={styles.successStatus}>Paid ✓</Text>
             </View>
           ) : (
             <>
-              <Text style={styles.title}>Collect Payment</Text>
-              <Text style={styles.clientName}>{booking.customer_name}</Text>
-              <Text style={styles.serviceName}>{booking.service_name}</Text>
+              <Text style={styles.title}>Collect payment</Text>
+              <Text style={styles.serviceName}>{booking.customer_name} · {booking.service_name}</Text>
+              <Text style={styles.heroAmount} numberOfLines={1} adjustsFontSizeToFit>{fmtMoney(total)}</Text>
 
               {/* Amount breakdown */}
               <View style={styles.amountSection}>
@@ -118,7 +118,7 @@ export default function CollectPaymentModal({ booking, visible, onClose, onSucce
                 {depositPaid > 0 && (
                   <View style={styles.amountRow}>
                     <Text style={styles.amountLabel}>Deposit paid</Text>
-                    <Text style={[styles.amountVal, { color: "#059669" }]}>-{fmtMoney(depositPaid)}</Text>
+                    <Text style={[styles.amountVal, { color: C.success }]}>-{fmtMoney(depositPaid)}</Text>
                   </View>
                 )}
                 <View style={[styles.amountRow, { borderBottomWidth: 0, paddingBottom: 0 }]}>
@@ -129,7 +129,7 @@ export default function CollectPaymentModal({ booking, visible, onClose, onSucce
 
               {/* Tip selection */}
               <View style={styles.tipSection}>
-                <Text style={styles.tipLabel}>Add Tip</Text>
+                <Text style={styles.tipLabel}>Add tip</Text>
                 <View style={styles.tipRow}>
                   {[0, 5, 10, 15, 20].map(t => (
                     <TouchableOpacity
@@ -154,7 +154,7 @@ export default function CollectPaymentModal({ booking, visible, onClose, onSucce
                     style={styles.tipInput}
                     value={tipAmount}
                     onChangeText={setTipAmount}
-                    placeholder="Custom tip amount"
+                    placeholder="Tip in dollars"
                     placeholderTextColor={C.muted}
                     keyboardType="decimal-pad"
                     autoFocus
@@ -177,9 +177,9 @@ export default function CollectPaymentModal({ booking, visible, onClose, onSucce
                   onPress={collectWithCard}
                   disabled={processing || total < 0.50}
                 >
-                  <Ionicons name="card-outline" size={20} color={C.cream} />
+                  <Ionicons name="card-outline" size={20} color={C.onNight} />
                   <Text style={styles.cardBtnText}>
-                    {status === "creating" ? "Processing..." : status === "waiting" ? "Confirming..." : "Card"}
+                    {status === "creating" ? "Processing…" : status === "waiting" ? "Confirming…" : `Charge ${fmtMoney(total)}`}
                   </Text>
                 </TouchableOpacity>
 
@@ -188,7 +188,7 @@ export default function CollectPaymentModal({ booking, visible, onClose, onSucce
                   onPress={collectCash}
                   disabled={processing}
                 >
-                  <Ionicons name="cash-outline" size={20} color={C.espresso} />
+                  <Ionicons name="cash-outline" size={20} color={C.ink} />
                   <Text style={styles.cashBtnText}>Cash</Text>
                 </TouchableOpacity>
               </View>
@@ -205,67 +205,41 @@ export default function CollectPaymentModal({ booking, visible, onClose, onSucce
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
-  sheet: {
-    backgroundColor: C.white, borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    padding: 24, paddingBottom: 40,
-  },
-  handle: { width: 36, height: 4, backgroundColor: C.border, borderRadius: 2, alignSelf: "center", marginBottom: 20 },
-
-  title: { fontFamily: serif, fontSize: 24, fontWeight: "900", color: C.espresso, marginBottom: 4 },
-  clientName: { fontSize: 16, fontWeight: "700", color: C.espresso, marginBottom: 2 },
-  serviceName: { fontSize: 13, color: C.muted, marginBottom: 20 },
-
-  amountSection: {
-    backgroundColor: C.surface, borderRadius: 12, padding: 16,
-    borderWidth: 1, borderColor: C.border, marginBottom: 16,
-  },
-  amountRow: {
-    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
-    paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: C.border,
-  },
-  amountLabel: { fontSize: 14, color: C.muted },
-  amountVal: { fontSize: 14, fontWeight: "700", color: C.espresso },
-
-  tipSection: { marginBottom: 16 },
-  tipLabel: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 8 },
-  tipRow: { flexDirection: "row", gap: 6, marginBottom: 8 },
-  tipBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, borderWidth: 1.5, borderColor: C.border, alignItems: "center" },
-  tipBtnActive: { backgroundColor: C.espresso, borderColor: C.espresso },
-  tipBtnText: { fontSize: 13, fontWeight: "700", color: C.muted },
-  tipBtnTextActive: { color: C.cream },
-  tipInput: {
-    backgroundColor: C.surface, borderRadius: 9, paddingHorizontal: 12, paddingVertical: 10,
-    fontSize: 14, color: C.espresso, borderWidth: 1, borderColor: C.border,
-  },
-
-  totalRow: {
-    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
-    paddingVertical: 14, borderTopWidth: 1, borderTopColor: C.border, marginBottom: 20,
-  },
-  totalLabel: { fontSize: 16, fontWeight: "700", color: C.espresso },
-  totalAmount: { fontFamily: serif, fontSize: 28, fontWeight: "900", color: C.terra },
-
-  errorText: { fontSize: 13, color: "#DC2626", fontWeight: "600", marginBottom: 12, textAlign: "center" },
-
-  payButtons: { flexDirection: "row", gap: 10, marginBottom: 12 },
-  cardBtn: {
-    flex: 2, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
-    backgroundColor: C.espresso, paddingVertical: 16, borderRadius: 12,
-  },
-  cardBtnText: { fontSize: 16, fontWeight: "800", color: C.cream },
-  cashBtn: {
-    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
-    backgroundColor: C.surface, paddingVertical: 16, borderRadius: 12,
-    borderWidth: 1.5, borderColor: C.border,
-  },
-  cashBtnText: { fontSize: 14, fontWeight: "700", color: C.espresso },
-
-  cancelBtn: { alignItems: "center", paddingVertical: 10 },
-  cancelText: { fontSize: 14, fontWeight: "600", color: C.muted },
-
-  successWrap: { alignItems: "center", paddingVertical: 40 },
-  successText: { fontFamily: serif, fontSize: 22, fontWeight: "800", color: C.espresso, marginTop: 12 },
-  successAmount: { fontFamily: serif, fontSize: 32, fontWeight: "900", color: C.terra, marginTop: 4 },
+  overlay: { flex: 1, backgroundColor: "rgba(14,14,12,0.45)", justifyContent: "flex-end" },
+  sheet: { backgroundColor: C.paper, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 36 },
+  handle: { width: 36, height: 5, backgroundColor: C.line, borderRadius: 3, alignSelf: "center", marginBottom: 16 },
+  title: { fontSize: 12, fontFamily: F.monoMedium, color: C.muted, textTransform: "uppercase", letterSpacing: 1.2 },
+  clientName: { fontSize: 16, fontFamily: F.medium, color: C.ink, marginBottom: 2 },
+  serviceName: { fontFamily: F.regular, fontSize: 15, color: C.muted, marginTop: 6 },
+  // The amount is the biggest thing on the screen (brand/components/Checkout).
+  heroAmount: { fontSize: 56, fontFamily: F.regular, color: C.ink, letterSpacing: -2, marginTop: 6, marginBottom: 14, fontVariant: ["tabular-nums"] },
+  amountSection: { backgroundColor: C.surface, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 6, borderWidth: 1, borderColor: C.line, marginBottom: 16 },
+  amountRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.line },
+  amountLabel: { fontFamily: F.regular, fontSize: 15, color: C.muted },
+  amountVal: { fontSize: 15, fontFamily: F.medium, color: C.ink, fontVariant: ["tabular-nums"] },
+  tipSection: { marginBottom: 12 },
+  tipLabel: { fontSize: 14, fontFamily: F.medium, color: C.ink, marginBottom: 8 },
+  tipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 8 },
+  tipBtn: { flexBasis: "30%", flexGrow: 1, height: 48, borderRadius: 12, borderWidth: 1, borderColor: C.lineStrong, backgroundColor: C.surface, alignItems: "center", justifyContent: "center" },
+  // The chosen tip is the one spark on the screen.
+  tipBtnActive: { backgroundColor: C.spark, borderColor: C.spark },
+  tipBtnText: { fontSize: 16, fontFamily: F.medium, color: C.ink },
+  tipBtnTextActive: { color: C.onSpark },
+  tipInput: { backgroundColor: C.surface, borderRadius: 12, paddingHorizontal: 12, height: 46, fontFamily: F.regular, fontSize: 16, color: C.ink, borderWidth: 1, borderColor: C.lineStrong },
+  totalRow: { display: "none" },
+  totalLabel: { fontSize: 16, fontFamily: F.medium, color: C.ink },
+  totalAmount: { fontSize: 28, fontFamily: F.regular, color: C.ink },
+  errorText: { fontSize: 14, color: C.danger, fontFamily: F.medium, marginBottom: 12, textAlign: "center" },
+  payButtons: { flexDirection: "row", gap: 8, marginTop: 4, marginBottom: 8 },
+  // Charging money reads dark, so it never looks like navigation.
+  cardBtn: { flex: 2, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: C.night, height: 56, borderRadius: 14 },
+  cardBtnText: { fontSize: 17, fontFamily: F.medium, color: C.onNight, fontVariant: ["tabular-nums"] },
+  cashBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: C.surface, height: 56, borderRadius: 14, borderWidth: 1, borderColor: C.lineStrong },
+  cashBtnText: { fontSize: 16, fontFamily: F.medium, color: C.ink },
+  cancelBtn: { alignItems: "center", paddingVertical: 12 },
+  cancelText: { fontSize: 15, fontFamily: F.medium, color: C.muted },
+  successWrap: { alignItems: "center", paddingVertical: 36, paddingHorizontal: 12 },
+  successTick: { width: 64, height: 64, borderRadius: 18, backgroundColor: C.blue, alignItems: "center", justifyContent: "center" },
+  successText: { fontSize: 30, lineHeight: 34, fontFamily: F.regular, color: C.ink, letterSpacing: -0.8, marginTop: 18, textAlign: "center", fontVariant: ["tabular-nums"] },
+  successStatus: { fontSize: 15, fontFamily: F.medium, color: C.success, marginTop: 10 },
 });
-

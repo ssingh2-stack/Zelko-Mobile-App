@@ -1,4 +1,4 @@
-# Clipd — Product Bible
+# Zelko — Product Bible
 
 *Last updated: April 5, 2026*
 
@@ -19,7 +19,7 @@
 
 ## Product Overview
 
-**What is Clipd?**
+**What is Zelko?**
 The booking and management platform built specifically for barbershops. Barbers get a mobile app + web dashboard to run their business. Their clients get a simple booking link — no app download required.
 
 **Target market:** Independent barbershops in Canada (Toronto-first), 1-10 chairs.
@@ -44,7 +44,7 @@ The booking and management platform built specifically for barbershops. Barbers 
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
 │  Marketing Site  │     │   Flask Backend   │     │   Mobile App    │
-│  getclipd.ca     │     │  app.getclipd.ca  │     │  iOS (Expo)     │
+│  zelko.ca     │     │  app.zelko.ca  │     │  iOS (Expo)     │
 │  Cloudflare      │     │  Railway          │     │  App Store      │
 │  Workers         │     │  SQLite           │     │  React Native   │
 └─────────────────┘     └──────────────────┘     └─────────────────┘
@@ -58,9 +58,9 @@ The booking and management platform built specifically for barbershops. Barbers 
 ```
 
 **Repos:**
-- `clipd` — Flask backend + web admin + booking flow (GitHub → Railway)
-- `clipd-app` — React Native iOS app (GitHub → EAS Build → App Store)
-- `clipd-site` — Marketing website (GitHub → Cloudflare Workers)
+- `zelko`: Flask backend + web admin + booking flow (GitHub → Railway)
+- `zelko-mobile-app` (EAS slug still `clipd-app`): React Native iOS app (GitHub → EAS Build → App Store)
+- `zelko-web`: marketing website (GitHub → Cloudflare Workers)
 
 ---
 
@@ -70,7 +70,7 @@ The booking and management platform built specifically for barbershops. Barbers 
 
 | # | Feature | Status | Description |
 |---|---------|--------|-------------|
-| 1 | Online booking page | Live | 4-step wizard at app.getclipd.ca/book/[slug] |
+| 1 | Online booking page | Live | 4-step wizard at app.zelko.ca/book/[slug] |
 | 2 | Per-barber booking | Live | Choose specific barber or "Any Available" |
 | 3 | Per-barber service menus | Live | Each barber shows only their assigned services |
 | 4 | Real-time slot availability | Live | Checks existing bookings, blocks, availability, duration |
@@ -297,12 +297,12 @@ The booking and management platform built specifically for barbershops. Barbers 
 | 9 | Swipeable booking cards | Live | App |
 | 10 | KeyboardAvoidingView on all modals | Live | App |
 | 11 | Branded splash screen | Live | App |
-| 12 | White app icon with Clipd wordmark | Live | App |
+| 12 | White app icon with Zelko wordmark | Live | App |
 | 13 | Barber name on booking blocks (when "All" view) | Live | App |
 | 14 | Content centering on taller booking blocks | Live | App |
 | 15 | Progressive content based on block height | Live | App |
 
-### Marketing Site (getclipd.ca)
+### Marketing Site (zelko.ca)
 
 | # | Feature | Status |
 |---|---------|--------|
@@ -383,7 +383,7 @@ The booking and management platform built specifically for barbershops. Barbers 
 - [ ] **Referral program** — shop-to-shop referral credits
 
 ### Future (Scale)
-- [ ] **White-label** — remove Clipd branding for enterprise
+- [ ] **White-label** — remove Zelko branding for enterprise
 - [ ] **API access** — let shops integrate with their own tools
 - [ ] **Franchise management** — multi-location dashboard for chains
 - [ ] **Product/inventory tracking** — pomade, oil, shampoo sales
@@ -404,7 +404,7 @@ The booking and management platform built specifically for barbershops. Barbers 
 | **Payments** | Stripe Connect | Deposits, platform splits |
 | **Media storage** | Cloudflare R2 | Barber photos, shop logos |
 | **Hosting** | Railway | Auto-deploy from GitHub |
-| **CDN/DNS** | Cloudflare | getclipd.ca + Workers |
+| **CDN/DNS** | Cloudflare | zelko.ca + Workers |
 | **Monitoring** | UptimeRobot | Uptime alerts |
 | **App builds** | EAS Build (Expo) | iOS preview + production |
 | **App distribution** | TestFlight / App Store | Apple Developer Program |
@@ -424,14 +424,14 @@ The booking and management platform built specifically for barbershops. Barbers 
 | Google Cloud | Places API | $0 ($280/mo credit) |
 | Expo / EAS | iOS builds | $0 (free tier) |
 | Apple Developer | App Store | ~$12/mo ($139/yr) |
-| Domain (getclipd.ca) | Domain name | ~$1.50/mo (~$18/yr) |
+| Domain (zelko.ca) | Domain name | ~$1.50/mo (~$18/yr) |
 | **Total** | | **~$160-315/mo** |
 
 ---
 
 ## Competitor Landscape
 
-| Feature | Clipd | Booksy | Square | Fresha |
+| Feature | Zelko | Booksy | Square | Fresha |
 |---------|-------|--------|--------|--------|
 | Monthly price | $29-49 | $30-50 | $0-65 | Free (takes %) |
 | Client app required | No | Yes | No | Yes |
@@ -460,4 +460,4 @@ The booking and management platform built specifically for barbershops. Barbers 
 
 ---
 
-*This document is the single source of truth for Clipd's product. Update it when features ship, decisions change, or priorities shift.*
+*This document is the single source of truth for Zelko's product. Update it when features ship, decisions change, or priorities shift.*

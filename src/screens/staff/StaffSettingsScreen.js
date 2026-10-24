@@ -6,7 +6,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../lib/api";
-import { C, serif } from "../../lib/theme";
+import { F, C } from "../../lib/theme";
 
 const DAYS = [
   { label: "Monday", dow: 0 }, { label: "Tuesday", dow: 1 }, { label: "Wednesday", dow: 2 },
@@ -72,7 +72,7 @@ export default function StaffSettingsScreen() {
     setSavingProfile(true); setProfileMsg("");
     try {
       await api.staffUpdateProfile({ name: name.trim(), handle: handle.trim(), phone: phone.trim(), buffer_minutes: bufferMinutes });
-      setProfileMsg("Saved!");
+      setProfileMsg("Saved");
       setTimeout(() => setProfileMsg(""), 2000);
     } catch (err) { Alert.alert("Error", err.message); }
     setSavingProfile(false);
@@ -82,7 +82,7 @@ export default function StaffSettingsScreen() {
     setSavingBio(true); setBioMsg("");
     try {
       await api.staffUpdateBio({ bio: bio.trim(), years_exp: yearsExp.trim(), instagram: instagram.trim() });
-      setBioMsg("Saved!");
+      setBioMsg("Saved");
       setTimeout(() => setBioMsg(""), 2000);
     } catch (err) { Alert.alert("Error", err.message); }
     setSavingBio(false);
@@ -112,7 +112,7 @@ export default function StaffSettingsScreen() {
     setSavingAvail(true); setAvailMsg("");
     try {
       await api.adminSetBarberAvailability(barberId, availability);
-      setAvailMsg("Saved!");
+      setAvailMsg("Saved");
       setTimeout(() => setAvailMsg(""), 2000);
     } catch (err) { Alert.alert("Error", err.message); }
     setSavingAvail(false);
@@ -121,7 +121,7 @@ export default function StaffSettingsScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <View style={styles.center}><ActivityIndicator color={C.espresso} size="large" /></View>
+        <View style={styles.center}><ActivityIndicator color={C.ink} size="large" /></View>
       </View>
     );
   }
@@ -131,9 +131,9 @@ export default function StaffSettingsScreen() {
       <ScrollView
         style={styles.scroll}
         keyboardShouldPersistTaps="handled"
-        refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={C.espresso} />}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={C.ink} />}
       >
-        <Text style={styles.pageTitle}>My Profile</Text>
+        <Text style={styles.pageTitle}>My profile</Text>
 
         {/* Profile Section */}
         <View style={styles.section}>
@@ -148,7 +148,7 @@ export default function StaffSettingsScreen() {
             <Text style={styles.label}>Phone</Text>
             <TextInput style={styles.input} value={phone} onChangeText={setPhone} placeholder="416-555-0000" placeholderTextColor={C.muted} keyboardType="phone-pad" />
 
-            <Text style={styles.label}>Buffer After Each Booking</Text>
+            <Text style={styles.label}>Buffer after each booking</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={{ flexDirection: "row", gap: 6 }}>
                 {[0, 5, 10, 15, 20, 30].map(mins => (
@@ -174,7 +174,7 @@ export default function StaffSettingsScreen() {
 
         {/* Bio Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About You</Text>
+          <Text style={styles.sectionTitle}>About you</Text>
           <View style={styles.card}>
             <Text style={styles.label}>Bio</Text>
             <TextInput
@@ -200,7 +200,7 @@ export default function StaffSettingsScreen() {
 
         {/* Availability Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>My Hours</Text>
+          <Text style={styles.sectionTitle}>My hours</Text>
           <View style={styles.card}>
             {DAYS.map(({ label, dow }) => {
               const avail = getAvailForDay(dow);
@@ -212,8 +212,8 @@ export default function StaffSettingsScreen() {
                     <Switch
                       value={isOn}
                       onValueChange={() => toggleDay(dow)}
-                      trackColor={{ false: C.border, true: C.terra }}
-                      thumbColor={C.white}
+                      trackColor={{ false: C.line, true: C.blue }}
+                      thumbColor="#FFFFFF" activeThumbColor="#FFFFFF"
                     />
                   </View>
                   {isOn && (
@@ -252,35 +252,35 @@ export default function StaffSettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.cream },
+  container: { flex: 1, backgroundColor: C.paper },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   scroll: { flex: 1 },
-  pageTitle: { fontFamily: serif, fontSize: 28, fontWeight: "900", color: C.espresso, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
+  pageTitle: { fontSize: 28, fontFamily: F.regular, color: C.ink, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
 
   section: { paddingHorizontal: 20, marginBottom: 8 },
-  sectionTitle: { fontFamily: serif, fontSize: 16, fontWeight: "700", color: C.espresso, marginBottom: 10 },
-  card: { backgroundColor: C.white, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: C.border },
-  label: { fontSize: 10, fontWeight: "700", color: C.muted, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 6, marginTop: 12 },
+  sectionTitle: { fontSize: 16, fontFamily: F.regular, color: C.ink, marginBottom: 10 },
+  card: { backgroundColor: C.surface, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: C.line },
+  label: { fontSize: 14, fontFamily: F.medium, color: C.ink, marginBottom: 6, marginTop: 12 },
   input: {
-    backgroundColor: C.surface, borderRadius: 9, paddingHorizontal: 12, paddingVertical: 11,
-    fontSize: 14, color: C.espresso, borderWidth: 1, borderColor: C.border,
+    backgroundColor: C.surface, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 11,
+    fontFamily: F.regular, fontSize: 15, color: C.ink, borderWidth: 1, borderColor: C.lineStrong,
   },
-  bufferPill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.white },
-  bufferPillActive: { backgroundColor: C.espresso, borderColor: C.espresso },
-  bufferPillText: { fontSize: 12, fontWeight: "700", color: C.muted },
-  bufferPillTextActive: { color: C.cream },
-  saveBtn: { backgroundColor: C.espresso, paddingVertical: 13, borderRadius: 10, alignItems: "center", marginTop: 16 },
-  saveBtnText: { color: C.cream, fontSize: 14, fontWeight: "700" },
-  savedMsg: { fontSize: 12, color: "#059669", fontWeight: "600", textAlign: "center", marginTop: 8 },
+  bufferPill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface },
+  bufferPillActive: { backgroundColor: C.blue, borderColor: C.blue },
+  bufferPillText: { fontSize: 12, fontFamily: F.semibold, color: C.muted },
+  bufferPillTextActive: { color: C.onBlue },
+  saveBtn: { backgroundColor: C.blue, paddingVertical: 13, borderRadius: 12, alignItems: "center", marginTop: 16 },
+  saveBtnText: { color: C.paper, fontSize: 14, fontFamily: F.semibold },
+  savedMsg: { fontSize: 12, color: C.success, fontFamily: F.semibold, textAlign: "center", marginTop: 8 },
 
   // Availability
-  availRow: { borderBottomWidth: 1, borderBottomColor: C.border, paddingVertical: 12 },
+  availRow: { borderBottomWidth: 1, borderBottomColor: C.line, paddingVertical: 12 },
   availDayRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  availDay: { fontSize: 14, fontWeight: "600", color: C.espresso },
+  availDay: { fontSize: 14, fontFamily: F.semibold, color: C.ink },
   availTimes: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 },
   timeInput: {
-    flex: 1, backgroundColor: C.surface, borderRadius: 9, paddingHorizontal: 12, paddingVertical: 9,
-    fontSize: 14, color: C.espresso, borderWidth: 1, borderColor: C.border, textAlign: "center",
+    flex: 1, backgroundColor: C.surface, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9,
+    fontFamily: F.regular, fontSize: 15, color: C.ink, borderWidth: 1, borderColor: C.lineStrong, textAlign: "center",
   },
-  timeDash: { fontSize: 16, color: C.muted },
+  timeDash: { fontFamily: F.regular, fontSize: 16, color: C.muted },
 });

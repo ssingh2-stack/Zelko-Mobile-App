@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { api } from "../../../lib/api";
-import { C, serif } from "../../../lib/theme";
+import { F, C, serif } from "../../../lib/theme";
 
 // Labels and section-layout metadata — kept alongside the screen so any
 // preset-name copy tweaks happen in one place. Web uses the same labels via
@@ -51,7 +51,7 @@ export default function BrandedSiteScreen() {
   const [tagline, setTagline] = useState("");
   const [about, setAbout] = useState("");
   const [heroImage, setHeroImage] = useState("");
-  const [brandColor, setBrandColor] = useState("#C4683E");
+  const [brandColor, setBrandColor] = useState(C.blue);
   const [instagram, setInstagram] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
   const [siteUrl, setSiteUrl] = useState("");
@@ -86,7 +86,7 @@ export default function BrandedSiteScreen() {
       setTagline(data.site_tagline || "");
       setAbout(data.site_about || "");
       setHeroImage(data.site_hero_image || "");
-      setBrandColor(data.site_brand_color || "#C4683E");
+      setBrandColor(data.site_brand_color || C.blue);
       setInstagram(data.site_instagram || "");
       setPreviewUrl(data.preview_url || "");
       setSiteUrl(data.site_url_display || data.preview_url || "");
@@ -339,7 +339,7 @@ export default function BrandedSiteScreen() {
   if (loading) {
     return (
       <View style={[styles.container, styles.center, { paddingTop: insets.top }]}>
-        <ActivityIndicator color={C.terra} />
+        <ActivityIndicator color={C.blue} />
       </View>
     );
   }
@@ -348,9 +348,9 @@ export default function BrandedSiteScreen() {
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 60 }}>
       {/* Header */}
       <View style={styles.headerBox}>
-        <View style={styles.headerIcon}><Ionicons name="globe-outline" size={22} color={C.terra} /></View>
+        <View style={styles.headerIcon}><Ionicons name="globe-outline" size={22} color={C.blue} /></View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle}>Your Branded Site</Text>
+          <Text style={styles.headerTitle}>Your site</Text>
           <Text style={styles.headerSub}>Pick a theme that fits your shop, or customize every detail.</Text>
         </View>
       </View>
@@ -361,7 +361,7 @@ export default function BrandedSiteScreen() {
           <Text style={styles.urlLabel}>YOUR SITE URL</Text>
           <Text style={styles.urlValue} numberOfLines={1}>{siteUrl}</Text>
         </View>
-        <Ionicons name="open-outline" size={18} color={C.terra} />
+        <Ionicons name="open-outline" size={18} color={C.blue} />
       </TouchableOpacity>
 
       {/* Theme presets */}
@@ -380,10 +380,10 @@ export default function BrandedSiteScreen() {
                 style={[styles.presetCard, active && styles.presetCardActive]}
                 onPress={() => selectPreset(key)}
               >
-                <View style={[styles.presetMock, { backgroundColor: p.bg, borderBottomColor: p.border || C.border }]}>
-                  <Text style={{ fontFamily: meta.font, fontSize: 18, fontWeight: "700", color: p.text, marginBottom: 6 }}>Aa</Text>
+                <View style={[styles.presetMock, { backgroundColor: p.bg, borderBottomColor: p.border || C.line }]}>
+                  <Text style={{ fontFamily: meta.font, fontSize: 18, fontFamily: F.semibold, color: p.text, marginBottom: 6 }}>Aa</Text>
                   <View style={{ alignSelf: "flex-start", backgroundColor: p.brand, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 }}>
-                    <Text style={{ fontSize: 9, fontWeight: "800", color: brandIsLight ? "#000" : "#fff" }}>Book now</Text>
+                    <Text style={{ fontSize: 9, fontFamily: F.semibold, color: brandIsLight ? "#000" : "#fff" }}>Book now</Text>
                   </View>
                 </View>
                 <View style={styles.presetFooter}>
@@ -401,13 +401,13 @@ export default function BrandedSiteScreen() {
         style={[styles.section, styles.disclosureHeader]}
         onPress={() => setShowCustomColors(!showCustomColors)}
       >
-        <Ionicons name="color-palette-outline" size={20} color={C.espresso} />
+        <Ionicons name="color-palette-outline" size={20} color={C.ink} />
         <Text style={styles.disclosureText}>Customize colors</Text>
         <Ionicons name={showCustomColors ? "chevron-up" : "chevron-down"} size={18} color={C.muted} />
       </TouchableOpacity>
       {showCustomColors && (
         <View style={[styles.section, { marginTop: -12, paddingTop: 12 }]}>
-          <ColorField label="Primary / brand" value={brandColor} onChange={setBrandColor} defaultHex="#C4683E" />
+          <ColorField label="Primary / brand" value={brandColor} onChange={setBrandColor} defaultHex={C.blue} />
           <ColorField label="Accent"          value={accentColor} onChange={setAccentColor} allowClear />
           <ColorField label="Background"      value={bgColor}     onChange={setBgColor}     allowClear />
           <ColorField label="Text"            value={textColor}   onChange={setTextColor}   allowClear />
@@ -430,7 +430,7 @@ export default function BrandedSiteScreen() {
                 onPress={() => selectFontPair(key)}
               >
                 <Text style={[styles.fontPreview, { fontFamily: meta.family, fontWeight: meta.weight }]}>Aa</Text>
-                <Text style={[styles.fontLabel, active && { color: C.terra, fontWeight: "700" }]}>{meta.label}</Text>
+                <Text style={[styles.fontLabel, active && { color: C.blue, fontFamily: F.semibold }]}>{meta.label}</Text>
               </TouchableOpacity>
             );
           })}
@@ -465,12 +465,12 @@ export default function BrandedSiteScreen() {
             ) : (
               <View style={[styles.heroPreview, styles.heroPlaceholder]}>
                 <Ionicons name="image-outline" size={32} color={C.muted} />
-                <Text style={{ fontSize: 12, color: C.muted, marginTop: 6 }}>No hero image yet</Text>
+                <Text style={{ fontFamily: F.regular, fontSize: 12, color: C.muted, marginTop: 6 }}>No hero image yet</Text>
               </View>
             )}
             <View style={styles.heroBtnRow}>
               <TouchableOpacity style={styles.heroBtn} onPress={pickHeroImage} disabled={uploading}>
-                <Ionicons name="camera-outline" size={16} color={C.cream} />
+                <Ionicons name="camera-outline" size={16} color={C.paper} />
                 <Text style={styles.heroBtnText}>{uploading ? "Uploading..." : (heroImage ? "Change Image" : "Choose Image")}</Text>
               </TouchableOpacity>
               {heroImage && (
@@ -487,13 +487,13 @@ export default function BrandedSiteScreen() {
           <View style={{ marginTop: 14 }}>
             <View style={styles.videoPreview}>
               <Ionicons name={heroVideo ? "checkmark-circle" : "videocam-outline"} size={30} color={heroVideo ? "#4ade80" : "#fff"} />
-              <Text style={{ color: "#fff", fontSize: 12, marginTop: 4 }}>
+              <Text style={{ color: "#fff", fontFamily: F.regular, fontSize: 12, marginTop: 4 }}>
                 {heroVideo ? "Video uploaded" : "No video"}
               </Text>
             </View>
             <View style={styles.heroBtnRow}>
               <TouchableOpacity style={styles.heroBtn} onPress={pickHeroVideo} disabled={videoUploading}>
-                <Ionicons name="cloud-upload-outline" size={16} color={C.cream} />
+                <Ionicons name="cloud-upload-outline" size={16} color={C.paper} />
                 <Text style={styles.heroBtnText}>{videoUploading ? "Uploading..." : (heroVideo ? "Change video" : "Choose video")}</Text>
               </TouchableOpacity>
               {heroVideo && (
@@ -505,18 +505,18 @@ export default function BrandedSiteScreen() {
             <Text style={styles.helperText}>MP4, max 20MB, ~10s loops best.</Text>
 
             {/* Poster (existing hero image used as fallback while video loads) */}
-            <Text style={[styles.fieldLabel, { marginTop: 12 }]}>Poster image <Text style={{ color: C.muted, fontWeight: "400" }}>— shown while the video loads</Text></Text>
+            <Text style={[styles.fieldLabel, { marginTop: 12 }]}>Poster image <Text style={{ color: C.muted, fontFamily: F.regular }}>— shown while the video loads</Text></Text>
             {heroImage ? (
               <Image source={{ uri: heroImage }} style={[styles.heroPreview, { marginTop: 6 }]} />
             ) : (
               <View style={[styles.heroPreview, styles.heroPlaceholder, { marginTop: 6 }]}>
                 <Ionicons name="image-outline" size={24} color={C.muted} />
-                <Text style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>Optional — falls back to brand color</Text>
+                <Text style={{ fontFamily: F.regular, fontSize: 11, color: C.muted, marginTop: 4 }}>Optional — falls back to brand color</Text>
               </View>
             )}
             <View style={styles.heroBtnRow}>
               <TouchableOpacity style={styles.heroBtn} onPress={pickHeroImage} disabled={uploading}>
-                <Ionicons name="camera-outline" size={16} color={C.cream} />
+                <Ionicons name="camera-outline" size={16} color={C.paper} />
                 <Text style={styles.heroBtnText}>{uploading ? "Uploading..." : (heroImage ? "Change poster" : "Choose poster")}</Text>
               </TouchableOpacity>
               {heroImage && (
@@ -551,14 +551,14 @@ export default function BrandedSiteScreen() {
                   onPress={() => moveSection(sid, -1)}
                   style={styles.sectionIconBtn}
                 >
-                  <Ionicons name="chevron-up" size={20} color={idx === 0 ? C.border : C.espresso} />
+                  <Ionicons name="chevron-up" size={20} color={idx === 0 ? C.line : C.ink} />
                 </TouchableOpacity>
                 <TouchableOpacity
                   disabled={idx === sectionOrder.length - 1}
                   onPress={() => moveSection(sid, +1)}
                   style={styles.sectionIconBtn}
                 >
-                  <Ionicons name="chevron-down" size={20} color={idx === sectionOrder.length - 1 ? C.border : C.espresso} />
+                  <Ionicons name="chevron-down" size={20} color={idx === sectionOrder.length - 1 ? C.line : C.ink} />
                 </TouchableOpacity>
                 <Ionicons name={meta.icon} size={18} color={C.muted} style={{ marginLeft: 4 }} />
                 <Text style={styles.sectionRowLabel}>{meta.label}</Text>
@@ -566,7 +566,7 @@ export default function BrandedSiteScreen() {
                   onPress={() => toggleSectionVisibility(sid)}
                   style={styles.sectionIconBtn}
                 >
-                  <Ionicons name={isHidden ? "eye-off-outline" : "eye-outline"} size={18} color={isHidden ? C.muted : C.espresso} />
+                  <Ionicons name={isHidden ? "eye-off-outline" : "eye-outline"} size={18} color={isHidden ? C.muted : C.ink} />
                 </TouchableOpacity>
               </View>
             );
@@ -620,7 +620,7 @@ export default function BrandedSiteScreen() {
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
           <Text style={styles.sectionLabel}>PHOTO GALLERY</Text>
           <TouchableOpacity onPress={addGalleryPhoto} disabled={photoUploading} style={styles.galleryAddBtn}>
-            <Ionicons name="add" size={14} color={C.cream} />
+            <Ionicons name="add" size={14} color={C.paper} />
             <Text style={styles.galleryAddText}>{photoUploading ? "Uploading…" : "Add"}</Text>
           </TouchableOpacity>
         </View>
@@ -628,7 +628,7 @@ export default function BrandedSiteScreen() {
         {photos.length === 0 ? (
           <View style={styles.galleryEmpty}>
             <Ionicons name="images-outline" size={28} color={C.muted} />
-            <Text style={{ fontSize: 12, color: C.muted, marginTop: 6 }}>No photos yet</Text>
+            <Text style={{ fontFamily: F.regular, fontSize: 12, color: C.muted, marginTop: 6 }}>No photos yet</Text>
           </View>
         ) : (
           <View style={styles.galleryGrid}>
@@ -650,7 +650,7 @@ export default function BrandedSiteScreen() {
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.previewBtn} onPress={openPreview}>
-        <Ionicons name="open-outline" size={16} color={C.terra} />
+        <Ionicons name="open-outline" size={16} color={C.blue} />
         <Text style={styles.previewBtnText}>Preview your site</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -715,7 +715,7 @@ function ColorPickerModal({ visible, title, initialColor, onPick, onClose, allow
           </View>
           <Text style={pickerStyles.customLabel}>Or enter a custom color</Text>
           <View style={pickerStyles.hexRow}>
-            <View style={[pickerStyles.hexPreview, { backgroundColor: validHex ? local : "#E0E0E0" }]} />
+            <View style={[pickerStyles.hexPreview, { backgroundColor: validHex ? local : C.line }]} />
             <TextInput
               style={pickerStyles.hexInput}
               value={local}
@@ -778,7 +778,7 @@ function ColorField({ label, value, onChange, defaultHex, allowClear }) {
     <View style={{ marginBottom: 12 }}>
       <Text style={styles.fieldLabel}>{label}</Text>
       <TouchableOpacity style={styles.colorFieldRow} onPress={() => setPicking(true)}>
-        <View style={[styles.colorFieldSwatch, { backgroundColor: hasValue ? value : (defaultHex || "#E0E0E0") }]} />
+        <View style={[styles.colorFieldSwatch, { backgroundColor: hasValue ? value : (defaultHex || C.line) }]} />
         <Text style={styles.colorFieldText}>
           {hasValue ? value : (allowClear ? "Using preset default" : (defaultHex || "Tap to choose"))}
         </Text>
@@ -797,188 +797,188 @@ function ColorField({ label, value, onChange, defaultHex, allowClear }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.cream },
+  container: { flex: 1, backgroundColor: C.paper },
   center: { alignItems: "center", justifyContent: "center" },
   headerBox: {
     flexDirection: "row", gap: 12, padding: 18,
-    backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: C.border,
+    backgroundColor: C.surface, borderBottomWidth: 1, borderBottomColor: C.line,
   },
   headerIcon: {
-    width: 40, height: 40, borderRadius: 10, backgroundColor: "rgba(196,104,62,0.1)",
+    width: 40, height: 40, borderRadius: 10, backgroundColor: "rgba(26,36,201,0.1)",
     alignItems: "center", justifyContent: "center", flexShrink: 0,
   },
-  headerTitle: { fontFamily: serif, fontSize: 20, fontWeight: "900", color: C.espresso, marginBottom: 4 },
-  headerSub: { fontSize: 12, color: C.muted, lineHeight: 16 },
+  headerTitle: { fontSize: 20, fontFamily: F.regular, color: C.ink, marginBottom: 4 },
+  headerSub: { fontFamily: F.regular, fontSize: 12, color: C.muted, lineHeight: 16 },
 
   urlCard: {
     flexDirection: "row", alignItems: "center", gap: 12,
-    backgroundColor: C.white, marginHorizontal: 16, marginTop: 16,
+    backgroundColor: C.surface, marginHorizontal: 16, marginTop: 16,
     paddingHorizontal: 16, paddingVertical: 12,
-    borderRadius: 10, borderWidth: 1, borderColor: C.border,
+    borderRadius: 12, borderWidth: 1, borderColor: C.line,
   },
-  urlLabel: { fontSize: 9, fontWeight: "800", color: C.muted, letterSpacing: 1.2, marginBottom: 2 },
-  urlValue: { fontSize: 13, fontWeight: "700", color: C.espresso },
+  urlLabel: { fontSize: 11, fontFamily: F.semibold, color: C.muted, letterSpacing: 1.2, marginBottom: 2 },
+  urlValue: { fontSize: 13, fontFamily: F.semibold, color: C.ink },
 
   section: {
-    backgroundColor: C.white,
+    backgroundColor: C.surface,
     marginHorizontal: 16, marginTop: 16,
     padding: 16,
-    borderRadius: 12, borderWidth: 1, borderColor: C.border,
+    borderRadius: 12, borderWidth: 1, borderColor: C.line,
   },
-  sectionLabel: { fontSize: 11, fontWeight: "800", color: C.muted, letterSpacing: 1.2, marginBottom: 4 },
-  helperText: { fontSize: 11, color: C.muted, lineHeight: 14, marginBottom: 10 },
-  fieldLabel: { fontSize: 12, fontWeight: "600", color: C.espresso, marginBottom: 4, marginTop: 8 },
+  sectionLabel: { fontSize: 11, fontFamily: F.semibold, color: C.muted, letterSpacing: 1.2, marginBottom: 4 },
+  helperText: { fontFamily: F.regular, fontSize: 11, color: C.muted, lineHeight: 14, marginBottom: 10 },
+  fieldLabel: { fontSize: 12, fontFamily: F.semibold, color: C.ink, marginBottom: 4, marginTop: 8 },
   input: {
     backgroundColor: C.surface,
-    borderWidth: 1, borderColor: C.border,
+    borderWidth: 1, borderColor: C.lineStrong,
     borderRadius: 8, padding: 12,
-    fontSize: 14, color: C.espresso,
+    fontFamily: F.regular, fontSize: 15, color: C.ink,
   },
 
   presetRow: { gap: 10, paddingVertical: 4, paddingRight: 4 },
   presetCard: {
     width: 138, borderRadius: 12,
-    backgroundColor: C.surface, borderWidth: 2, borderColor: C.border,
+    backgroundColor: C.sunk, borderWidth: 2, borderColor: C.line,
     overflow: "hidden",
   },
-  presetCardActive: { borderColor: C.terra },
+  presetCardActive: { borderColor: C.blue },
   presetMock: { padding: 12, minHeight: 70, borderBottomWidth: 1 },
   presetFooter: { padding: 10 },
-  presetLabel: { fontSize: 13, fontWeight: "700", color: C.espresso },
-  presetSelected: { fontSize: 11, color: C.terra, fontWeight: "700", marginTop: 2 },
+  presetLabel: { fontSize: 13, fontFamily: F.semibold, color: C.ink },
+  presetSelected: { fontSize: 11, color: C.blue, fontFamily: F.semibold, marginTop: 2 },
 
   fontRow: { gap: 8, paddingVertical: 4, paddingRight: 4 },
   fontCard: {
     width: 100, padding: 10, borderRadius: 8,
-    backgroundColor: C.surface, borderWidth: 1.5, borderColor: C.border,
+    backgroundColor: C.sunk, borderWidth: 1, borderColor: C.line,
   },
-  fontCardActive: { borderColor: C.terra },
-  fontPreview: { fontSize: 22, fontWeight: "700", color: C.espresso, lineHeight: 24 },
-  fontLabel: { fontSize: 11, fontWeight: "500", color: C.muted, marginTop: 4 },
+  fontCardActive: { borderColor: C.blue },
+  fontPreview: { fontSize: 22, fontFamily: F.regular, color: C.ink, lineHeight: 24 },
+  fontLabel: { fontSize: 11, fontFamily: F.medium, color: C.muted, marginTop: 4 },
 
   heroTabs: {
     flexDirection: "row", alignSelf: "flex-start",
-    padding: 3, borderWidth: 1, borderColor: C.border, borderRadius: 10,
-    backgroundColor: C.surface, gap: 2,
+    padding: 3, borderWidth: 1, borderColor: C.line, borderRadius: 10,
+    backgroundColor: C.sunk, gap: 2,
   },
   heroTab: { paddingVertical: 7, paddingHorizontal: 16, borderRadius: 7 },
-  heroTabActive: { backgroundColor: C.terra },
-  heroTabText: { fontSize: 13, fontWeight: "700", color: C.espresso },
-  heroTabTextActive: { color: C.cream },
+  heroTabActive: { backgroundColor: C.blue },
+  heroTabText: { fontSize: 13, fontFamily: F.semibold, color: C.ink },
+  heroTabTextActive: { color: C.onBlue },
 
   videoPreview: {
     width: 140, height: 84, borderRadius: 10,
     backgroundColor: "#000", alignItems: "center", justifyContent: "center",
-    borderWidth: 2, borderColor: C.border, marginBottom: 10,
+    borderWidth: 2, borderColor: C.line, marginBottom: 10,
   },
 
   sectionRow: {
     flexDirection: "row", alignItems: "center", gap: 6,
     paddingHorizontal: 10, paddingVertical: 10,
-    backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 8,
+    backgroundColor: C.sunk, borderWidth: 1, borderColor: C.line, borderRadius: 8,
   },
   sectionRowHidden: { opacity: 0.55, backgroundColor: "rgba(0,0,0,0.02)" },
-  sectionRowLabel: { flex: 1, fontSize: 14, fontWeight: "600", color: C.espresso, marginLeft: 6 },
+  sectionRowLabel: { flex: 1, fontSize: 14, fontFamily: F.semibold, color: C.ink, marginLeft: 6 },
   sectionIconBtn: { padding: 4 },
 
   colorFieldRow: {
     flexDirection: "row", alignItems: "center", gap: 10,
-    backgroundColor: C.surface, borderWidth: 1, borderColor: C.border,
+    backgroundColor: C.sunk, borderWidth: 1, borderColor: C.line,
     borderRadius: 8, paddingHorizontal: 10, paddingVertical: 9,
   },
   colorFieldSwatch: {
     width: 28, height: 28, borderRadius: 6,
     borderWidth: 1, borderColor: "rgba(0,0,0,.12)",
   },
-  colorFieldText: { flex: 1, fontSize: 13, color: C.espresso, fontWeight: "600", fontFamily: "Courier" },
+  colorFieldText: { flex: 1, fontSize: 13, color: C.ink, fontFamily: F.semibold, fontFamily: "Courier" },
 
   disclosureHeader: {
     flexDirection: "row", alignItems: "center", gap: 8,
     paddingVertical: 14,
   },
-  disclosureText: { flex: 1, fontSize: 15, fontWeight: "700", color: C.espresso },
+  disclosureText: { flex: 1, fontSize: 15, fontFamily: F.semibold, color: C.ink },
 
   heroPreview: {
     width: "100%", aspectRatio: 16 / 10,
     borderRadius: 10,
     marginBottom: 10,
-    backgroundColor: C.surface,
+    backgroundColor: C.sunk,
   },
-  heroPlaceholder: { alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: C.border, borderStyle: "dashed" },
+  heroPlaceholder: { alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.line, borderStyle: "dashed" },
   heroBtnRow: { flexDirection: "row", gap: 8, marginBottom: 6 },
   heroBtn: {
     flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
-    backgroundColor: C.terra,
+    backgroundColor: C.blue,
     paddingVertical: 12, borderRadius: 8,
   },
-  heroBtnText: { fontSize: 13, fontWeight: "800", color: C.cream },
+  heroBtnText: { fontSize: 13, fontFamily: F.semibold, color: C.paper },
   heroBtnGhost: {
     paddingHorizontal: 16, paddingVertical: 12, borderRadius: 8,
-    borderWidth: 1, borderColor: C.border, backgroundColor: C.white,
+    borderWidth: 1, borderColor: C.line, backgroundColor: C.surface,
   },
-  heroBtnGhostText: { fontSize: 13, fontWeight: "700", color: C.muted },
+  heroBtnGhostText: { fontSize: 13, fontFamily: F.semibold, color: C.muted },
 
-  galleryAddBtn: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: C.terra, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999 },
-  galleryAddText: { fontSize: 12, fontWeight: "800", color: C.cream },
-  galleryEmpty: { alignItems: "center", paddingVertical: 24, borderWidth: 1.5, borderColor: C.border, borderStyle: "dashed", borderRadius: 10 },
+  galleryAddBtn: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: C.blue, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999 },
+  galleryAddText: { fontSize: 12, fontFamily: F.semibold, color: C.paper },
+  galleryEmpty: { alignItems: "center", paddingVertical: 24, borderWidth: 1, borderColor: C.line, borderStyle: "dashed", borderRadius: 10 },
   galleryGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  galleryItem: { width: "31.5%", aspectRatio: 1, borderRadius: 8, overflow: "hidden", position: "relative", backgroundColor: C.surface, borderWidth: 1, borderColor: C.border },
+  galleryItem: { width: "31.5%", aspectRatio: 1, borderRadius: 8, overflow: "hidden", position: "relative", backgroundColor: C.sunk, borderWidth: 1, borderColor: C.line },
   galleryImg: { width: "100%", height: "100%" },
   galleryDelete: { position: "absolute", top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: "rgba(0,0,0,0.65)", alignItems: "center", justifyContent: "center" },
 
   saveBtn: {
-    backgroundColor: C.espresso, marginHorizontal: 16, marginTop: 24,
-    paddingVertical: 16, borderRadius: 10, alignItems: "center",
+    backgroundColor: C.blue, marginHorizontal: 16, marginTop: 24,
+    paddingVertical: 16, borderRadius: 12, alignItems: "center",
   },
-  saveBtnText: { fontSize: 15, fontWeight: "900", color: C.cream, letterSpacing: 0.3 },
+  saveBtnText: { fontSize: 15, fontFamily: F.semibold, color: C.paper, letterSpacing: 0.3 },
 
   previewBtn: {
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
     marginHorizontal: 16, marginTop: 10,
-    paddingVertical: 14, borderRadius: 10,
-    borderWidth: 1.5, borderColor: C.terra, backgroundColor: "transparent",
+    paddingVertical: 14, borderRadius: 12,
+    borderWidth: 1, borderColor: C.blue, backgroundColor: "transparent",
   },
-  previewBtnText: { fontSize: 14, fontWeight: "800", color: C.terra },
+  previewBtnText: { fontSize: 14, fontFamily: F.semibold, color: C.blue },
 });
 
 const pickerStyles = StyleSheet.create({
   backdrop: {
-    flex: 1, backgroundColor: "rgba(0,0,0,0.4)",
+    flex: 1, backgroundColor: "rgba(14,14,12,0.45)",
     justifyContent: "flex-end",
   },
   sheet: {
-    backgroundColor: C.cream,
+    backgroundColor: C.paper,
     paddingTop: 16, paddingBottom: 36,
     paddingHorizontal: 20,
     borderTopLeftRadius: 20, borderTopRightRadius: 20,
   },
-  title: { fontSize: 17, fontWeight: "800", color: C.espresso, marginBottom: 14 },
+  title: { fontSize: 17, fontFamily: F.semibold, color: C.ink, marginBottom: 14 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 18 },
   swatch: {
     width: 36, height: 36, borderRadius: 8,
     alignItems: "center", justifyContent: "center",
     borderWidth: 2, borderColor: "transparent",
   },
-  swatchSelected: { borderColor: C.espresso, transform: [{ scale: 1.08 }] },
+  swatchSelected: { borderColor: C.ink, transform: [{ scale: 1.08 }] },
   swatchBordered: { borderColor: "rgba(0,0,0,0.12)", borderWidth: 1 },
 
-  customLabel: { fontSize: 12, fontWeight: "700", color: C.muted, letterSpacing: 1, marginBottom: 8 },
+  customLabel: { fontSize: 12, fontFamily: F.semibold, color: C.muted, letterSpacing: 1, marginBottom: 8 },
   hexRow: {
     flexDirection: "row", alignItems: "center", gap: 10,
-    backgroundColor: C.white, borderWidth: 1, borderColor: C.border,
+    backgroundColor: C.surface, borderWidth: 1, borderColor: C.line,
     borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10,
     marginBottom: 16,
   },
   hexPreview: { width: 28, height: 28, borderRadius: 6, borderWidth: 1, borderColor: "rgba(0,0,0,.12)" },
   hexInput: {
     flex: 1, fontSize: 15, fontFamily: "Courier", letterSpacing: 1,
-    color: C.espresso, fontWeight: "700",
+    color: C.ink, fontFamily: F.semibold,
   },
 
   btnRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  btn: { paddingHorizontal: 16, paddingVertical: 11, borderRadius: 10 },
+  btn: { paddingHorizontal: 16, paddingVertical: 11, borderRadius: 12 },
   btnGhost: { backgroundColor: "transparent" },
-  btnGhostText: { fontSize: 14, fontWeight: "700", color: C.muted },
-  btnPrimary: { backgroundColor: C.espresso },
-  btnPrimaryText: { fontSize: 14, fontWeight: "800", color: C.cream },
+  btnGhostText: { fontSize: 14, fontFamily: F.semibold, color: C.muted },
+  btnPrimary: { backgroundColor: C.blue },
+  btnPrimaryText: { fontSize: 14, fontFamily: F.semibold, color: C.paper },
 });
