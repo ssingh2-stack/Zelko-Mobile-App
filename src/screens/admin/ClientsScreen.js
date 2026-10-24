@@ -25,6 +25,14 @@ function initials(name) {
     : parts[0][0].toUpperCase();
 }
 
+// "2026-10-24" -> "Oct 24" (year only when it isn't this year)
+function fmtVisit(iso) {
+  if (!iso) return "not yet";
+  const [y, m, d] = iso.split("-").map(Number);
+  const label = new Date(y, m - 1, d).toLocaleDateString("en-CA", { month: "short", day: "numeric" });
+  return y === new Date().getFullYear() ? label : `${label}, ${y}`;
+}
+
 export default function ClientsScreen() {
   const insets = useSafeAreaInsets();
   const [clients, setClients] = useState([]);
@@ -120,7 +128,7 @@ export default function ClientsScreen() {
               {c.preferred_barber ? ` · ${c.preferred_barber}` : ""}
             </Text>
             {c.last_visit && (
-              <Text style={styles.lastVisit}>Last visit {c.last_visit}</Text>
+              <Text style={styles.lastVisit}>Last visit {fmtVisit(c.last_visit)}</Text>
             )}
           </View>
         </View>

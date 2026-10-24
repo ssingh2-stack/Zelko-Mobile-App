@@ -195,7 +195,8 @@ export default function InsightsScreen() {
       // Compute trends
       if (results[3]) {
         const prev = results[3];
-        const pct = (cur, old) => old > 0 ? Math.round(((cur - old) / old) * 100) : (cur > 0 ? 100 : null);
+        // No earlier data means nothing to compare against, so show no trend rather than a fake +100%
+        const pct = (cur, old) => old > 0 ? Math.round(((cur - old) / old) * 100) : null;
         setTrends({
           revenue: pct(kpis.total_revenue ?? 0, prev.total_revenue ?? 0),
           bookings: pct(kpis.total_bookings ?? 0, prev.total_bookings ?? 0),

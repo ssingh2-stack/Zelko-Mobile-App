@@ -70,10 +70,11 @@ Secondary: Productivity
 4+
 
 ## Screenshots (6.9" iPhone, 1320 x 2868)
-Capture from build 1.1.0 with the demo shop ("Your shop", barbers Marcus, Jordan and Ash), never a real shop's clients.
-1. Today: the day's revenue card and calendar
-2. Booking detail: rebook and collect
-3. Collect payment: amount, tip and charge
-4. Client profile: visits, notes and history
-5. Insights: revenue and barber performance
-6. Share your link: booking page and QR code
+Ready to upload from `store/screenshots/out/1320x2868/`, in order (6.5" versions in `out/1284x2778/`). See `store/screenshots/README.md` to regenerate.
+1. Run the shop. Not the paperwork. (Today)
+2. Get paid at the chair. (Take payment with a tip)
+3. Book them again in one tap. (Booking detail)
+4. Every client, remembered. (Client profile)
+5. Your shop, in numbers. (Insights)
+6. Clients book from a link. (Share your link)
+7. Everything the shop runs on. (Feature list)
